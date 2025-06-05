@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { Link } from 'react-scroll'; // Add this import at the top
 import './App.css';
 import FeaturesSection from './FeaturesSection';
 import HowItWorksSection from './HowItWorksSection';
@@ -110,11 +111,51 @@ function HomePage() {
           <span className="navbar-pro__brand">NutriSift</span>
         </div>
         <div className="navbar-pro__links">
-          <a href="#features">Features</a>
-          <a href="#how">How It Works</a>
-          <a href="#pricing">Pricing</a>
-          <a href="#testimonials">Testimonials</a>
-          <a href="#about">About</a>
+          <Link 
+            to="features" 
+            smooth={true} 
+            duration={500} 
+            offset={-80} // Adjust based on your navbar height
+            className="navbar-link"
+          >
+            Features
+          </Link>
+          <Link 
+            to="how" 
+            smooth={true} 
+            duration={500} 
+            offset={-80}
+            className="navbar-link"
+          >
+            How It Works
+          </Link>
+          <Link 
+            to="pricing" 
+            smooth={true} 
+            duration={500} 
+            offset={-80}
+            className="navbar-link"
+          >
+            Pricing
+          </Link>
+          <Link 
+            to="testimonials" 
+            smooth={true} 
+            duration={500} 
+            offset={-80}
+            className="navbar-link"
+          >
+            Testimonials
+          </Link>
+          <Link 
+            to="about" 
+            smooth={true} 
+            duration={500} 
+            offset={-80}
+            className="navbar-link"
+          >
+            About
+          </Link>
           
           {/* Hamburger menu button */}
           <div className="hamburger-menu-container">
