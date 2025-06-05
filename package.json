@@ -2,7 +2,7 @@
   "name": "nutri-sift",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://github.com/Shubhodippal/NutriSift.git",
+  "homepage": "https://shubhodippal.github.io/NutriSift",
   "dependencies": {
     "@react-three/drei": "^10.1.2",
     "@react-three/fiber": "^9.1.2",
