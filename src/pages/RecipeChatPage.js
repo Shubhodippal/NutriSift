@@ -271,10 +271,29 @@ function RecipeChatPage() {
       
       setSavedRecipes([...savedRecipes, newRecipe]);
       
-      // Show success notification
-      alert(`Recipe "${recipeTitle}" saved successfully!`);
+      // Show success toast notification instead of alert
+      const toast = document.createElement('div');
+      toast.className = 'share-success';
+      toast.textContent = `Recipe "${recipeTitle}" saved!`;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        if (document.body.contains(toast)) {
+          document.body.removeChild(toast);
+        }
+      }, 3000);
     } else {
-      alert('This recipe is already saved!');
+      // Show already saved toast
+      const toast = document.createElement('div');
+      toast.className = 'share-error';
+      toast.textContent = 'This recipe is already saved!';
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        if (document.body.contains(toast)) {
+          document.body.removeChild(toast);
+        }
+      }, 3000);
     }
   };
 
@@ -662,6 +681,12 @@ function RecipeChatPage() {
                   </div>
                   {msg.sender === "bot" && idx > 0 && idx === messages.length - 1 && msg.text.includes("# ") && (
                     <div className="message-actions">
+                      <button 
+                        className="action-button"
+                        onClick={() => handleSaveRecipe(msg)}
+                      >
+                        <span className="action-icon">💾</span> Save Recipe
+                      </button>
                       <button 
                         className="action-button"
                         onClick={() => handleShareRecipe(msg)}

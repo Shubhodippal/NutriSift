@@ -212,6 +212,26 @@ body {
   color: var(--text);
 }
 
+.navbar-pro__nav-button {
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  padding: 0.5rem 0.8rem;
+  border-radius: var(--radius);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.navbar-pro__nav-button:hover {
+  color: var(--primary);
+  background: rgba(79, 140, 255, 0.1);
+  transform: translateY(-2px);
+}
+
 /* Hero Section */
 .hero-pro {
   display: flex;

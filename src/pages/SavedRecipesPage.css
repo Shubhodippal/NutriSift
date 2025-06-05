@@ -1,0 +1,145 @@
+.saved-recipes-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #121826 0%, #0c111b 100%);
+  padding: 2rem;
+  color: #e2e8f0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.saved-recipes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.saved-recipes-header h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 0;
+  background: linear-gradient(135deg, #4f8cff 0%, #6a5af9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #1a2235;
+  color: #e2e8f0;
+  border: 1px solid #2d3748;
+  border-radius: 50px;
+  padding: 0.7rem 1.4rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(79, 140, 255, 0.3);
+}
+
+.search-container {
+  margin-bottom: 2rem;
+}
+
+.search-container input {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #2d3748;
+  background: #1a2235;
+  color: #e2e8f0;
+  font-size: 1rem;
+}
+
+.recipe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.recipe-card {
+  background: #1a2235;
+  border: 1px solid #2d3748;
+  border-radius: 20px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+.recipe-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+}
+
+.recipe-card h2 {
+  color: #4f8cff;
+  margin-top: 0;
+}
+
+.recipe-preview {
+  color: #a0aec0;
+  margin-bottom: 1.5rem;
+  height: 100px;
+  overflow: hidden;
+}
+
+.recipe-card-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.recipe-card-actions button {
+  flex: 1;
+  padding: 0.7rem;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.recipe-card-actions button:first-child {
+  background: #4f8cff;
+  color: white;
+}
+
+.recipe-card-actions button:last-child {
+  background: #232b3d;
+  color: #e2e8f0;
+  border: 1px solid #2d3748;
+}
+
+.no-recipes {
+  text-align: center;
+  padding: 3rem;
+  background: #1a2235;
+  border-radius: 20px;
+  border: 1px solid #2d3748;
+}
+
+.no-recipes p {
+  margin-bottom: 1.5rem;
+  color: #a0aec0;
+  font-size: 1.1rem;
+}
+
+.no-recipes button {
+  background: #4f8cff;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 0.8rem 1.6rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.no-recipes button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(79, 140, 255, 0.3);
+}

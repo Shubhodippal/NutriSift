@@ -7,6 +7,9 @@ import PricingSection from './PricingSection';
 import TestimonialsSection from './TestimonialsSection';
 import AboutSection from './AboutSection';
 import RecipeChatPage from './pages/RecipeChatPage';
+import SavedRecipesPage from './pages/SavedRecipesPage';
+import RecipeDetailPage from './pages/RecipeDetailPage';
+import GroceryListPage from './pages/GroceryListPage';
 import AnimatedBackground from './components/AnimatedBackground';
 import { ThemeProvider } from './ThemeContext';
 import RecipeGallery from './RecipeGallery';
@@ -52,13 +55,35 @@ function HomePage() {
           <a href="#pricing">Pricing</a>
           <a href="#testimonials">Testimonials</a>
           <a href="#about">About</a>
+          
+          {/* Added navigation buttons for all pages */}
+          <button
+            className="navbar-pro__nav-button"
+            onClick={() => navigate('/chat')}
+          >
+            💬 Recipe Chat
+          </button>
+          
+          <button
+            className="navbar-pro__nav-button"
+            onClick={() => navigate('/saved-recipes')}
+          >
+            📚 Saved Recipes
+          </button>
+          
+          <button
+            className="navbar-pro__nav-button"
+            onClick={() => navigate('/grocery-list')}
+          >
+            🛒 Grocery List
+          </button>
+          
           <button
             className="navbar-pro__cta"
             onClick={() => navigate('/chat')}
           >
             Try Now
           </button>
-          {/* Toggle button removed */}
         </div>
       </nav>
 
@@ -169,6 +194,10 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/chat" element={<RecipeChatPage />} />
+          <Route path="/saved-recipes" element={<SavedRecipesPage />} />
+          <Route path="/recipe/:id" element={<RecipeDetailPage />} />
+          <Route path="/grocery-list" element={<GroceryListPage />} />
+          {/* Remove any routes to MealPlannerPage or UserProfilePage here */}
         </Routes>
       </Router>
     </ThemeProvider>
