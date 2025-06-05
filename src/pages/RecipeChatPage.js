@@ -271,29 +271,10 @@ function RecipeChatPage() {
       
       setSavedRecipes([...savedRecipes, newRecipe]);
       
-      // Show success toast notification instead of alert
-      const toast = document.createElement('div');
-      toast.className = 'share-success';
-      toast.textContent = `Recipe "${recipeTitle}" saved!`;
-      document.body.appendChild(toast);
-      
-      setTimeout(() => {
-        if (document.body.contains(toast)) {
-          document.body.removeChild(toast);
-        }
-      }, 3000);
+      // Show success notification
+      alert(`Recipe "${recipeTitle}" saved successfully!`);
     } else {
-      // Show already saved toast
-      const toast = document.createElement('div');
-      toast.className = 'share-error';
-      toast.textContent = 'This recipe is already saved!';
-      document.body.appendChild(toast);
-      
-      setTimeout(() => {
-        if (document.body.contains(toast)) {
-          document.body.removeChild(toast);
-        }
-      }, 3000);
+      alert('This recipe is already saved!');
     }
   };
 
@@ -620,6 +601,198 @@ function RecipeChatPage() {
     }
   };
 
+  // Add to grocery list
+  const handleAddToGroceryList = async (message) => {
+    // Extract recipe title for reference
+    const titleMatch = message.text.match(/# (.*)\n/);
+    const recipeTitle = titleMatch ? titleMatch[1] : "Untitled Recipe";
+    
+    // Get ingredients from the recipe data or parse from text
+    let ingredients = [];
+    if (message.recipeData && message.recipeData.ingredients) {
+      ingredients = message.recipeData.ingredients;
+    } else {
+      // Try to extract ingredients section from text
+      const ingredientsMatch = message.text.match(/## Ingredients\n([\s\S]*?)(?=\n## |\n$)/);
+      if (ingredientsMatch && ingredientsMatch[1]) {
+        ingredients = ingredientsMatch[1]
+          .split('\n')
+          .map(line => line.replace(/^- /, '').trim())
+          .filter(line => line);
+      }
+    }
+    
+    if (ingredients.length === 0) {
+      // Show error if no ingredients found
+      const errorToast = document.createElement('div');
+      errorToast.className = 'share-error';
+      errorToast.textContent = 'No ingredients found in recipe';
+      document.body.appendChild(errorToast);
+      
+      setTimeout(() => {
+        if (document.body.contains(errorToast)) {
+          document.body.removeChild(errorToast);
+        }
+      }, 3000);
+      return;
+    }
+    
+    // Show loading indicator
+    setLoading(true);
+    
+    try {
+      // Format ingredients for grocery list
+      const groceryItemPromises = ingredients.map(async (ingredient) => {
+        // Try to extract quantity if it exists
+        const parts = ingredient.match(/^([\d./]+ \w+)?\s*(.+)/);
+        const quantity = parts && parts[1] ? parts[1] : '';
+        const name = parts && parts[2] ? parts[2] : ingredient;
+        
+        // Get category from API
+        const category = await categorizeIngredient(name);
+        
+        return {
+          name: name,
+          quantity: quantity,
+          category: category,
+          checked: false,
+          count: 1,
+          meals: [recipeTitle]
+        };
+      });
+      
+      // Wait for all categorization promises to resolve
+      const groceryItems = await Promise.all(groceryItemPromises);
+      
+      // Get existing grocery items from localStorage
+      const existingItems = JSON.parse(localStorage.getItem('groceryItems') || '[]');
+      
+      // Merge new items with existing items (avoid duplicates)
+      const mergedItems = [...existingItems];
+      
+      groceryItems.forEach(newItem => {
+        const existingIndex = mergedItems.findIndex(item => 
+          item.name.toLowerCase() === newItem.name.toLowerCase()
+        );
+        
+        if (existingIndex >= 0) {
+          // Update existing item
+          mergedItems[existingIndex].count++;
+          if (!mergedItems[existingIndex].meals.includes(recipeTitle)) {
+            mergedItems[existingIndex].meals.push(recipeTitle);
+          }
+        } else {
+          // Add new item
+          mergedItems.push(newItem);
+        }
+      });
+      
+      // Sort by category and name
+
+      const sortedItems = mergedItems.sort((a, b) => {
+        // Safely handle undefined categories or names
+        const categoryA = a.category || 'Other';
+        const categoryB = b.category || 'Other';
+        const nameA = a.name || '';
+        const nameB = b.name || '';
+        
+        // Sort by category first, then by name
+        return categoryA.localeCompare(categoryB) || nameA.localeCompare(nameB);
+      });
+      
+      // Save to localStorage
+      localStorage.setItem('groceryItems', JSON.stringify(sortedItems));
+      
+      // Show success toast
+      const toast = document.createElement('div');
+      toast.className = 'share-success';
+      toast.textContent = `${ingredients.length} ingredients added to grocery list!`;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        if (document.body.contains(toast)) {
+          document.body.removeChild(toast);
+        }
+      }, 3000);
+    } catch (error) {
+      console.error('Error adding to grocery list:', error);
+      
+      // Show error toast
+      const errorToast = document.createElement('div');
+      errorToast.className = 'share-error';
+      errorToast.textContent = 'Error adding ingredients to grocery list';
+      document.body.appendChild(errorToast);
+      
+      setTimeout(() => {
+        if (document.body.contains(errorToast)) {
+          document.body.removeChild(errorToast);
+        }
+      }, 3000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Update the categorizeIngredient function
+  const categorizeIngredient = async (ingredient) => {
+    try {
+      // Call the categorization API
+      const response = await fetch('http://localhost:5000/categorize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ ingredient })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API returned status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      // Ensure we always have a valid category string
+      return data.category || 'Other';
+    } catch (error) {
+      console.error('Categorization API error:', error);
+      // Fallback to basic categorization if API fails
+      return fallbackCategorize(ingredient);
+    }
+  };
+
+  // Add a fallback function for when the API call fails
+  const fallbackCategorize = (ingredient) => {
+    const lowerIngredient = ingredient.toLowerCase();
+    
+    if (lowerIngredient.includes('flour') || lowerIngredient.includes('sugar') || 
+        lowerIngredient.includes('oil') || lowerIngredient.includes('pasta') ||
+        lowerIngredient.includes('rice') || lowerIngredient.includes('sauce')) {
+      return 'Pantry';
+    } else if (lowerIngredient.includes('milk') || lowerIngredient.includes('cheese') || 
+               lowerIngredient.includes('yogurt') || lowerIngredient.includes('butter') ||
+               lowerIngredient.includes('cream')) {
+      return 'Dairy';
+    } else if (lowerIngredient.includes('chicken') || lowerIngredient.includes('beef') || 
+               lowerIngredient.includes('pork') || lowerIngredient.includes('fish') ||
+               lowerIngredient.includes('meat') || lowerIngredient.includes('turkey')) {
+      return 'Meat';
+    } else if (lowerIngredient.includes('apple') || lowerIngredient.includes('banana') || 
+               lowerIngredient.includes('berry') || lowerIngredient.includes('fruit') ||
+               lowerIngredient.includes('orange') || lowerIngredient.includes('lemon')) {
+      return 'Fruits';
+    } else if (lowerIngredient.includes('lettuce') || lowerIngredient.includes('tomato') || 
+               lowerIngredient.includes('onion') || lowerIngredient.includes('potato') ||
+               lowerIngredient.includes('carrot') || lowerIngredient.includes('broccoli') ||
+               lowerIngredient.includes('vegetable')) {
+      return 'Vegetables';
+    } else if (lowerIngredient.includes('salt') || lowerIngredient.includes('pepper') ||
+               lowerIngredient.includes('spice') || lowerIngredient.includes('herb') ||
+               lowerIngredient.includes('garlic') || lowerIngredient.includes('seasoning')) {
+      return 'Spices';
+    } else {
+      return 'Other';
+    }
+  };
+
   return (
     <div className="chat-page">
       <div className="gradient-background">
@@ -698,6 +871,12 @@ function RecipeChatPage() {
                         onClick={() => handlePrintRecipe(msg)}
                       >
                         <span className="action-icon">🖨️</span> Print
+                      </button>
+                      <button 
+                        className="action-button"
+                        onClick={() => handleAddToGroceryList(msg)}
+                      >
+                        <span className="action-icon">🛒</span> Add to Grocery List
                       </button>
                     </div>
                   )}

@@ -16,7 +16,7 @@ import RecipeGallery from './RecipeGallery';
 
 function HomePage() {
   const navigate = useNavigate();
-  
+
   // Add scroll animation detection
   useEffect(() => {
     const handleScroll = () => {
@@ -39,7 +39,6 @@ function HomePage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   
-
   return (
     <div className="app-bg-pro">
       <AnimatedBackground />
@@ -56,7 +55,7 @@ function HomePage() {
           <a href="#testimonials">Testimonials</a>
           <a href="#about">About</a>
           
-          {/* Added navigation buttons for all pages */}
+          {/* Navigation buttons - accessible to all users without login */}
           <button
             className="navbar-pro__nav-button"
             onClick={() => navigate('/chat')}
@@ -192,12 +191,12 @@ function App() {
     <ThemeProvider>
       <Router>
         <Routes>
+          {/* Public routes - All routes are now accessible without authentication */}
           <Route path="/" element={<HomePage />} />
           <Route path="/chat" element={<RecipeChatPage />} />
           <Route path="/saved-recipes" element={<SavedRecipesPage />} />
           <Route path="/recipe/:id" element={<RecipeDetailPage />} />
-          <Route path="/grocery-list" element={<GroceryListPage />} />
-          {/* Remove any routes to MealPlannerPage or UserProfilePage here */}
+          <Route path="/grocery-list" element={<GroceryListPage />} /> 
         </Routes>
       </Router>
     </ThemeProvider>
