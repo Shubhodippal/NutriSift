@@ -10,13 +10,74 @@ import RecipeChatPage from './pages/RecipeChatPage';
 import SavedRecipesPage from './pages/SavedRecipesPage';
 import RecipeDetailPage from './pages/RecipeDetailPage';
 import GroceryListPage from './pages/GroceryListPage';
+import LoginSignup from './pages/LoginSignup'; // Add this import
 import AnimatedBackground from './components/AnimatedBackground';
 import { ThemeProvider } from './ThemeContext';
 import RecipeGallery from './RecipeGallery';
 
 function HomePage() {
   const navigate = useNavigate();
-
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  
+  // Check if user is logged in on component mount
+  useEffect(() => {
+    const userId = localStorage.getItem('userId');
+    setIsLoggedIn(!!userId);
+  }, []);
+  
+  // Handle logout functionality
+  const handleLogout = () => {
+    // Ask for confirmation before logging out
+    if (window.confirm('Are you sure you want to log out?')) {
+      // Clear localStorage
+      localStorage.clear();
+      
+      // Clear cookies
+      document.cookie.split(";").forEach(cookie => {
+        const eqPos = cookie.indexOf("=");
+        const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+      });
+      
+      // Update state
+      setIsLoggedIn(false);
+      
+      // Redirect to home page
+      navigate('/');
+      
+      // Show toast notification instead of alert
+      showToastNotification('Logout successful!');
+    }
+  };
+  
+  // Function to show toast notification
+  const showToastNotification = (message) => {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    // Remove toast after 3 seconds
+    setTimeout(() => {
+      if (document.body.contains(toast)) {
+        document.body.removeChild(toast);
+      }
+    }, 3000);
+  };
+  
+  // Toggle hamburger menu
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
+  };
+  
+  // Close menu when navigating
+  const handleNavigation = (path) => {
+    setMenuOpen(false);
+    navigate(path);
+  };
+  
   // Add scroll animation detection
   useEffect(() => {
     const handleScroll = () => {
@@ -55,34 +116,49 @@ function HomePage() {
           <a href="#testimonials">Testimonials</a>
           <a href="#about">About</a>
           
-          {/* Navigation buttons - accessible to all users without login */}
-          <button
-            className="navbar-pro__nav-button"
-            onClick={() => navigate('/chat')}
-          >
-            💬 Recipe Chat
-          </button>
+          {/* Hamburger menu button */}
+          <div className="hamburger-menu-container">
+            <button 
+              className={`hamburger-button ${menuOpen ? 'active' : ''}`} 
+              onClick={toggleMenu}
+              aria-label="Menu"
+            >
+              <span className="hamburger-icon"></span>
+            </button>
+            
+            {/* Menu dropdown */}
+            <div className={`menu-dropdown ${menuOpen ? 'open' : ''}`}>
+              <div className="menu-item" onClick={() => handleNavigation('/chat')}>
+                <span className="menu-icon">💬</span>
+                <span>Recipe Chat</span>
+              </div>
+              <div className="menu-item" onClick={() => handleNavigation('/saved-recipes')}>
+                <span className="menu-icon">📚</span>
+                <span>Saved Recipes</span>
+              </div>
+              <div className="menu-item" onClick={() => handleNavigation('/grocery-list')}>
+                <span className="menu-icon">🛒</span>
+                <span>Grocery List</span>
+              </div>
+            </div>
+          </div>
           
-          <button
-            className="navbar-pro__nav-button"
-            onClick={() => navigate('/saved-recipes')}
-          >
-            📚 Saved Recipes
-          </button>
-          
-          <button
-            className="navbar-pro__nav-button"
-            onClick={() => navigate('/grocery-list')}
-          >
-            🛒 Grocery List
-          </button>
-          
-          <button
-            className="navbar-pro__cta"
-            onClick={() => navigate('/chat')}
-          >
-            Try Now
-          </button>
+          {isLoggedIn ? (
+            <button
+              className="navbar-pro__cta navbar-pro__logout"
+              onClick={handleLogout}
+            >
+              <span className="logout-icon">🔓</span>
+              <span className="logout-text">Logout</span>
+            </button>
+          ) : (
+            <button
+              className="navbar-pro__cta"
+              onClick={() => navigate('/login')}
+            >
+              Try Now
+            </button>
+          )}
         </div>
       </nav>
 
@@ -193,6 +269,7 @@ function App() {
         <Routes>
           {/* Public routes - All routes are now accessible without authentication */}
           <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginSignup />} /> {/* Add this route */}
           <Route path="/chat" element={<RecipeChatPage />} />
           <Route path="/saved-recipes" element={<SavedRecipesPage />} />
           <Route path="/recipe/:id" element={<RecipeDetailPage />} />

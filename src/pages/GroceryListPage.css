@@ -10,7 +10,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(90deg, #1a2235 0%, #121826 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 1.5rem;
 }
 
 .grocery-list-header h1 {
@@ -40,6 +43,11 @@
 .grocery-list-header button:hover {
   transform: translateY(-3px);
   box-shadow: 0 6px 15px rgba(79, 140, 255, 0.3);
+}
+
+.header-buttons {
+  display: flex;
+  gap: 1rem;
 }
 
 .list-controls {
@@ -413,8 +421,137 @@
     width: 100%;
     margin-top: 0.5rem;
   }
+
+  .grocery-list-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .header-buttons {
+    width: 100%;
+    margin-top: 1rem;
+    justify-content: space-between;
+  }
+  
+  .header-buttons button {
+    flex: 1;
+    padding: 0.7rem 0.5rem;
+    font-size: 0.9rem;
+  }
 }
 
+/* Improved Hamburger Menu Styles */
+.hamburger-menu-container {
+  position: relative;
+}
+
+.hamburger-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #1a2235;
+  border: 1px solid #2d3748;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  position: relative;
+  z-index: 11;
+  transition: background-color 0.3s;
+}
+
+.hamburger-button:hover {
+  background: #2d3748;
+}
+
+/* Fixed hamburger icon styles */
+.hamburger-icon,
+.hamburger-icon:before,
+.hamburger-icon:after {
+  width: 20px;
+  height: 2px;
+  background-color: #fff;
+  border-radius: 2px;
+  position: absolute;
+  transition: all 0.3s ease;
+}
+
+.hamburger-icon {
+  margin: 0;
+}
+
+.hamburger-icon:before,
+.hamburger-icon:after {
+  content: '';
+  left: 0;
+}
+
+.hamburger-icon:before {
+  top: -6px;
+}
+
+.hamburger-icon:after {
+  top: 6px;
+}
+
+/* Animation for active state */
+.hamburger-button.active .hamburger-icon {
+  background-color: transparent;
+}
+
+.hamburger-button.active .hamburger-icon:before {
+  top: 0;
+  transform: rotate(45deg);
+}
+
+.hamburger-button.active .hamburger-icon:after {
+  top: 0;
+  transform: rotate(-45deg);
+}
+
+.menu-dropdown {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background: #1a2235;
+  border-radius: 12px;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+  width: 200px;
+  transform: translateY(-20px);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 10;
+  overflow: hidden;
+}
+
+.menu-dropdown.open {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: white;
+}
+
+.menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.menu-icon {
+  margin-right: 12px;
+  font-size: 1.2rem;
+}
+
+/* Print styles */
 @media print {
   .grocery-list-page {
     background: white;

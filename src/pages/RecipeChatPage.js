@@ -18,6 +18,7 @@ function RecipeChatPage() {
     const saved = localStorage.getItem('savedRecipes');
     return saved ? JSON.parse(saved) : [];
   });
+  const [menuOpen, setMenuOpen] = useState(false);
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
   const messagesContainerRef = useRef(null);
@@ -793,6 +794,15 @@ function RecipeChatPage() {
     }
   };
 
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
+  };
+
+  const handleNavigation = (path) => {
+    setMenuOpen(false);
+    navigate(path);
+  };
+
   return (
     <div className="chat-page">
       <div className="gradient-background">
@@ -806,17 +816,32 @@ function RecipeChatPage() {
           <span role="img" aria-label="chef" className="logo-emoji">{BOT_AVATAR}</span>
           <span className="brand-name">NutriSift</span>
         </div>
-        <div className="nav-links">
-          {savedRecipes.length > 0 && (
-            <button className="saved-button" onClick={() => navigate("/saved-recipes")}>
-              <span className="saved-icon">📚</span>
-              <span className="saved-count">{savedRecipes.length}</span>
-            </button>
-          )}
-          <button className="home-button" onClick={() => navigate("/")}>
-            <span className="home-icon">🏠</span>
-            <span className="home-text">Back to Home</span>
+        
+        {/* Hamburger menu button */}
+        <div className="hamburger-menu-container">
+          <button 
+            className={`hamburger-button ${menuOpen ? 'active' : ''}`} 
+            onClick={toggleMenu}
+            aria-label="Menu"
+          >
+            <span className="hamburger-icon"></span>
           </button>
+          
+          {/* Menu dropdown */}
+          <div className={`menu-dropdown ${menuOpen ? 'open' : ''}`}>
+            <div className="menu-item" onClick={() => handleNavigation('/')}>
+              <span className="menu-icon">🏠</span>
+              <span>Home</span>
+            </div>
+            <div className="menu-item" onClick={() => handleNavigation('/saved-recipes')}>
+              <span className="menu-icon">📚</span>
+              <span>Saved Recipes</span>
+            </div>
+            <div className="menu-item" onClick={() => handleNavigation('/grocery-list')}>
+              <span className="menu-icon">🛒</span>
+              <span>Grocery List</span>
+            </div>
+          </div>
         </div>
       </nav>
       
@@ -838,7 +863,7 @@ function RecipeChatPage() {
             {messages.map((msg, idx) => (
               <div
                 key={idx}
-                className={`message ${msg.sender === "user" ? "user-message" : "bot-message"} ${idx === messages.length - 1 ? "fade-in" : ""}`}
+                className={`message ${msg.sender === "user" ? "user-message" : "bot-message"}`}
               >
                 <div className="message-avatar">
                   {msg.sender === "user" ? USER_AVATAR : BOT_AVATAR}

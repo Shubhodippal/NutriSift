@@ -6,6 +6,7 @@ function SavedRecipesPage() {
   const [recipes, setRecipes] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
+  const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -14,6 +15,17 @@ function SavedRecipesPage() {
       setRecipes(JSON.parse(savedRecipes));
     }
   }, []);
+  
+  // Add toggle function for hamburger menu
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
+  };
+
+  // Add navigation handler
+  const handleNavigation = (path) => {
+    setMenuOpen(false);
+    navigate(path);
+  };
 
   const handleDeleteRecipe = (id) => {
     const updatedRecipes = recipes.filter(recipe => recipe.id !== id);
@@ -39,10 +51,34 @@ function SavedRecipesPage() {
   return (
     <div className="saved-recipes-page">
       <header className="saved-recipes-header">
-        <h1>Your Saved Recipes</h1>
-        <button className="back-button" onClick={() => navigate('/chat')}>
-          <span>←</span> Back to Chat
-        </button>
+        <h1>📚 Your Saved Recipes</h1>
+        
+        {/* Replace Back button with hamburger menu */}
+        <div className="hamburger-menu-container">
+          <button 
+            className={`hamburger-button ${menuOpen ? 'active' : ''}`} 
+            onClick={toggleMenu}
+            aria-label="Menu"
+          >
+            <span className="hamburger-icon"></span>
+          </button>
+          
+          {/* Menu dropdown */}
+          <div className={`menu-dropdown ${menuOpen ? 'open' : ''}`}>
+            <div className="menu-item" onClick={() => handleNavigation('/')}>
+              <span className="menu-icon">🏠</span>
+              <span>Home</span>
+            </div>
+            <div className="menu-item" onClick={() => handleNavigation('/chat')}>
+              <span className="menu-icon">💬</span>
+              <span>Recipe Chat</span>
+            </div>
+            <div className="menu-item" onClick={() => handleNavigation('/grocery-list')}>
+              <span className="menu-icon">🛒</span>
+              <span>Grocery List</span>
+            </div>
+          </div>
+        </div>
       </header>
 
       <div className="search-container">

@@ -236,13 +236,16 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  width: 100%;
+  align-items: flex-start;
 }
 
 .message {
   display: flex;
   gap: 1rem;
   max-width: 85%;
-  animation: fadeIn 0.3s ease-out;
+  /* Remove animation property */
+  width: fit-content;
 }
 
 .user-message {
@@ -283,7 +286,12 @@
   position: relative;
   border: 1px solid var(--border);
   box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  width: auto;
   max-width: 100%;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 .user-message .message-content {
@@ -331,6 +339,9 @@
 .message-text {
   font-size: 1.05rem;
   line-height: 1.6;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .message-text p {
@@ -638,7 +649,7 @@
 }
 
 .fade-in {
-  animation: fadeIn 0.4s ease-out;
+  animation: none;
 }
 
 /* Responsive design */

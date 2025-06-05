@@ -14,6 +14,8 @@ function GroceryListPage() {
   const [editName, setEditName] = useState('');
   const [editQuantity, setEditQuantity] = useState('');
   const [editCategory, setEditCategory] = useState('');
+  // First, add state for the menu
+  const [menuOpen, setMenuOpen] = useState(false);
   
   // Modify your existing useEffect to load from localStorage
   useEffect(() => {
@@ -401,34 +403,71 @@ const handleShareList = async () => {
   }
 };
 
+// Add toggle function
+const toggleMenu = () => {
+  setMenuOpen(!menuOpen);
+};
+
+// Add navigation handler
+const handleNavigation = (path) => {
+  setMenuOpen(false);
+  navigate(path);
+};
+
   return (
     <div className="grocery-list-page">
       <header className="grocery-list-header">
-        <h1>Grocery List</h1>
-        <button onClick={() => navigate('/')}>
-          <span>🏠</span> Home
-        </button>
+        <h1>🛒 Grocery List</h1>
+        
+        {/* Hamburger menu button */}
+        <div className="hamburger-menu-container">
+          <button 
+            className={`hamburger-button ${menuOpen ? 'active' : ''}`} 
+            onClick={toggleMenu}
+            aria-label="Menu"
+          >
+            <span className="hamburger-icon"></span>
+          </button>
+          
+          {/* Menu dropdown */}
+          <div className={`menu-dropdown ${menuOpen ? 'open' : ''}`}>
+            <div className="menu-item" onClick={() => handleNavigation('/')}>
+              <span className="menu-icon">🏠</span>
+              <span>Home</span>
+            </div>
+            <div className="menu-item" onClick={() => handleNavigation('/chat')}>
+              <span className="menu-icon">💬</span>
+              <span>Recipe Chat</span>
+            </div>
+            <div className="menu-item" onClick={() => handleNavigation('/saved-recipes')}>
+              <span className="menu-icon">📚</span>
+              <span>Saved Recipes</span>
+            </div>
+          </div>
+        </div>
       </header>
       
       <div className="list-controls">
         <button onClick={handlePrintList}>
-          <span>🖨️</span> Print List
+          🖨️ Print List
         </button>
         <button onClick={() => {
           setGroceryItems([]);
           localStorage.removeItem('groceryItems');
-        }}>Clear List</button>
+        }}>
+          🗑️ Clear List
+        </button>
         <button onClick={handleShareList}>
-          <span>📤</span> Share List
+          📤 Share List
         </button>
       </div>
       
       <div className="add-item-form">
-        <h2><span className="add-icon">➕</span> Add New Item</h2>
+        <h2>➕ Add New Item</h2>
         <form onSubmit={handleAddItem}>
           <div className="form-row">
             <div className="form-group">
-              <label><span className="label-icon">📝</span> Item Name</label>
+              <label>📝 Item Name</label>
               <div className="input-wrapper">
                 <input 
                   type="text" 
@@ -442,7 +481,7 @@ const handleShareList = async () => {
             </div>
             
             <div className="form-group">
-              <label><span className="label-icon">⚖️</span> Quantity</label>
+              <label>⚖️ Quantity</label>
               <div className="input-wrapper">
                 <input 
                   type="text" 
@@ -455,7 +494,7 @@ const handleShareList = async () => {
             </div>
             
             <div className="form-group">
-              <label><span className="label-icon">🏷️</span> Category</label>
+              <label>🏷️ Category</label>
               <div className="select-wrapper">
                 <select 
                   value={newItemCategory}
@@ -473,8 +512,7 @@ const handleShareList = async () => {
             </div>
             
             <button type="submit" className="add-button pulse-animation">
-              <span className="button-icon">➕</span>
-              Add to List
+              ➕ Add to List
             </button>
           </div>
         </form>
