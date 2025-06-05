@@ -1,0 +1,23 @@
+{
+  "files": {
+    "main.css": "/Shubhodippal/NutriSift.git/static/css/main.baec5082.css",
+    "main.js": "/Shubhodippal/NutriSift.git/static/js/main.b24d0970.js",
+    "static/js/762.17b742e5.chunk.js": "/Shubhodippal/NutriSift.git/static/js/762.17b742e5.chunk.js",
+    "static/js/239.684a8e8e.chunk.js": "/Shubhodippal/NutriSift.git/static/js/239.684a8e8e.chunk.js",
+    "static/js/453.ee8a9c8f.chunk.js": "/Shubhodippal/NutriSift.git/static/js/453.ee8a9c8f.chunk.js",
+    "static/js/977.eb481cea.chunk.js": "/Shubhodippal/NutriSift.git/static/js/977.eb481cea.chunk.js",
+    "static/js/455.a877f980.chunk.js": "/Shubhodippal/NutriSift.git/static/js/455.a877f980.chunk.js",
+    "index.html": "/Shubhodippal/NutriSift.git/index.html",
+    "main.baec5082.css.map": "/Shubhodippal/NutriSift.git/static/css/main.baec5082.css.map",
+    "main.b24d0970.js.map": "/Shubhodippal/NutriSift.git/static/js/main.b24d0970.js.map",
+    "762.17b742e5.chunk.js.map": "/Shubhodippal/NutriSift.git/static/js/762.17b742e5.chunk.js.map",
+    "239.684a8e8e.chunk.js.map": "/Shubhodippal/NutriSift.git/static/js/239.684a8e8e.chunk.js.map",
+    "453.ee8a9c8f.chunk.js.map": "/Shubhodippal/NutriSift.git/static/js/453.ee8a9c8f.chunk.js.map",
+    "977.eb481cea.chunk.js.map": "/Shubhodippal/NutriSift.git/static/js/977.eb481cea.chunk.js.map",
+    "455.a877f980.chunk.js.map": "/Shubhodippal/NutriSift.git/static/js/455.a877f980.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.baec5082.css",
+    "static/js/main.b24d0970.js"
+  ]
+}
