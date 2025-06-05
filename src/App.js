@@ -265,7 +265,7 @@ function HomePage() {
 function App() {
   return (
     <ThemeProvider>
-      <Router>
+      <Router basename="/nutri-sift">
         <Routes>
           {/* Public routes - All routes are now accessible without authentication */}
           <Route path="/" element={<HomePage />} />
