@@ -75,7 +75,7 @@ function RecipeChatPage() {
     try {
       // Simulate API call to local endpoint
       try {
-        const res = await fetch('http://localhost:5000/generate-recipe', {
+        const res = await fetch('http://localhost:8080/recipe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ingredients })

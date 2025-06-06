@@ -2,13 +2,13 @@ import React, { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-function Particles({ count = 2000 }) {
+function Particles({ count = 1000 }) {
   const mesh = useRef();
   const light = useRef();
   
-  // Properly memoize the colors to avoid re-renders
-  const particleColor = useMemo(() => new THREE.Color('#5d93ff'), []);
-  const highlightColor = useMemo(() => new THREE.Color('#ffb347'), []);
+  // Colors
+  const particleColor = useMemo(() => new THREE.Color('#7eafff'), []); 
+  const highlightColor = useMemo(() => new THREE.Color('#ffcb75'), []);
   
   // Generate particles
   const particles = useMemo(() => {
@@ -16,7 +16,8 @@ function Particles({ count = 2000 }) {
     for (let i = 0; i < count; i++) {
       const time = Math.random() * 100;
       const factor = 20 + Math.random() * 100;
-      const speed = 0.01 + Math.random() / 200;
+      // Reduce speed by 3x for slower animation
+      const speed = (0.01 + Math.random() / 200) / 3;
       const x = Math.random() * 2000 - 1000;
       const y = Math.random() * 2000 - 1000;
       const z = Math.random() * 2000 - 1000;
@@ -48,7 +49,7 @@ function Particles({ count = 2000 }) {
     return [positions, colors];
   }, [count, particles, particleColor, highlightColor]);
   
-  // Animation - slower movement
+  // Animation - SLOWER movement
   useFrame(() => {
     const positions = mesh.current.geometry.attributes.position.array;
     
@@ -56,8 +57,9 @@ function Particles({ count = 2000 }) {
       const i3 = i * 3;
       const { time, factor, speed, x, y, z } = particles[i];
       
-      const a = Math.cos(time) + Math.sin(time * 0.8) / 10;
-      const b = Math.sin(time) + Math.cos(time * 1.5) / 10;
+      // Slow down oscillation factors
+      const a = Math.cos(time) + Math.sin(time * 0.4) / 10; // from 0.8 to 0.4
+      const b = Math.sin(time) + Math.cos(time * 0.7) / 10; // from 1.5 to 0.7
       
       positions[i3] = x + a * factor;
       positions[i3 + 1] = y + b * factor;
@@ -68,16 +70,17 @@ function Particles({ count = 2000 }) {
     
     mesh.current.geometry.attributes.position.needsUpdate = true;
     
+    // Slow down light movement
     light.current.position.set(
-      Math.sin(Date.now() / 10000) * 500,
-      Math.cos(Date.now() / 10000) * 500,
-      Math.sin(Date.now() / 7000) * 500
+      Math.sin(Date.now() / 25000) * 500, // from 10000 to 25000
+      Math.cos(Date.now() / 25000) * 500, // from 10000 to 25000
+      Math.sin(Date.now() / 20000) * 500  // from 7000 to 20000
     );
   });
   
   return (
     <>
-      <pointLight ref={light} distance={1000} intensity={2.5} color="#4f8cff" />
+      <pointLight ref={light} distance={1000} intensity={3} color="#7eafff" />
       <points ref={mesh}>
         <bufferGeometry>
           <bufferAttribute
@@ -99,7 +102,7 @@ function Particles({ count = 2000 }) {
           depthWrite={false}
           vertexColors
           transparent
-          opacity={0.6}
+          opacity={0.7}
           blending={THREE.AdditiveBlending}
         />
       </points>
@@ -122,7 +125,8 @@ function AnimatedBackground() {
           zIndex: 0,
         }}
       >
-        <Particles count={1800} />
+        <color attach="background" args={['#111827']} />
+        <Particles count={1800} /> {/* Reduced particle count */}
       </Canvas>
     </div>
   );

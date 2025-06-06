@@ -13,7 +13,6 @@ import RecipeDetailPage from './pages/RecipeDetailPage';
 import GroceryListPage from './pages/GroceryListPage';
 import LoginSignup from './pages/LoginSignup'; // Add this import
 import AnimatedBackground from './components/AnimatedBackground';
-import { ThemeProvider } from './ThemeContext';
 import RecipeGallery from './RecipeGallery';
 
 function HomePage() {
@@ -305,19 +304,17 @@ function HomePage() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <Router basename="/NutriSift">
-        <Routes>
-          {/* Public routes - All routes are now accessible without authentication */}
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginSignup />} /> {/* Add this route */}
-          <Route path="/chat" element={<RecipeChatPage />} />
-          <Route path="/saved-recipes" element={<SavedRecipesPage />} />
-          <Route path="/recipe/:id" element={<RecipeDetailPage />} />
-          <Route path="/grocery-list" element={<GroceryListPage />} /> 
-        </Routes>
-      </Router>
-    </ThemeProvider>
+    <Router basename="/NutriSift">
+      <Routes>
+        {/* Public routes - All routes are now accessible without authentication */}
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginSignup />} /> {/* Add this route */}
+        <Route path="/chat" element={<RecipeChatPage />} />
+        <Route path="/saved-recipes" element={<SavedRecipesPage />} />
+        <Route path="/recipe/:id" element={<RecipeDetailPage />} />
+        <Route path="/grocery-list" element={<GroceryListPage />} /> 
+      </Routes>
+    </Router>
   );
 }
 

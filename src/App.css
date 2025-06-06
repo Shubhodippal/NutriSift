@@ -1611,16 +1611,6 @@ body {
   margin-bottom: 15px;
 }
 
-.social-button {
-  flex: 1;
-  padding: 10px;
-  font-size: 0.85rem;
-  height: 40px; /* Fixed height */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 /* Fixed footer */
 .auth-switch {
   margin-top: 15px;
@@ -1671,4 +1661,70 @@ body {
 @keyframes fadeOut {
   from { opacity: 1; transform: translate(-50%, 0); }
   to { opacity: 0; transform: translate(-50%, 20px); }
+}
+
+/* Add these styles for the performance toggle */
+.performance-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(26, 32, 53, 0.8);
+  border: 1px solid rgba(79, 140, 255, 0.3);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.performance-toggle:hover {
+  background: rgba(79, 140, 255, 0.2);
+}
+
+/* Conditional animations based on performance mode */
+.theme-lite .features-list .feature-card {
+  animation: none !important; /* Disable float animations in lite mode */
+  transform: none !important;
+}
+
+.theme-lite .pro-section {
+  transition: opacity 0.4s ease, transform 0.4s ease; /* Faster transitions */
+}
+
+/* Optimize shadows and transitions in lite mode */
+.theme-lite .feature-card, 
+.theme-lite .hero-pro__cta,
+.theme-lite .action-button,
+.theme-lite .gallery-card {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2) !important; /* Simpler shadows */
+  transition: all 0.2s ease !important; /* Faster transitions */
+}
+
+/* Disable gradient animations in lite mode */
+.theme-lite .app-bg-pro::after {
+  animation: none !important;
+  opacity: 0.3 !important;
+}
+
+/* Loading spinner for lazy-loaded components */
+.lazy-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #121826 0%, #0c111b 100%);
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(79, 140, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #4f8cff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
