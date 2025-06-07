@@ -528,7 +528,7 @@ function DiscoverRecipePage() {
       // Try each search query in order until we find images
       for (const query of searchQueries) {
         const searchQuery = encodeURIComponent(query);
-        const pixabayApiKey = '50735599-598852056565127fbf21942bc';
+        const pixabayApiKey = '';
         const response = await fetch(
           `https://pixabay.com/api/?key=${pixabayApiKey}&q=${searchQuery}&image_type=photo&per_page=3&category=food&orientation=horizontal&min_width=500`
         );
