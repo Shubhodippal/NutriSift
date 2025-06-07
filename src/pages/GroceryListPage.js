@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './GroceryListPage.css';
+import HamburgerMenu from '../components/HamburgerMenu';
 
 function GroceryListPage() {
   const navigate = useNavigate();
@@ -419,32 +420,10 @@ const handleNavigation = (path) => {
       <header className="grocery-list-header">
         <h1>🛒 Grocery List</h1>
         
-        {/* Hamburger menu button */}
-        <div className="hamburger-menu-container">
-          <button 
-            className={`hamburger-button ${menuOpen ? 'active' : ''}`} 
-            onClick={toggleMenu}
-            aria-label="Menu"
-          >
-            <span className="hamburger-icon"></span>
-          </button>
-          
-          {/* Menu dropdown */}
-          <div className={`menu-dropdown ${menuOpen ? 'open' : ''}`}>
-            <div className="menu-item" onClick={() => handleNavigation('/')}>
-              <span className="menu-icon">🏠</span>
-              <span>Home</span>
-            </div>
-            <div className="menu-item" onClick={() => handleNavigation('/chat')}>
-              <span className="menu-icon">💬</span>
-              <span>Recipe Chat</span>
-            </div>
-            <div className="menu-item" onClick={() => handleNavigation('/saved-recipes')}>
-              <span className="menu-icon">📚</span>
-              <span>Saved Recipes</span>
-            </div>
-          </div>
-        </div>
+        {/* Replace with component */}
+        <HamburgerMenu 
+          isLoggedIn={true}
+        />
       </header>
       
       <div className="list-controls">

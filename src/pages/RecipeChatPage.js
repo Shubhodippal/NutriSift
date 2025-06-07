@@ -2,14 +2,29 @@ import React, { useState, useRef, useEffect } from 'react';
 import './RecipeChatPage.css';
 import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import HamburgerMenu from '../components/HamburgerMenu';
 
 const BOT_AVATAR = "👩‍🍳";
 const USER_AVATAR = "🧑";
 
 function RecipeChatPage() {
-  const [messages, setMessages] = useState([
-    { sender: "bot", text: "Hi! Tell me what ingredients you have, and I'll suggest a recipe tailored just for you." }
-  ]);
+  // Update the messages state initialization to load from localStorage
+const [messages, setMessages] = useState(() => {
+  // Try to load chat history from localStorage
+  const savedMessages = localStorage.getItem('chatHistory');
+  if (savedMessages) {
+    try {
+      return JSON.parse(savedMessages);
+    } catch (e) {
+      console.error('Error loading saved chat history:', e);
+    }
+  }
+  // Default welcome message if no history
+  return [{ 
+    sender: "bot", 
+    text: "Hi! Tell me what ingredients you have, and I'll suggest a recipe tailored just for you." 
+  }];
+});
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
@@ -19,6 +34,9 @@ function RecipeChatPage() {
     return saved ? JSON.parse(saved) : [];
   });
   const [menuOpen, setMenuOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [savingRecipe, setSavingRecipe] = useState(false);
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
   const messagesContainerRef = useRef(null);
@@ -57,6 +75,12 @@ function RecipeChatPage() {
     }
   }, [input]);
 
+  // Add this useEffect after the existing useEffects to save messages when they change
+useEffect(() => {
+  // Save chat history to localStorage whenever messages change
+  localStorage.setItem('chatHistory', JSON.stringify(messages));
+}, [messages]);
+
   const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
@@ -71,63 +95,79 @@ function RecipeChatPage() {
     inputRef.current?.focus();
   };
 
-  const generateRecipe = async (ingredients) => {
+  // Update the generateRecipe function to properly format the response with metadata
+
+const generateRecipe = async (ingredients) => {
+  try {
+    // Call the API
     try {
-      // Simulate API call to local endpoint
-      try {
-        const res = await fetch('http://localhost:8080/recipe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ingredients })
-        });
-        
-        if (!res.ok) {
-          throw new Error(`API returned status: ${res.status}`);
-        }
-        
-        const data = await res.json();
-        
-        // Format the response to match the expected format in the app
-        setMessages((msgs) => [
-          ...msgs,
-          {
-            sender: "bot",
-            text: `Here's a recipe for you:\n\n# ${data.title}\n\n## Ingredients\n${data.ingredients.map(i => `- ${i}`).join('\n')}\n\n## Instructions\n${data.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
-            recipeData: {
-              title: data.title,
-              ingredients: data.ingredients,
-              steps: data.steps
-            }
-          }
-        ]);
-      } catch (apiError) {
-        console.error('API Error:', apiError);
-        
-        // Fallback: Generate a mock recipe instead of showing an error
-        const data = generateMockRecipe(ingredients);
-        
-        setMessages((msgs) => [
-          ...msgs,
-          {
-            sender: "bot",
-            text: `Here's a recipe for you:\n\n# ${data.title}\n\n## Ingredients\n${data.ingredients.map(i => `- ${i}`).join('\n')}\n\n## Instructions\n${data.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
-            recipeData: data
-          }
-        ]);
+      const res = await fetch('http://localhost:8080/recipe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ingredients })
+      });
+      
+      if (!res.ok) {
+        throw new Error(`API returned status: ${res.status}`);
       }
-    } catch (error) {
-      console.error('Recipe generation error:', error);
+      
+      const data = await res.json();
+      
+      // Format the response to include metadata in the markdown
+      const metadataSection = `
+**Nutritional & Recipe Information:**
+- Calories: ${data.calories || 'Not available'}
+- Diet: ${data.diet || 'Not specified'}
+- Origin: ${data.origin || 'Not specified'}
+- Course: ${data.course || 'Not specified'}
+- Cuisine: ${data.cuisine || 'Not specified'}
+`;
+      
+      // Add the formatted recipe to the messages
       setMessages((msgs) => [
         ...msgs,
-        { 
-          sender: "bot", 
-          text: "Sorry, I couldn't generate a recipe right now. Please try again in a moment." 
+        {
+          sender: "bot",
+          text: `Here's a recipe for you:\n\n# ${data.title}\n\n${metadataSection}\n## Ingredients\n${data.ingredients.map(i => `- ${i}`).join('\n')}\n\n## Instructions\n${data.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
+          recipeData: {
+            title: data.title,
+            ingredients: data.ingredients,
+            steps: data.steps,
+            calories: data.calories,
+            diet: data.diet,
+            origin: data.origin,
+            course: data.course,
+            cuisine: data.cuisine
+          }
+        }
+      ]);
+    } catch (apiError) {
+      console.error('API Error:', apiError);
+      
+      // Fallback: Generate a mock recipe instead of showing an error
+      const data = generateMockRecipe(ingredients);
+      
+      setMessages((msgs) => [
+        ...msgs,
+        {
+          sender: "bot",
+          text: `Here's a recipe for you:\n\n# ${data.title}\n\n## Ingredients\n${data.ingredients.map(i => `- ${i}`).join('\n')}\n\n## Instructions\n${data.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
+          recipeData: data
         }
       ]);
     }
-  };
+  } catch (error) {
+    console.error('Recipe generation error:', error);
+    setMessages((msgs) => [
+      ...msgs,
+      { 
+        sender: "bot", 
+        text: "Sorry, I couldn't generate a recipe right now. Please try again in a moment." 
+      }
+    ]);
+  }
+};
 
-  // Helper function to parse recipe data from AI-generated text
   const parseRecipeFromText = (text, originalIngredients) => {
     // Default values in case parsing fails
     let title = "Recipe with " + originalIngredients.split(',')[0];
@@ -205,7 +245,8 @@ function RecipeChatPage() {
     };
   };
 
-  // Helper function to generate a fallback recipe when the API fails
+  // Update the mock recipe generator to include metadata
+
   const generateMockRecipe = (ingredients) => {
     // Parse ingredients from the input string
     const ingredientList = ingredients.split(/,\s*/).filter(i => i.trim().length > 0);
@@ -218,7 +259,25 @@ function RecipeChatPage() {
       ? `${mainIngredient.charAt(0).toUpperCase() + mainIngredient.slice(1)} and ${secondaryIngredient} Dish`
       : `${mainIngredient.charAt(0).toUpperCase() + mainIngredient.slice(1)} Special`;
     
-    // Create a structured mock recipe
+    // Determine mock cuisine and course based on ingredients
+    let cuisine = 'Fusion';
+    let course = 'Main Dish';
+    
+    if (ingredientList.some(i => i.match(/pasta|spaghetti|noodle|pizza/i))) {
+      cuisine = 'Italian';
+    } else if (ingredientList.some(i => i.match(/rice|soy|ginger|tofu/i))) {
+      cuisine = 'Asian';
+    } else if (ingredientList.some(i => i.match(/tortilla|salsa|taco|bean/i))) {
+      cuisine = 'Mexican';
+    }
+    
+    if (ingredientList.some(i => i.match(/chocolate|sugar|vanilla|cream|cake/i))) {
+      course = 'Dessert';
+    } else if (ingredientList.some(i => i.match(/bread|cheese|cracker/i)) && ingredientList.length < 3) {
+      course = 'Appetizer';
+    }
+    
+    // Create a structured mock recipe with metadata
     return {
       title,
       ingredients: [
@@ -234,7 +293,12 @@ function RecipeChatPage() {
         ingredientList.length > 1 ? `Add ${ingredientList.slice(1).join(' and ')} and continue cooking for another 5 minutes.` : 'Continue cooking for another 5 minutes.',
         'Season with salt and pepper to taste.',
         'Serve hot, garnished with fresh herbs if desired.'
-      ]
+      ],
+      calories: 'Approximately 350-450 calories per serving',
+      diet: ingredientList.some(i => i.match(/meat|chicken|beef|pork|fish/i)) ? 'Non-vegetarian' : 'Vegetarian',
+      origin: 'Modern Kitchen',
+      course: course,
+      cuisine: cuisine
     };
   };
 
@@ -251,35 +315,169 @@ function RecipeChatPage() {
   };
 
   // Save recipe to local storage
-  const handleSaveRecipe = (message) => {
-    // Extract recipe title for identification
-    const titleMatch = message.text.match(/# (.*)\n/);
-    const recipeTitle = titleMatch ? titleMatch[1] : "Untitled Recipe";
-    
-    // Check if recipe is already saved
-    const isAlreadySaved = savedRecipes.some(recipe => 
-      recipe.title === recipeTitle || recipe.text === message.text
-    );
-    
-    if (!isAlreadySaved) {
-      const newRecipe = {
-        id: Date.now(),
-        title: recipeTitle,
-        text: message.text,
-        savedAt: new Date().toISOString(),
-        recipeData: message.recipeData || null
+  const saveRecipeToDatabase = async (recipe) => {
+    try {
+      const userId = localStorage.getItem('userId');
+      const userEmail = localStorage.getItem('userEmail');
+      
+      if (!userId) {
+        throw new Error('User not logged in');
+      }
+      
+      // Parse recipe text to extract ingredients and steps
+      const ingredientsMatch = recipe.text.match(/## Ingredients\n([\s\S]*?)(?=## Instructions)/);
+      const stepsMatch = recipe.text.match(/## Instructions\n([\s\S]*?)(?=##|$)/);
+      
+      // Get ingredients and steps, removing markdown list markers
+      const ingredients = ingredientsMatch 
+        ? ingredientsMatch[1].trim() 
+        : '';
+      const steps = stepsMatch 
+        ? stepsMatch[1].trim() 
+        : '';
+      
+      // Extract title with fallbacks
+      let recipeName = 'Untitled Recipe';
+      
+      // First try markdown heading
+      const titleMatch = recipe.text.match(/# (.*?)(?:\n|$)/);
+      if (titleMatch && titleMatch[1] && titleMatch[1].trim()) {
+        recipeName = titleMatch[1].trim();
+      } 
+      // Then try recipe.title or recipeData.title
+      else if (recipe.title && typeof recipe.title === 'string' && recipe.title.trim()) {
+        recipeName = recipe.title.trim();
+      }
+      else if (recipe.recipeData && recipe.recipeData.title) {
+        recipeName = recipe.recipeData.title.trim();
+      }
+      
+      // Extract additional metadata with multiple methods
+      let calories, diet, origin, course, cuisine;
+      
+      // Method 1: Try to get from recipeData object
+      if (recipe.recipeData) {
+        calories = recipe.recipeData.calories;
+        diet = recipe.recipeData.diet;
+        origin = recipe.recipeData.origin;
+        course = recipe.recipeData.course;
+        cuisine = recipe.recipeData.cuisine;
+      }
+      
+      // Method 2: Extract from text if not found in recipeData
+      if (!calories) {
+        const caloriesMatch = recipe.text.match(/Calories: ([^\n]*)/);
+        calories = caloriesMatch ? caloriesMatch[1].trim() : '';
+      }
+      
+      if (!diet) {
+        const dietMatch = recipe.text.match(/Diet: ([^\n]*)/);
+        diet = dietMatch ? dietMatch[1].trim() : '';
+      }
+      
+      if (!origin) {
+        const originMatch = recipe.text.match(/Origin: ([^\n]*)/);
+        origin = originMatch ? originMatch[1].trim() : '';
+      }
+      
+      if (!course) {
+        const courseMatch = recipe.text.match(/Course: ([^\n]*)/);
+        course = courseMatch ? courseMatch[1].trim() : '';
+      }
+      
+      if (!cuisine) {
+        const cuisineMatch = recipe.text.match(/Cuisine: ([^\n]*)/);
+        cuisine = cuisineMatch ? cuisineMatch[1].trim() : '';
+      }
+      
+      console.log('Saving recipe with name:', recipeName);
+      
+      // Format data for API according to backend model
+      const recipeData = {
+        uid: userId,
+        mail: userEmail || 'user@example.com', 
+        prompt: recipe.userInput || input || '', 
+        recipeName: recipeName,
+        ingredients: ingredients || 'No ingredients specified',
+        steps: steps || 'No steps specified',
+        calories: calories || '',
+        diet: diet || '',
+        origin: origin || '',
+        course: course || '',
+        cuisine: cuisine || ''
       };
       
-      setSavedRecipes([...savedRecipes, newRecipe]);
+      const response = await fetch('http://localhost:8080/recipes/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(recipeData)
+      });
       
-      // Show success notification
-      alert(`Recipe "${recipeTitle}" saved successfully!`);
-    } else {
-      alert('This recipe is already saved!');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server error:', errorText);
+        throw new Error(`Failed to save recipe: ${response.status} ${errorText}`);
+      }
+      
+      // Check content type to determine how to process the response
+      const contentType = response.headers.get("content-type");
+      let result;
+      
+      if (contentType && contentType.includes("application/json")) {
+        // Parse as JSON if it's JSON
+        result = await response.json();
+      } else {
+        // Handle as text if it's not JSON
+        const text = await response.text();
+        result = { message: text, success: true };
+      }
+      
+      console.log('Save successful:', result);
+      return result;
+    } catch (err) {
+      console.error('Error saving recipe to database:', err);
+      throw err;
     }
   };
 
-  // Print recipe
+  // Replace the handleSaveRecipe function with this improved version
+  const handleSaveRecipe = async (message) => {
+    try {
+      // Show saving indicator
+      setSavingRecipe(true);
+      
+      // Create recipe object with required data
+      const recipe = {
+        id: Date.now().toString(),
+        text: message.text,
+        userInput: messages.find(m => m.sender === "user")?.text || '',
+        savedAt: new Date().toISOString()
+      };
+      
+      // First save to database
+      const savedRecipe = await saveRecipeToDatabase(recipe);
+      
+      // Update with server ID if available
+      if (savedRecipe && savedRecipe.id) {
+        recipe.id = savedRecipe.id;
+      }
+      
+      // Update local state
+      setSavedRecipes(prev => [...prev, recipe]);
+      
+      // Show success message
+      setSuccessMessage(savedRecipe.message || 'Recipe saved successfully!');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (error) {
+      console.error('Error saving recipe:', error);
+      // Show error message
+      setErrorMessage('Failed to save recipe. Please try again.');
+      setTimeout(() => setErrorMessage(''), 5000);
+    } finally {
+      setSavingRecipe(false);
+    }
+  };
+
   const handlePrintRecipe = (message) => {
     // Create a new window for printing
     const printWindow = window.open('', '_blank');
@@ -803,6 +1001,19 @@ function RecipeChatPage() {
     navigate(path);
   };
 
+  // Add a function to clear chat history
+const handleClearChat = () => {
+  // Reset to initial message
+  setMessages([{ 
+    sender: "bot", 
+    text: "Hi! Tell me what ingredients you have, and I'll suggest a recipe tailored just for you." 
+  }]);
+  // Clear input
+  setInput("");
+  // Focus on input after clearing
+  setTimeout(() => inputRef.current?.focus(), 100);
+};
+
   return (
     <div className="chat-page">
       <div className="gradient-background">
@@ -817,32 +1028,14 @@ function RecipeChatPage() {
           <span className="brand-name">NutriSift</span>
         </div>
         
-        {/* Hamburger menu button */}
-        <div className="hamburger-menu-container">
-          <button 
-            className={`hamburger-button ${menuOpen ? 'active' : ''}`} 
-            onClick={toggleMenu}
-            aria-label="Menu"
-          >
-            <span className="hamburger-icon"></span>
-          </button>
-          
-          {/* Menu dropdown */}
-          <div className={`menu-dropdown ${menuOpen ? 'open' : ''}`}>
-            <div className="menu-item" onClick={() => handleNavigation('/')}>
-              <span className="menu-icon">🏠</span>
-              <span>Home</span>
-            </div>
-            <div className="menu-item" onClick={() => handleNavigation('/saved-recipes')}>
-              <span className="menu-icon">📚</span>
-              <span>Saved Recipes</span>
-            </div>
-            <div className="menu-item" onClick={() => handleNavigation('/grocery-list')}>
-              <span className="menu-icon">🛒</span>
-              <span>Grocery List</span>
-            </div>
-          </div>
-        </div>
+        {/* Replace the hamburger menu with the component */}
+        <HamburgerMenu 
+          additionalItems={{
+            showNewChat: true,
+            clearChat: handleClearChat
+          }}
+          isLoggedIn={true}
+        />
       </nav>
       
       <div className="chat-container">
@@ -880,10 +1073,14 @@ function RecipeChatPage() {
                   {msg.sender === "bot" && idx > 0 && idx === messages.length - 1 && msg.text.includes("# ") && (
                     <div className="message-actions">
                       <button 
-                        className="action-button"
-                        onClick={() => handleSaveRecipe(msg)}
+                        className={`action-button ${savingRecipe ? 'saving' : ''}`}
+                        onClick={() => {
+                          handleSaveRecipe(msg);
+                        }}
+                        disabled={savingRecipe}
                       >
-                        <span className="action-icon">💾</span> Save Recipe
+                        <span className="action-icon">{savingRecipe ? '⏳' : '💾'}</span> 
+                        {savingRecipe ? 'Saving...' : 'Save Recipe'}
                       </button>
                       <button 
                         className="action-button"
@@ -974,6 +1171,21 @@ function RecipeChatPage() {
       <div className="chat-footer">
         <p>Made with ❤️ by NutriSift • <a href="#privacy">Privacy Policy</a> • <a href="#terms">Terms</a></p>
       </div>
+      
+      {/* Success and error toast messages */}
+      {successMessage && (
+        <div className="success-toast">
+          <span className="toast-icon">✅</span>
+          <span className="toast-message">{successMessage}</span>
+        </div>
+      )}
+
+      {errorMessage && (
+        <div className="error-toast">
+          <span className="toast-icon">⚠️</span>
+          <span className="toast-message">{errorMessage}</span>
+        </div>
+      )}
     </div>
   );
 }

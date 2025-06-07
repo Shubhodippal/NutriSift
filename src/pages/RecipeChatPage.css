@@ -422,6 +422,19 @@
   transform: scale(0.95);
 }
 
+.action-button.saving {
+  background: rgba(79, 140, 255, 0.15);
+  cursor: not-allowed;
+  opacity: 0.8;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
 .action-icon {
   font-size: 1rem;
 }
@@ -784,183 +797,32 @@
   border-radius: 4px;
 }
 
-/* Enhanced scrollbar styling */
-.messages-container::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-.messages-container::-webkit-scrollbar-track {
-  background: rgba(18, 24, 38, 0.6);
+/* Success and error toast messages */
+.success-toast, .error-toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 12px 20px;
   border-radius: 8px;
-  margin: 8px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  animation: slideIn 0.3s ease-out;
+  max-width: 300px;
 }
 
-.messages-container::-webkit-scrollbar-thumb {
-  background: rgba(79, 140, 255, 0.3);
-  border-radius: 8px;
-  transition: background 0.3s ease;
+.success-toast {
+  background-color: #48bb78;
+  color: white;
 }
 
-.messages-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(79, 140, 255, 0.5);
+.error-toast {
+  background-color: #e53e3e;
+  color: white;
 }
 
-/* Firefox scrollbar styling */
-.messages-container {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(79, 140, 255, 0.3) rgba(18, 24, 38, 0.6);
-}
-
-/* Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes typing {
-  0%, 100% {
-    transform: translateY(0);
-    background: var(--primary);
-    opacity: 0.6;
-  }
-  50% {
-    transform: translateY(-5px);
-    background: var(--primary-dark);
-    opacity: 1;
-  }
-}
-
-.fade-in {
-  animation: none;
-}
-
-/* Responsive design */
-@media (max-width: 1200px) {
-  .chat-container {
-    width: 98%;
-    max-width: 1100px;
-  }
-}
-
-@media (max-width: 768px) {
-  .chat-container {
-    width: 100%;
-    margin: 0;
-    border-radius: 0;
-    height: calc(100vh - 70px); /* Account for navbar height */
-  }
-  
-  .chat-navbar {
-    padding: 1rem 1.5rem;
-  }
-  
-  .chat-header {
-    padding: 1.5rem 1rem;
-  }
-  
-  .chat-header h1 {
-    font-size: 1.8rem;
-  }
-  
-  .messages-container {
-    padding: 1rem;
-  }
-  
-  .message {
-    max-width: 90%;
-  }
-}
-
-@media (max-width: 480px) {
-  .message {
-    max-width: 95%;
-  }
-  
-  .message-content {
-    padding: 1rem;
-    max-width: calc(100% - 40px); /* Fix content width for small screens */
-  }
-  
-  .message-text {
-    font-size: 0.95rem;
-  }
-  
-  .message-avatar {
-    width: 2.4rem;
-    height: 2.4rem;
-    font-size: 1.2rem;
-  }
-  
-  .message-actions {
-    gap: 0.4rem;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .action-button {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .input-form {
-    padding: 1rem;
-  }
-  
-  .input-icon {
-    display: none; /* Hide icon on very small screens to save space */
-  }
-  
-  .message-input {
-    padding: 0.9rem 1rem;
-    font-size: 0.95rem;
-  }
-  
-  .chat-decoration {
-    display: none; /* Hide decoration on small screens */
-  }
-}
-
-/* Ensure message content properly wraps on all screen sizes */
-.message-text {
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-  word-break: break-word;
-  hyphens: auto;
-  max-width: 100%;
-}
-
-/* Ensure message container takes appropriate space */
-.messages-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow-x: hidden;
-}
-
-/* Fix for chat layout on very tall screens */
-@media (min-height: 1000px) {
-  .chat-container {
-    max-height: 85vh;
-  }
-}
-
-/* Responsive code blocks */
-.message-text pre, 
-.message-text code {
-  white-space: pre-wrap;
-  overflow-x: auto;
-  max-width: 100%;
-  background: rgba(0, 0, 0, 0.15);
-  padding: 0.3rem;
-  border-radius: 4px;
+@keyframes slideIn {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 /* Add this to your RecipeChatPage.css file */
@@ -1230,6 +1092,53 @@
 .copy-btn {
   background: var(--primary-ultra-light);
   color: var(--primary-light);
+}
+
+/* Recipe metadata styling */
+.recipe-metadata {
+  margin: 15px 0;
+  padding: 15px;
+  background-color: rgba(67, 133, 255, 0.1);
+  border-left: 3px solid #4385ff;
+  border-radius: 6px;
+}
+
+.metadata-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.metadata-item {
+  display: flex;
+  align-items: center;
+}
+
+.metadata-label {
+  font-weight: bold;
+  margin-right: 8px;
+  color: #4385ff;
+}
+
+.metadata-value {
+  color: #374151;
+}
+
+/* Make the recipe ingredients and steps more readable */
+.recipe-ingredients, .recipe-instructions {
+  margin-top: 15px;
+}
+
+.recipe-ingredients ul, .recipe-instructions ol {
+  padding-left: 25px;
+}
+
+.recipe-ingredients li, .recipe-instructions li {
+  margin-bottom: 8px;
+  line-height: 1.6;
 }
 
 @keyframes slideUp {

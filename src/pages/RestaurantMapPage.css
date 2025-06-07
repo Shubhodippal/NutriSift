@@ -1,0 +1,517 @@
+.restaurant-map-page {
+  min-height: 100vh;
+  background-color: #0f1729;
+  color: #e2e8f0;
+}
+
+.restaurant-map-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #1a2235;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.restaurant-map-header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.map-container {
+  position: relative;
+  height: 70vh;
+  margin: 1rem;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.map-container .leaflet-container {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.leaflet-container {
+  cursor: grab !important;
+  z-index: 1;
+}
+
+.leaflet-container:active {
+  cursor: grabbing !important;
+}
+
+.leaflet-interactive {
+  cursor: pointer !important;
+}
+
+.leaflet-marker-icon {
+  cursor: pointer !important;
+}
+
+/* Fix for popup content cursor */
+.leaflet-popup-content {
+  cursor: auto !important;
+}
+
+.map-controls {
+  padding: 1rem;
+  background-color: #1a2235;
+  margin: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.category-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.category-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #2d3748;
+  border: none;
+  border-radius: 8px;
+  color: #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.category-filter:hover {
+  background-color: #4a5568;
+}
+
+.category-filter.active {
+  background-color: #4f8cff;
+  color: #fff;
+  font-weight: 600;
+}
+
+.category-icon {
+  font-size: 1.2rem;
+}
+
+.radius-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.radius-control label {
+  font-size: 0.9rem;
+  color: #a0aec0;
+}
+
+.radius-control input {
+  width: 100%;
+  accent-color: #4f8cff;
+}
+
+.map-error-message {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: fit-content;
+  background-color: rgba(255, 71, 87, 0.9);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  z-index: 1000;
+  text-align: center;
+}
+
+.map-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 1rem;
+  background-color: #1a2235;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(79, 140, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #4f8cff;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.restaurant-list {
+  padding: 1rem;
+  margin: 1rem;
+  background-color: #1a2235;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  scroll-margin-top: 20px;
+  position: relative;
+  padding-top: 2rem;
+}
+
+.restaurant-list::before {
+  content: '';
+  position: absolute;
+  top: -2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, #4f8cff, transparent);
+  border-radius: 2px;
+}
+
+.restaurant-list h2 {
+  margin-top: 0;
+  color: #e2e8f0;
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #4f8cff 0%, #2563eb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 1.5rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.restaurant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.restaurant-card {
+  background: linear-gradient(145deg, #1a2235, #232b3d);
+  border-radius: 16px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.restaurant-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #4f8cff, #6a5af9);
+  transform: translateY(-4px);
+  transition: transform 0.3s ease;
+}
+
+.restaurant-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+.restaurant-card:hover::before {
+  transform: translateY(0);
+}
+
+.restaurant-card.selected {
+  box-shadow: 0 0 0 2px #4f8cff, 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+.restaurant-card h3 {
+  font-size: 1.3rem;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.restaurant-type {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  color: #4f8cff;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.restaurant-cuisine {
+  margin: 0.5rem 0;
+  color: #a0aec0;
+}
+
+.restaurant-address {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  color: #a0aec0;
+  line-height: 1.4;
+}
+
+.restaurant-distance {
+  color: #4f8cff;
+  font-weight: 600;
+  margin: 5px 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(79, 140, 255, 0.15);
+  padding: 0.3rem 0.7rem;
+  border-radius: 30px;
+  margin-bottom: 0.8rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.distance-icon {
+  font-size: 1.1rem;
+}
+
+/* Add styling for the location tooltip */
+.location-tooltip {
+  background-color: rgba(220, 20, 60, 0.9) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 4px !important;
+  padding: 5px 10px !important;
+  font-weight: bold !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3) !important;
+  font-size: 0.9rem !important;
+  text-align: center !important;
+}
+
+.location-tooltip::before {
+  border-top-color: rgba(220, 20, 60, 0.9) !important;
+}
+
+/* Add styles for the location control elements */
+.location-control {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.refresh-location-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: #4f8cff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.refresh-location-button:hover {
+  background-color: #3a70d1;
+}
+
+.refresh-location-button:disabled {
+  background-color: #2d3748;
+  cursor: not-allowed;
+}
+
+.location-accuracy {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #a0aec0;
+}
+
+.accuracy-icon {
+  color: #4f8cff;
+}
+
+.location-error-message {
+  color: #ff7e7e;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* Style for the new scroll to results button */
+.scroll-to-results-button {
+  margin-left: auto;
+  background: linear-gradient(135deg, #4f8cff 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(79, 140, 255, 0.3);
+}
+
+.scroll-to-results-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(79, 140, 255, 0.4);
+}
+
+.results-icon {
+  font-size: 1.2rem;
+}
+
+.results-count {
+  background: white;
+  color: #4f8cff;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+/* Add these styles for the manual location entry */
+.manual-location-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px 16px;
+  background-color: #2d3748;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.manual-location-button:hover {
+  background-color: #4a5568;
+}
+
+.manual-location-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #1a2235;
+  border-radius: 8px;
+  border: 1px solid #2d3748;
+}
+
+.manual-location-form input {
+  padding: 8px;
+  border: 1px solid #2d3748;
+  border-radius: 4px;
+  background-color: #2d3748;
+  color: white;
+}
+
+.manual-location-form button {
+  padding: 8px;
+  background-color: #4f8cff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.manual-location-form button:disabled {
+  background-color: #3a5484;
+  cursor: not-allowed;
+}
+
+/* Add styling for precision location elements */
+.precise-location-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #2118d8 0%, #ff6b81 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  margin-bottom: 10px;
+  box-shadow: 0 4px 6px rgba(255, 71, 87, 0.2);
+}
+
+.precise-location-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(255, 71, 87, 0.3);
+}
+
+.precise-location-button:disabled {
+  background: linear-gradient(135deg, #a4b0be 0%, #ced6e0 100%);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.accuracy-toggle {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+  font-size: 0.9rem;
+  color: #a0aec0;
+}
+
+.accuracy-toggle input[type="checkbox"] {
+  margin-right: 8px;
+  accent-color: #ff4757;
+}
+
+/* Media queries for responsive design */
+@media (max-width: 768px) {
+  .category-filter .category-name {
+    display: none;
+  }
+  
+  .category-filter {
+    padding: 0.5rem;
+  }
+  
+  .category-icon {
+    font-size: 1.5rem;
+  }
+  
+  .restaurant-map-header h1 {
+    font-size: 1.3rem;
+  }
+  
+  .scroll-to-results-button {
+    margin-top: 0.5rem;
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .category-filters {
+    flex-wrap: wrap;
+  }
+}

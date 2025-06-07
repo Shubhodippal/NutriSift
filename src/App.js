@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { Link } from 'react-scroll'; // Add this import at the top
 import './App.css';
 import FeaturesSection from './FeaturesSection';
@@ -14,6 +14,9 @@ import GroceryListPage from './pages/GroceryListPage';
 import LoginSignup from './pages/LoginSignup'; // Add this import
 import AnimatedBackground from './components/AnimatedBackground';
 import RecipeGallery from './RecipeGallery';
+import RestaurantMapPage from './pages/RestaurantMapPage'; // Add this import
+import HamburgerMenu from './components/HamburgerMenu';
+import DiscoverRecipePage from './pages/DiscoverRecipePage'; // Add the import for the new page
 
 function HomePage() {
   const navigate = useNavigate();
@@ -157,31 +160,10 @@ function HomePage() {
           </Link>
           
           {/* Hamburger menu button */}
-          <div className="hamburger-menu-container">
-            <button 
-              className={`hamburger-button ${menuOpen ? 'active' : ''}`} 
-              onClick={toggleMenu}
-              aria-label="Menu"
-            >
-              <span className="hamburger-icon"></span>
-            </button>
-            
-            {/* Menu dropdown */}
-            <div className={`menu-dropdown ${menuOpen ? 'open' : ''}`}>
-              <div className="menu-item" onClick={() => handleNavigation('/chat')}>
-                <span className="menu-icon">💬</span>
-                <span>Recipe Chat</span>
-              </div>
-              <div className="menu-item" onClick={() => handleNavigation('/saved-recipes')}>
-                <span className="menu-icon">📚</span>
-                <span>Saved Recipes</span>
-              </div>
-              <div className="menu-item" onClick={() => handleNavigation('/grocery-list')}>
-                <span className="menu-icon">🛒</span>
-                <span>Grocery List</span>
-              </div>
-            </div>
-          </div>
+          <HamburgerMenu 
+            isLoggedIn={isLoggedIn}
+            onLogout={handleLogout}
+          />
           
           {isLoggedIn ? (
             <button
@@ -308,11 +290,15 @@ function App() {
       <Routes>
         {/* Public routes - All routes are now accessible without authentication */}
         <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<LoginSignup />} /> {/* Add this route */}
+        <Route path="/login" element={<LoginSignup />} />
         <Route path="/chat" element={<RecipeChatPage />} />
         <Route path="/saved-recipes" element={<SavedRecipesPage />} />
         <Route path="/recipe/:id" element={<RecipeDetailPage />} />
-        <Route path="/grocery-list" element={<GroceryListPage />} /> 
+        <Route path="/recipe/view/:id" element={<RecipeDetailPage />} /> {/* Add this new route */}
+        <Route path="/grocery-list" element={<GroceryListPage />} />
+        <Route path="/nearby-restaurants" element={<RestaurantMapPage />} />
+        <Route path="/discover-recipes" element={<DiscoverRecipePage />} /> {/* Add the new route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );

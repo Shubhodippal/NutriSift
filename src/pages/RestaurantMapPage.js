@@ -1,0 +1,1001 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { MapContainer, TileLayer, Marker, Popup, Circle, Tooltip, useMap } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import './RestaurantMapPage.css';
+import HamburgerMenu from '../components/HamburgerMenu';
+
+// Fix Leaflet icon issues
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+  iconUrl: require('leaflet/dist/images/marker-icon.png'),
+  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+});
+
+// Component to update map view when location changes
+function ChangeView({ center }) {
+  const map = useMap();
+  useEffect(() => {
+    if (center && center.length === 2) {
+      map.setView(center, 15);
+    }
+  }, [center, map]);
+  return null;
+}
+
+// Replace the userIcon with a red marker
+const userIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+  iconSize: [30, 45], // Slightly larger
+  iconAnchor: [15, 45],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+
+function RestaurantMapPage() {
+  const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [restaurants, setRestaurants] = useState([]);
+  const [userLocation, setUserLocation] = useState([40.7128, -74.0060]); // Default: New York
+  const [isLoading, setIsLoading] = useState(true);
+  const [mapReady, setMapReady] = useState(false);
+  const [error, setError] = useState(null);
+  const [searchRadius, setSearchRadius] = useState(5000); // 5km default instead of 1km
+  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const [locationAccuracy, setLocationAccuracy] = useState(null);
+  const [locationError, setLocationError] = useState(null);
+  const [showManualEntry, setShowManualEntry] = useState(false);
+  const [manualLocation, setManualLocation] = useState('');
+  const locationWatchId = useRef(null);
+  const [highAccuracyAttempt, setHighAccuracyAttempt] = useState(false);
+  const [accuracyCircleVisible, setAccuracyCircleVisible] = useState(true);
+  const watchPositionRef = useRef(null);
+  
+  // Get user's location
+  useEffect(() => {
+    // Show loading indicator
+    setIsLoading(true);
+    setLocationError("Getting your precise location...");
+    
+    // Define a function for aggressive, high-accuracy location
+    const getHighAccuracyLocation = () => {
+      setHighAccuracyAttempt(true);
+      setLocationError("Getting precise GPS location... This may take a moment");
+      
+      // Try for a very precise location with GPS
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude, accuracy } = position.coords;
+          console.log(`🎯 High-accuracy location: ${latitude},${longitude} (accuracy: ${accuracy}m)`);
+          
+          // Only update if this position is more accurate than what we have
+          if (!locationAccuracy || accuracy < locationAccuracy) {
+            setUserLocation([latitude, longitude]);
+            setLocationAccuracy(accuracy);
+            
+            // Clear error only if accuracy is good
+            if (accuracy < 100) {
+              setLocationError(null);
+            } else {
+              setLocationError(`Location accuracy: ${Math.round(accuracy)}m. Not precise enough for exact positioning.`);
+            }
+          }
+          
+          setMapReady(true);
+          setIsLoading(false);
+        },
+        (error) => {
+          console.error("High-accuracy geolocation error:", error);
+          setLocationError("Couldn't get precise location. Using approximate location instead.");
+        },
+        { 
+          enableHighAccuracy: true,
+          timeout: 30000,           // 30 seconds for high-accuracy
+          maximumAge: 0             // We want fresh position
+        }
+      );
+      
+      // CRITICAL: Also set up a continuous watcher that will keep improving accuracy
+      if (watchPositionRef.current) {
+        navigator.geolocation.clearWatch(watchPositionRef.current);
+      }
+      
+      watchPositionRef.current = navigator.geolocation.watchPosition(
+        (position) => {
+          const { latitude, longitude, accuracy } = position.coords;
+          console.log(`📡 Watch position update: ${latitude},${longitude} (accuracy: ${accuracy}m)`);
+          
+          // Only update if this position is more accurate than what we have
+          if (!locationAccuracy || accuracy < locationAccuracy) {
+            setUserLocation([latitude, longitude]);
+            setLocationAccuracy(accuracy);
+            
+            // Clear error if accuracy is good
+            if (accuracy < 100) {
+              setLocationError(null);
+            } else if (accuracy < 500) {
+              setLocationError(`Location accuracy: ${Math.round(accuracy)}m. Improving...`);
+            }
+          }
+        },
+        (error) => {
+          console.error("Watch position error:", error);
+        },
+        { 
+          enableHighAccuracy: true,
+          timeout: Infinity,         // Keep trying as long as needed
+          maximumAge: 0              // Always use fresh data
+        }
+      );
+    };
+    
+    // Function to get initial location quickly (may be less accurate)
+    const getQuickLocation = async () => {
+      // First try with less demanding settings to get a quick fix
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude, accuracy } = position.coords;
+          console.log(`🔍 Quick location: ${latitude},${longitude} (accuracy: ${accuracy}m)`);
+          
+          setUserLocation([latitude, longitude]);
+          setLocationAccuracy(accuracy);
+          setLocationError("Got approximate location. Improving accuracy...");
+          setMapReady(true);
+          
+          // After getting initial position, try for high accuracy
+          getHighAccuracyLocation();
+        },
+        async (error) => {
+          console.error("Quick geolocation error:", error);
+          
+          // If browser geolocation fails, try IP
+          const gotIPLocation = await getLocationByIP();
+          
+          if (!gotIPLocation) {
+            // If all else fails, use default location
+            setUserLocation([22.5726, 88.3639]); // Kolkata
+            setLocationError("Could not detect your location. Using default location.");
+            setMapReady(true);
+            setIsLoading(false);
+          } else {
+            // Even if we got IP location, still try for high accuracy
+            getHighAccuracyLocation();
+          }
+        },
+        { 
+          enableHighAccuracy: false,
+          timeout: 10000,            // 10 seconds for quick fix
+          maximumAge: 60000          // Accept recent cached positions
+        }
+      );
+    };
+    
+    // Same IP location function as before
+    const getLocationByIP = async () => {
+      try {
+        // Use a free IP geolocation service
+        const response = await fetch('https://ipapi.co/json/');
+        const data = await response.json();
+        
+        if (data.latitude && data.longitude) {
+          console.log("Using IP-based location:", data);
+          setUserLocation([data.latitude, data.longitude]);
+          setLocationAccuracy(5000); // Approximate accuracy (5km)
+          setLocationError("Using approximate location based on your IP address. For better accuracy, click 'Get Precise Location'.");
+          setMapReady(true);
+          setIsLoading(false);
+          return true;
+        }
+        return false;
+      } catch (err) {
+        console.error("IP geolocation failed:", err);
+        return false;
+      }
+    };
+
+    // Check if geolocation is available
+    if (navigator.geolocation) {
+      // Start with a quick fix to get the map showing
+      getQuickLocation();
+    } else {
+      // Browser doesn't support geolocation
+      getLocationByIP().catch(() => {
+        setUserLocation([22.5726, 88.3639]); // Kolkata coordinates
+        setLocationError("Geolocation is not supported by your browser.");
+        setMapReady(true);
+        setIsLoading(false);
+      });
+    }
+    
+    // Clean up location watchers on unmount
+    return () => {
+      if (watchPositionRef.current) {
+        navigator.geolocation.clearWatch(watchPositionRef.current);
+      }
+      if (locationWatchId.current) {
+        navigator.geolocation.clearWatch(locationWatchId.current);
+      }
+    };
+  }, []);
+  
+  // Fetch nearby restaurants using a simpler approach
+  useEffect(() => {
+    if (isLoading || !mapReady) return;
+    
+    const fetchRestaurants = async () => {
+      setIsLoading(true);
+      try {
+        // Use a simpler Overpass query format
+        const [lat, lon] = userLocation;
+        const radius = searchRadius;
+        
+        // Build the query based on selected category
+        let amenityFilter;
+        if (selectedCategory === 'all') {
+          amenityFilter = '["amenity"~"restaurant|cafe|fast_food|bar|pizza"]';
+        } else {
+          amenityFilter = `["amenity"="${selectedCategory}"]`;
+        }
+        
+        // Simplified query
+        const query = `
+          [out:json];
+          node${amenityFilter}(around:${radius},${lat},${lon});
+          out body;
+        `;
+        
+        // Fetch data
+        const response = await fetch('https://overpass-api.de/api/interpreter', {
+          method: 'POST',
+          body: query
+        });
+        
+        if (!response.ok) {
+          throw new Error(`API returned status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Process results
+        const extractedRestaurants = data.elements
+          .filter(element => element.tags && element.tags.name)
+          .map(node => {
+            // Calculate actual distance
+            const distance = calculateDistance(
+              userLocation[0], 
+              userLocation[1], 
+              node.lat, 
+              node.lon
+            );
+            
+            return {
+              id: node.id,
+              name: node.tags.name || 'Unnamed Restaurant',
+              type: node.tags.amenity || 'restaurant',
+              cuisine: node.tags.cuisine || '',
+              lat: node.lat,
+              lon: node.lon,
+              distance: distance.toFixed(1), // Distance in km with 1 decimal
+              address: node.tags['addr:street'] 
+                ? `${node.tags['addr:housenumber'] || ''} ${node.tags['addr:street'] || ''}`
+                : 'Address not available',
+              website: node.tags.website || '',
+              phone: node.tags.phone || '',
+            };
+          })
+          // Filter to ensure restaurants are actually within the radius
+          .filter(restaurant => parseFloat(restaurant.distance) <= searchRadius/1000)
+          // Sort by distance
+          .sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+        
+        setRestaurants(extractedRestaurants);
+      } catch (err) {
+        console.error("Error fetching restaurants:", err);
+        setError("Failed to load nearby restaurants. Please try again later.");
+        // Add some fallback sample restaurants so the UI isn't empty
+        setRestaurants([
+          {
+            id: 1,
+            name: "Sample Restaurant",
+            type: "restaurant",
+            cuisine: "Various",
+            lat: userLocation[0] + 0.001,
+            lon: userLocation[1] + 0.001,
+            address: "123 Sample St",
+            website: "",
+            phone: ""
+          },
+          {
+            id: 2,
+            name: "Sample Cafe",
+            type: "cafe",
+            cuisine: "Coffee",
+            lat: userLocation[0] - 0.001,
+            lon: userLocation[1] - 0.001,
+            address: "456 Example Ave",
+            website: "",
+            phone: ""
+          }
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchRestaurants();
+  }, [userLocation, selectedCategory, searchRadius, mapReady]);
+  
+  // Toggle hamburger menu
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
+  };
+  
+  // Handle navigation
+  const handleNavigation = (path) => {
+    setMenuOpen(false);
+    navigate(path);
+  };
+  
+  // Handle category change
+  const handleCategoryChange = (categoryId) => {
+    setSelectedCategory(categoryId);
+  };
+  
+  // Handle radius change
+  const handleRadiusChange = (e) => {
+    setSearchRadius(Number(e.target.value));
+  };
+  
+  // Add this function to calculate distance between points
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    // Haversine formula to calculate distance between two points
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2); 
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    const distance = R * c; // Distance in km
+    return distance;
+  };
+  
+  // Update the refreshLocation function with success logging
+  const refreshLocation = () => {
+    setIsLoading(true);
+    setMapReady(false);
+    setLocationError("Obtaining precise location...");
+    
+    // Try both approaches simultaneously for best results
+    if (navigator.geolocation) {
+      // 1. Start a watch position for continuous updates
+      const watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          const { latitude, longitude, accuracy } = position.coords;
+          
+          // Log success info
+          console.log(`✅ Watch position update received!`);
+          console.log(`📍 Coordinates: ${latitude}, ${longitude}`);
+          console.log(`📏 Accuracy: ${accuracy} meters`);
+          
+          // Only update if this position is more accurate than what we have
+          if (!locationAccuracy || accuracy < locationAccuracy) {
+            setUserLocation([latitude, longitude]);
+            setLocationAccuracy(accuracy);
+            setLocationError(null);
+            setMapReady(true);
+            
+            // Auto-stop watching after getting a high-accuracy fix
+            if (accuracy < 100) {
+              navigator.geolocation.clearWatch(watchId);
+            }
+          }
+        },
+        (error) => {
+          console.error("Geolocation watch error:", error);
+          // Don't set error here - let getCurrentPosition handle errors
+        },
+        { 
+          enableHighAccuracy: true,  // ✅ Force GPS usage when available
+          timeout: 30000,            // Longer timeout for better accuracy
+          maximumAge: 0              // Always get fresh positions
+        }
+      );
+      
+      // 2. Also get a one-time position fix (this might come back faster)
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude, accuracy } = position.coords;
+          
+          // Log success information
+          console.log(`✅ Current position received!`);
+          console.log(`📍 Coordinates: ${latitude}, ${longitude}`);
+          console.log(`📏 Accuracy: ${accuracy} meters`);
+          
+          // Only update if more accurate than watch or if no watch result yet
+          if (!locationAccuracy || accuracy < locationAccuracy) {
+            setUserLocation([latitude, longitude]);
+            setLocationAccuracy(accuracy);
+            setLocationError(null);
+          }
+          
+          // Always update map state
+          setMapReady(true);
+          setTimeout(() => setIsLoading(false), 500);
+        },
+        (error) => {
+          console.error("Geolocation current position error:", error);
+          
+          // Show appropriate error but keep the current location
+          let errorMessage;
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = "Location access denied. Please check browser settings.";
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = "Your location is currently unavailable.";
+              break;
+            case error.TIMEOUT:
+              errorMessage = "Location request timed out. Using previous location.";
+              break;
+            default:
+              errorMessage = `Error getting location: ${error.message}`;
+          }
+          
+          setLocationError(errorMessage);
+          setMapReady(true);
+          setTimeout(() => setIsLoading(false), 500);
+        },
+        { 
+          enableHighAccuracy: true, // ✅ Force GPS usage when available
+          timeout: 15000,           // Standard timeout for getCurrentPosition
+          maximumAge: 10000         // Accept slightly cached positions (10 seconds)
+        }
+      );
+      
+      // Store the watch ID for cleanup
+      locationWatchId.current = watchId;
+    } else {
+      setLocationError("Geolocation is not supported by your browser.");
+      setMapReady(true);
+      setTimeout(() => setIsLoading(false), 500);
+    }
+  };
+  
+  // Add this function to handle manual location submission
+  const handleManualLocation = async (e) => {
+    e.preventDefault();
+    if (!manualLocation.trim()) return;
+    
+    setIsLoading(true);
+    try {
+      // Use OpenStreetMap Nominatim API to search for location
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(manualLocation)}`);
+      const data = await response.json();
+      
+      if (data && data.length > 0) {
+        const { lat, lon } = data[0];
+        setUserLocation([parseFloat(lat), parseFloat(lon)]);
+        setLocationError(null);
+        setMapReady(true);
+        setShowManualEntry(false);
+      } else {
+        setLocationError(`Could not find location "${manualLocation}". Please try again.`);
+      }
+    } catch (error) {
+      console.error("Manual location search error:", error);
+      setLocationError("Error searching for location. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Replace the existing getPreciseLocation function with this improved version
+  const getPreciseLocation = () => {
+    setIsLoading(true);
+    setLocationError("Getting precise location... This may take a moment");
+    
+    if (navigator.geolocation) {
+      // Try to get high accuracy location with longer timeout
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude, accuracy } = position.coords;
+          console.log(`✅ Got precise location: ${latitude},${longitude} (accuracy: ${accuracy}m)`);
+          setUserLocation([latitude, longitude]);
+          setLocationAccuracy(accuracy);
+          
+          if (accuracy < 100) {
+            setLocationError(null);
+          } else {
+            setLocationError(`Location found with ${Math.round(accuracy)}m accuracy. For better results, try outdoors.`);
+          }
+          
+          setMapReady(true);
+          setTimeout(() => setIsLoading(false), 500);
+        },
+        (error) => {
+          console.error("High-accuracy geolocation error:", error);
+          
+          // If high accuracy fails, try a less demanding approach
+          if (error.code === error.TIMEOUT) {
+            setLocationError("High-accuracy location timed out. Trying with standard accuracy...");
+            
+            navigator.geolocation.getCurrentPosition(
+              (fallbackPosition) => {
+                const { latitude, longitude, accuracy } = fallbackPosition.coords;
+                console.log(`⚠️ Using fallback location: ${latitude},${longitude} (accuracy: ${accuracy}m)`);
+                
+                setUserLocation([latitude, longitude]);
+                setLocationAccuracy(accuracy);
+                setLocationError(`Got location with ${Math.round(accuracy)}m accuracy (standard mode).`);
+                setMapReady(true);
+                setTimeout(() => setIsLoading(false), 500);
+              },
+              (fallbackError) => {
+                console.error("Standard geolocation also failed:", fallbackError);
+                
+                let errorMessage;
+                switch(fallbackError.code) {
+                  case fallbackError.PERMISSION_DENIED:
+                    errorMessage = "Location access denied. Please check your browser settings.";
+                    break;
+                  case fallbackError.POSITION_UNAVAILABLE:
+                    errorMessage = "Your location is unavailable. Try again or enter location manually.";
+                    break;
+                  case fallbackError.TIMEOUT:
+                    errorMessage = "Location request timed out again. Your device may have poor GPS reception.";
+                    break;
+                  default:
+                    errorMessage = `Error getting your location: ${fallbackError.message}`;
+                }
+                
+                setLocationError(errorMessage);
+                setMapReady(true); // Keep the map visible with the previous location
+                setTimeout(() => setIsLoading(false), 500);
+              },
+              { 
+                enableHighAccuracy: false,  // Standard accuracy
+                timeout: 10000,             // Shorter timeout for fallback
+                maximumAge: 60000           // Accept cached position up to 1 minute old
+              }
+            );
+          } else {
+            // Handle non-timeout errors
+            let errorMessage;
+            switch(error.code) {
+              case error.PERMISSION_DENIED:
+                errorMessage = "Location access denied. Please check your browser settings.";
+                break;
+              case error.POSITION_UNAVAILABLE:
+                errorMessage = "Your location is unavailable. Try again or enter location manually.";
+                break;
+              default:
+                errorMessage = `Error getting your location: ${error.message}`;
+            }
+            
+            setLocationError(errorMessage);
+            setMapReady(true);
+            setTimeout(() => setIsLoading(false), 500);
+          }
+        },
+        { 
+          enableHighAccuracy: true,  // Request high precision GPS
+          timeout: 30000,            // Increase timeout to 30 seconds
+          maximumAge: 0              // No cached positions
+        }
+      );
+    } else {
+      setLocationError("Geolocation is not supported by your browser.");
+      setMapReady(true);
+      setTimeout(() => setIsLoading(false), 500);
+    }
+  };
+  
+  // Add this for auto-clearing error messages
+  useEffect(() => {
+    let timer;
+    if (error) {
+      timer = setTimeout(() => {
+        setError(null);
+      }, 5000);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [error]);
+
+  // Add this for auto-clearing location error messages
+  useEffect(() => {
+    let timer;
+    if (locationError) {
+      timer = setTimeout(() => {
+        setLocationError(null);
+      }, 5000);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [locationError]);
+  
+  return (
+    <div className="restaurant-map-page">
+      <header className="restaurant-map-header">
+        <h1>🍽️ Nearby Restaurants</h1>
+        
+        {/* Replace with component */}
+        <HamburgerMenu 
+          isLoggedIn={true}
+        />
+      </header>
+      
+      <div className="map-controls">
+        <div className="category-filters">
+          {[
+            { id: 'all', name: 'All Restaurants', icon: '🍽️' },
+            { id: 'restaurant', name: 'General', icon: '🍴' },
+            { id: 'fast_food', name: 'Fast Food', icon: '🍔' },
+            { id: 'cafe', name: 'Café', icon: '☕' },
+            { id: 'bar', name: 'Bar', icon: '🍸' },
+            // Pizza category removed
+          ].map(category => (
+            <button
+              key={category.id}
+              className={`category-filter ${selectedCategory === category.id ? 'active' : ''}`}
+              onClick={() => handleCategoryChange(category.id)}
+            >
+              <span className="category-icon">{category.icon}</span>
+              <span className="category-name">{category.name}</span>
+            </button>
+          ))}
+          
+          {/* 2. Add a "Restaurants Found" button to scroll to results */}
+          <button 
+            className="scroll-to-results-button"
+            onClick={() => document.querySelector('.restaurant-list').scrollIntoView({ behavior: 'smooth' })}
+          >
+            <span className="results-icon">📋</span>
+            <span className="results-count">{restaurants.length}</span>
+            <span className="results-text">Restaurants Found</span>
+          </button>
+        </div>
+        
+        <div className="radius-control">
+          <label htmlFor="radius">Search Radius: {searchRadius/1000} km</label>
+          <input
+            type="range"
+            id="radius"
+            min="1000"
+            max="50000"
+            step="1000"
+            value={searchRadius}
+            onChange={handleRadiusChange}
+          />
+        </div>
+        
+        <div className="location-control">
+          {/* "Get Precise Location" button removed */}
+          
+          <button 
+            className="refresh-location-button" 
+            onClick={refreshLocation}
+            disabled={isLoading}
+          >
+            <span>🔄</span> Refresh Location
+          </button>
+          
+          {locationAccuracy && (
+            <div className="location-accuracy">
+              <span className="accuracy-icon">📍</span>
+              <span>Accuracy: {locationAccuracy < 1000 ? 
+                `${Math.round(locationAccuracy)} meters` : 
+                `${(locationAccuracy / 1000).toFixed(1)} km`}
+              </span>
+            </div>
+          )}
+          
+          {locationError && (
+            <div className="location-error-message">
+              {locationError}
+            </div>
+          )}
+          
+          {/* Rest of your location controls remain the same */}
+          <button 
+            className="manual-location-button"
+            onClick={() => setShowManualEntry(!showManualEntry)}
+          >
+            <span>📍</span> {showManualEntry ? 'Hide Manual Entry' : 'Enter Location Manually'}
+          </button>
+
+          {showManualEntry && (
+            <form className="manual-location-form" onSubmit={handleManualLocation}>
+              <input
+                type="text"
+                placeholder="Enter city, address or place name"
+                value={manualLocation}
+                onChange={(e) => setManualLocation(e.target.value)}
+              />
+              <button type="submit" disabled={!manualLocation.trim()}>
+                Search
+              </button>
+            </form>
+          )}
+        </div>
+        
+        {/* Add this to your location controls section */}
+        <div className="accuracy-toggle">
+          <label>
+            <input
+              type="checkbox"
+              checked={accuracyCircleVisible}
+              onChange={() => setAccuracyCircleVisible(!accuracyCircleVisible)}
+            />
+            Show accuracy radius on map
+          </label>
+        </div>
+      </div>
+      
+      <div className="map-container">
+        {error && (
+          <div className="map-error-message">
+            <p>{error}</p>
+          </div>
+        )}
+        
+        {!mapReady ? (
+          <div className="map-loading">
+            <div className="loading-spinner"></div>
+            <p>Initializing map...</p>
+          </div>
+        ) : (
+          <MapContainer 
+            key={`map-${userLocation[0]}-${userLocation[1]}`}
+            center={userLocation} 
+            zoom={15} 
+            style={{ height: '100%', width: '100%', cursor: 'grab' }}
+            attributionControl={true}
+            zoomControl={true}
+            doubleClickZoom={true}
+            scrollWheelZoom={true}
+            dragging={true}
+            animate={true}
+            easeLinearity={0.35}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <ChangeView center={userLocation} />
+            
+            {/* User location marker */}
+            <Marker 
+              position={userLocation}
+              icon={userIcon}
+            >
+              <Popup>
+                <div>
+                  <strong>Your Current Location</strong>
+                  <p>Search radius: {searchRadius/1000} km</p>
+                </div>
+              </Popup>
+              <Tooltip permanent direction="top" offset={[0, -30]} className="location-tooltip">
+                <strong>YOU ARE HERE</strong>
+              </Tooltip>
+            </Marker>
+            
+            {/* Restaurant markers */}
+            {restaurants.map(restaurant => (
+              <Marker 
+                key={restaurant.id}
+                position={[restaurant.lat, restaurant.lon]}
+                eventHandlers={{
+                  click: () => {
+                    setSelectedRestaurant(restaurant);
+                  },
+                }}
+              >
+                <Popup>
+                  <div className="restaurant-popup">
+                    <h3>{restaurant.name}</h3>
+                    <p className="restaurant-distance">
+                      <strong>Distance:</strong> {restaurant.distance} km
+                    </p>
+                    <p><strong>Type:</strong> {restaurant.type.replace('_', ' ')}</p>
+                    {restaurant.cuisine && (
+                      <p><strong>Cuisine:</strong> {restaurant.cuisine}</p>
+                    )}
+                    <p>{restaurant.address}</p>
+                    {restaurant.phone && (
+                      <p><strong>Phone:</strong> {restaurant.phone}</p>
+                    )}
+                    {restaurant.website && (
+                      <p>
+                        <a 
+                          href={restaurant.website.startsWith('http') ? restaurant.website : `http://${restaurant.website}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
+                          Visit Website
+                        </a>
+                      </p>
+                    )}
+                    <p>
+                      <a 
+                        href={`https://www.openstreetmap.org/directions?from=${userLocation[0]},${userLocation[1]}&to=${restaurant.lat},${restaurant.lon}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                      >
+                        Get Directions
+                      </a>
+                    </p>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+            
+            {/* Add circle to show search radius */}
+            <Circle 
+              center={userLocation}
+              radius={searchRadius}
+              pathOptions={{
+                fillColor: '#4f8cff',
+                fillOpacity: 0.1,
+                color: '#4f8cff',
+                weight: 1
+              }}
+            />
+
+            {/* Add circle to show location accuracy */}
+            {locationAccuracy && accuracyCircleVisible && (
+              <Circle 
+                center={userLocation}
+                radius={locationAccuracy}
+                pathOptions={{
+                  fillColor: '#ff4757',
+                  fillOpacity: 0.1,
+                  color: '#ff4757',
+                  weight: 2,
+                  dashArray: '5, 5'
+                }}
+              >
+                <Tooltip permanent direction="center" offset={[0, 0]}>
+                  <span style={{ fontSize: '10px' }}>
+                    Accuracy: ±{locationAccuracy < 1000 ? 
+                      `${Math.round(locationAccuracy)}m` : 
+                      `${(locationAccuracy / 1000).toFixed(1)}km`}
+                  </span>
+                </Tooltip>
+              </Circle>
+            )}
+          </MapContainer>
+        )}
+      </div>
+      
+      <div className="restaurant-list">
+        <h2>{isLoading ? 'Finding restaurants...' : `${restaurants.length} Restaurants Found`}</h2>
+        
+        {isLoading ? (
+          <div className="list-loading">
+            <div className="loading-spinner"></div>
+          </div>
+        ) : restaurants.length > 0 ? (
+          <div className="restaurant-grid">
+            {restaurants.map(restaurant => (
+              <div 
+                key={restaurant.id} 
+                className={`restaurant-card ${selectedRestaurant && selectedRestaurant.id === restaurant.id ? 'selected' : ''}`}
+                onClick={() => setSelectedRestaurant(restaurant)}
+              >
+                <h3>{restaurant.name}</h3>
+                <p className="restaurant-distance">
+                  <span className="distance-icon">📍</span> {restaurant.distance} km away
+                </p>
+                <p className="restaurant-type">
+                  <span className="type-icon">
+                    {restaurant.type === 'restaurant' ? '🍴' : 
+                     restaurant.type === 'cafe' ? '☕' : 
+                     restaurant.type === 'fast_food' ? '🍔' : 
+                     restaurant.type === 'bar' ? '🍸' : 
+                     restaurant.type === 'pizza' ? '🍕' : '🍽️'}
+                  </span>
+                  <span>{restaurant.type.replace('_', ' ')}</span>
+                </p>
+                {restaurant.cuisine && (
+                  <p className="restaurant-cuisine">Cuisine: {restaurant.cuisine}</p>
+                )}
+                <p className="restaurant-address">{restaurant.address}</p>
+                <div className="restaurant-actions">
+                  {restaurant.website && (
+                    <a 
+                      href={restaurant.website.startsWith('http') ? restaurant.website : `http://${restaurant.website}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="restaurant-link"
+                    >
+                      Website
+                    </a>
+                  )}
+                  <a 
+                    href={`https://www.openstreetmap.org/directions?from=${userLocation[0]},${userLocation[1]}&to=${restaurant.lat},${restaurant.lon}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="restaurant-link"
+                  >
+                    Directions
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="no-restaurants">
+            <p>No restaurants found in this area. Try increasing the search radius or changing the category.</p>
+          </div>
+        )}
+      </div>
+      
+      {/* Manual location entry form */}
+      {showManualEntry && (
+        <div className="manual-location-entry">
+          <h2>Enter Location Manually</h2>
+          <form onSubmit={handleManualLocation}>
+            <input 
+              type="text" 
+              value={manualLocation} 
+              onChange={(e) => setManualLocation(e.target.value)}
+              placeholder="Enter a city, address, or landmark"
+              required
+            />
+            <button type="submit" className="submit-location-button">
+              <span>📍</span> Find Location
+            </button>
+            <button 
+              type="button" 
+              className="cancel-location-button"
+              onClick={() => setShowManualEntry(false)}
+            >
+              <span>❌</span> Cancel
+            </button>
+          </form>
+          
+          {locationError && (
+            <div className="location-error-message">
+              {locationError}
+            </div>
+          )}
+        </div>
+      )}
+      
+      {/* Fallback manual location button */}
+      {!showManualEntry && (
+        <div className="fallback-manual-location">
+          <p>Can't find your location?</p>
+          <button 
+            className="manual-location-button"
+            onClick={() => setShowManualEntry(true)}
+          >
+            <span>📍</span> Enter Location Manually
+          </button>
+        </div>
+      )}
+
+      {/* Add this near your Get Precise Location button: */}
+      <div className="location-tips">
+        <p>For best location accuracy:</p>
+        <ul>
+          <li>Use a mobile device with GPS</li>
+          <li>Allow location permissions in browser settings</li>
+          <li>Try outdoors or near windows</li>
+          <li>If still having trouble, use the "Enter Location Manually" option</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+export default RestaurantMapPage;
