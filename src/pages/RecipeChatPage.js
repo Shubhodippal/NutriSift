@@ -463,7 +463,7 @@ const generateRecipe = async (ingredients) => {
         cuisine: cuisine || ''
       };
       
-      const response = await fetch('http://localhost:8080/recipes/save', {
+      const response = await fetch('https://backend.shubhodip.in/recipes/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(recipeData)
