@@ -100,7 +100,7 @@ function DiscoverRecipePage() {
       };
       
       // Make the API call to your backend
-      const response = await fetch('http://localhost:8080/recipe/search', {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}${process.env.REACT_APP_RECIPE_SEARCH_ENDPOINT}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -190,7 +190,7 @@ function DiscoverRecipePage() {
       };
       
       // Make API call to save the recipe
-      const response = await fetch('http://localhost:8080/recipes/save', {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}${process.env.REACT_APP_RECIPES_ENDPOINT}/save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -530,7 +530,7 @@ function DiscoverRecipePage() {
         const searchQuery = encodeURIComponent(query);
         const pixabayApiKey = process.env.REACT_APP_PIXABAY_API_KEY;
         const response = await fetch(
-          `https://pixabay.com/api/?key=${pixabayApiKey}&q=${searchQuery}&image_type=photo&per_page=3&category=food&orientation=horizontal&min_width=500`
+          `${process.env.REACT_APP_PIXABAY_API_URL}/?key=${pixabayApiKey}&q=${searchQuery}&image_type=photo&per_page=3&category=food&orientation=horizontal&min_width=500`
         );
         
         const data = await response.json();
@@ -545,11 +545,11 @@ function DiscoverRecipePage() {
       
       // If all searches failed, use a food-themed placeholder
       console.log('All image searches failed, using placeholder');
-      return `https://via.placeholder.com/600x400/1a2235/ffffff?text=${encodeURIComponent(recipe.title)}`;
+      return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/600x400/1a2235/ffffff?text=${encodeURIComponent(recipe.title)}`;
     } catch (error) {
       console.error('Error fetching recipe image:', error);
       // Fallback to a food placeholder
-      return `https://via.placeholder.com/600x400/1a2235/ffffff?text=${encodeURIComponent(recipe.title)}`;
+      return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/600x400/1a2235/ffffff?text=${encodeURIComponent(recipe.title)}`;
     }
   };
   
@@ -591,7 +591,7 @@ function DiscoverRecipePage() {
       `Check out this recipe for ${recipe.title}! ${window.location.origin}/recipe/${recipe.id}\n\nNote: Recipe images are provided for reference only and may not exactly match the actual dish.`
     );
     
-    window.open(`https://wa.me/?text=${text}`, '_blank');
+    window.open(`${process.env.REACT_APP_WHATSAPP_SHARE_URL}/?text=${text}`, '_blank');
     setShowShareDialog(false);
   };
   

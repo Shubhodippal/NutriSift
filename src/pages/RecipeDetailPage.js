@@ -33,7 +33,7 @@ const getRecipeImage = async (recipe) => {
       const searchQuery = encodeURIComponent(query);
       const pixabayApiKey = process.env.REACT_APP_PIXABAY_API_KEY;
       const response = await fetch(
-        `https://pixabay.com/api/?key=${pixabayApiKey}&q=${searchQuery}&image_type=photo&per_page=3&category=food&orientation=horizontal&min_width=500`
+        `${process.env.REACT_APP_PIXABAY_API_URL}/?key=${pixabayApiKey}&q=${searchQuery}&image_type=photo&per_page=3&category=food&orientation=horizontal&min_width=500`
       );
       
       const data = await response.json();
@@ -44,11 +44,11 @@ const getRecipeImage = async (recipe) => {
     }
     
     // If all searches failed, use a food-themed placeholder
-    return `https://via.placeholder.com/800x400/1a2235/ffffff?text=${encodeURIComponent(recipe.title)}`;
+    return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/800x400/1a2235/ffffff?text=${encodeURIComponent(recipe.title)}`;
   } catch (error) {
     console.error('Error fetching recipe image:', error);
     // Fallback to a food placeholder
-    return `https://via.placeholder.com/800x400/1a2235/ffffff?text=${encodeURIComponent(recipe.title)}`;
+    return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/800x400/1a2235/ffffff?text=${encodeURIComponent(recipe.title)}`;
   }
 };
 
@@ -59,7 +59,7 @@ const getRecipeImage = async (recipe) => {
         const userId = localStorage.getItem('userId');
         if (userId) {
           try {
-            const response = await fetch(`http://localhost:8080/recipes/${id}`, {
+            const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}${process.env.REACT_APP_RECIPES_ENDPOINT}/${id}`, {
               method: 'GET',
               headers: { 'Content-Type': 'application/json' }
             });

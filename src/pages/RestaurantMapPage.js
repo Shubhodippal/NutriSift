@@ -249,7 +249,7 @@ function RestaurantMapPage() {
         `;
         
         // Fetch data
-        const response = await fetch('https://overpass-api.de/api/interpreter', {
+        const response = await fetch(process.env.REACT_APP_OVERPASS_API_URL, {
           method: 'POST',
           body: query
         });
