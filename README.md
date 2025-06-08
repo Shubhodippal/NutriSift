@@ -1,70 +1,163 @@
-# Getting Started with Create React App
+# NutriSift - AI-Powered Recipe Management
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+![NutriSift Logo](https://via.placeholder.com/200x200/1a2235/ffffff?text=NutriSift)
 
-## Available Scripts
+## 📋 Overview
 
-In the project directory, you can run:
+NutriSift is an AI-powered recipe management application that helps users discover, create, and organize recipes. The application focuses on reducing food waste by suggesting recipes based on available ingredients, providing detailed nutritional information, and offering comprehensive recipe management tools.
 
-### `npm start`
+## ✨ Key Features
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **🤖 AI Recipe Generation**: Get personalized recipe suggestions based on ingredients you have
+- **🔍 Recipe Discovery**: Browse and filter recipes by diet, origin, cuisine, and more
+- **📚 Recipe Management**: Save, organize, and customize your favorite recipes
+- **📱 Easy Sharing**: Share recipes via system sharing, email, or directly copy to clipboard
+- **🖨️ PDF Export**: Generate and download beautifully formatted recipe PDFs
+- **🛒 Grocery List**: Add recipe ingredients to your shopping list
+- **👨‍🍳 Step-by-Step Cooking**: Follow recipes with an intuitive step-by-step guide
+- **🗺️ Restaurant Map**: Find restaurants with similar cuisines (feature in development)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🛠️ Technology Stack
 
-### `npm test`
+- **Frontend**: React.js
+- **Routing**: React Router
+- **Styling**: Custom CSS
+- **API Integration**: 
+  - Recipe data API
+  - Pixabay API for recipe images
+- **PDF Generation**: jsPDF and html2canvas
+- **Sharing**: Web Share API with clipboard fallbacks
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 📦 Installation
 
-### `npm run build`
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/nutri-sift.git
+   cd nutri-sift
+   ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+3. Create a .env file in the root directory with the following content:
+   ```
+   REACT_APP_PIXABAY_API_KEY=your_pixabay_api_key_here
+   ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+4. Start the development server:
+   ```bash
+   npm start
+   ```
 
-### `npm run eject`
+## 📱 Usage
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Recipe Chat
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Input ingredients you have available, and the AI will generate a personalized recipe with nutritional information, step-by-step instructions, and dietary details.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Discover Recipes
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Browse recipes with advanced filtering options:
+- Calorie ranges
+- Diet types (vegetarian, vegan, etc.)
+- Cuisine styles
+- Origin/regional preferences
+- Course types
 
-## Learn More
+### Saved Recipes
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Manage your personal recipe collection:
+- View all saved recipes
+- Search and filter your recipes
+- Print recipes to PDF
+- Share recipes with friends
+- Add recipe ingredients to your grocery list
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Recipe Details
 
-### Code Splitting
+View complete recipe information:
+- Ingredients with quantity adjustments based on servings
+- Step-by-step instructions
+- Nutritional information
+- Switch between overview and step-by-step cooking modes
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### Grocery List
 
-### Analyzing the Bundle Size
+Manage your shopping needs:
+- Add ingredients from recipes
+- Organize by food categories
+- Check off items as you shop
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## 💻 Development
 
-### Making a Progressive Web App
+### Available Scripts
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+- `npm start` - Run the development server
+- `npm test` - Run tests
+- `npm run build` - Create production build
+- `npm run eject` - Eject from Create React App
 
-### Advanced Configuration
+### Project Structure
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```
+nutri-sift/
+├── public/
+├── src/
+│   ├── assets/
+│   │   └── success.mp3
+│   ├── components/
+│   │   ├── AnimatedBackground.js
+│   │   ├── HamburgerMenu.js
+│   │   └── HamburgerMenu.css
+│   ├── pages/
+│   │   ├── DiscoverRecipePage.js
+│   │   ├── DiscoverRecipePage.css
+│   │   ├── GroceryListPage.js
+│   │   ├── GroceryListPage.css
+│   │   ├── LoginSignup.js
+│   │   ├── LoginSignup.css
+│   │   ├── RecipeChatPage.js
+│   │   ├── RecipeChatPage.css
+│   │   ├── RecipeDetailPage.js
+│   │   ├── RecipeDetailPage.css
+│   │   ├── SavedRecipesPage.js
+│   │   └── SavedRecipesPage.css
+│   ├── services/
+│   ├── App.js
+│   ├── App.css
+│   ├── index.js
+│   └── index.css
+├── .env
+├── .env.sample
+├── .gitignore
+├── package.json
+└── README.md
+```
 
-### Deployment
+### Environment Variables
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Create a .env file with the following variables:
 
-### `npm run build` fails to minify
+```
+REACT_APP_PIXABAY_API_KEY=your_pixabay_api_key_here
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## 📜 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 👥 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 🔗 Links
+
+- [Repository](https://github.com/yourusername/nutri-sift)
+- [Issue Tracker](https://github.com/yourusername/nutri-sift/issues)
+- [Pixabay API](https://pixabay.com/api/docs/)
+
+## ⚠️ Disclaimer
+
+Recipe images are provided for reference only and may not exactly match the actual dish.
