@@ -1170,3 +1170,33 @@
     grid-column: span 1;
   }
 }
+
+/* Add this to your RecipeChatPage.css file */
+.recipe-image-container {
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.recipe-image {
+  width: 100%;
+  height: auto;
+  max-height: 250px;
+  object-fit: cover;
+  display: block;
+}
+
+.image-disclaimer {
+  font-size: 0.8rem;
+  color: #718096;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.5rem;
+}
+
+.disclaimer-icon {
+  font-size: 1rem;
+}

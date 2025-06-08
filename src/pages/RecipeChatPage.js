@@ -7,6 +7,45 @@ import HamburgerMenu from '../components/HamburgerMenu';
 const BOT_AVATAR = "👩‍🍳";
 const USER_AVATAR = "🧑";
 
+// Add this function to get recipe images - place it before the RecipeChatPage component
+const getRecipeImage = async (recipe) => {
+  try {
+    // Create search queries in order of preference
+    const searchQueries = [
+      // First try specific search with title + cuisine + course
+      `${recipe.title} ${recipe.cuisine || ''} ${recipe.course || ''} food`,
+      // Then try with just title + cuisine
+      `${recipe.title} ${recipe.cuisine || ''} food`,
+      // Then try just title + food
+      `${recipe.title} food`,
+      // Finally try just the main ingredient (if we can extract it)
+      recipe.title.split(' ')[0] + ' food'
+    ];
+    
+    // Try each search query in order until we find images
+    for (const query of searchQueries) {
+      const searchQuery = encodeURIComponent(query);
+      const pixabayApiKey = process.env.REACT_APP_PIXABAY_API_KEY;
+      const response = await fetch(
+        `${process.env.REACT_APP_PIXABAY_API_URL}/?key=${pixabayApiKey}&q=${searchQuery}&image_type=photo&per_page=3&category=food&orientation=horizontal&min_width=500`
+      );
+      
+      const data = await response.json();
+      if (data.hits && data.hits.length > 0) {
+        // Use the first image result
+        return data.hits[0].webformatURL;
+      }
+    }
+    
+    // If all searches failed, use a food-themed placeholder
+    return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/600x400/1a2235/ffffff?text=${encodeURIComponent(recipe.title)}`;
+  } catch (error) {
+    console.error('Error fetching recipe image:', error);
+    // Fallback to a food placeholder
+    return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/600x400/1a2235/ffffff?text=${encodeURIComponent(recipe.title)}`;
+  }
+};
+
 function RecipeChatPage() {
   // Update the messages state initialization to load from localStorage
 const [messages, setMessages] = useState(() => {
@@ -95,13 +134,12 @@ useEffect(() => {
     inputRef.current?.focus();
   };
 
-  // Update the generateRecipe function to properly format the response with metadata
-
+  // Update the generateRecipe function to fetch and include images
 const generateRecipe = async (ingredients) => {
   try {
     // Call the API
     try {
-      const res = await fetch('http://localhost:8080/recipe', {
+      const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/recipe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ingredients })
@@ -113,6 +151,13 @@ const generateRecipe = async (ingredients) => {
       
       const data = await res.json();
       
+      // Get an image for the recipe
+      const imageUrl = await getRecipeImage({
+        title: data.title,
+        cuisine: data.cuisine,
+        course: data.course
+      });
+      
       // Format the response to include metadata in the markdown
       const metadataSection = `
 **Nutritional & Recipe Information:**
@@ -123,7 +168,7 @@ const generateRecipe = async (ingredients) => {
 - Cuisine: ${data.cuisine || 'Not specified'}
 `;
       
-      // Add the formatted recipe to the messages
+      // Add the formatted recipe to the messages with image
       setMessages((msgs) => [
         ...msgs,
         {
@@ -137,7 +182,8 @@ const generateRecipe = async (ingredients) => {
             diet: data.diet,
             origin: data.origin,
             course: data.course,
-            cuisine: data.cuisine
+            cuisine: data.cuisine,
+            image: imageUrl
           }
         }
       ]);
@@ -145,14 +191,24 @@ const generateRecipe = async (ingredients) => {
       console.error('API Error:', apiError);
       
       // Fallback: Generate a mock recipe instead of showing an error
-      const data = generateMockRecipe(ingredients);
+      const mockRecipe = generateMockRecipe(ingredients);
+      
+      // Get an image for the recipe
+      const imageUrl = await getRecipeImage({
+        title: mockRecipe.title,
+        cuisine: mockRecipe.cuisine,
+        course: mockRecipe.course
+      });
       
       setMessages((msgs) => [
         ...msgs,
         {
           sender: "bot",
-          text: `Here's a recipe for you:\n\n# ${data.title}\n\n## Ingredients\n${data.ingredients.map(i => `- ${i}`).join('\n')}\n\n## Instructions\n${data.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
-          recipeData: data
+          text: `Here's a recipe for you:\n\n# ${mockRecipe.title}\n\n## Ingredients\n${mockRecipe.ingredients.map(i => `- ${i}`).join('\n')}\n\n## Instructions\n${mockRecipe.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
+          recipeData: {
+            ...mockRecipe,
+            image: imageUrl
+          }
         }
       ]);
     }
@@ -478,6 +534,7 @@ const generateRecipe = async (ingredients) => {
     }
   };
 
+  // Update handlePrintRecipe to include the image in the printed PDF
   const handlePrintRecipe = (message) => {
     // Create a new window for printing
     const printWindow = window.open('', '_blank');
@@ -485,6 +542,9 @@ const generateRecipe = async (ingredients) => {
     // Extract title for a cleaner print
     const titleMatch = message.text.match(/# (.*)\n/);
     const recipeTitle = titleMatch ? titleMatch[1] : "Recipe";
+    
+    // Get image URL if available
+    const imageUrl = message.recipeData?.image || '';
     
     // Create a styled HTML document for printing
     printWindow.document.write(`
@@ -507,6 +567,13 @@ const generateRecipe = async (ingredients) => {
               border-bottom: 2px solid #4299e1;
               padding-bottom: 10px;
             }
+            .recipe-image {
+              width: 100%;
+              max-height: 300px;
+              object-fit: cover;
+              border-radius: 8px;
+              margin-bottom: 20px;
+            }
             h2 {
               font-size: 16pt;
               color: #2c5282;
@@ -526,6 +593,12 @@ const generateRecipe = async (ingredients) => {
               border-top: 1px solid #e2e8f0;
               padding-top: 10px;
             }
+            .disclaimer {
+              font-style: italic;
+              color: #718096;
+              font-size: 10pt;
+              margin-top: 10px;
+            }
             @media print {
               body {
                 padding: 0;
@@ -534,6 +607,8 @@ const generateRecipe = async (ingredients) => {
           </style>
         </head>
         <body>
+          <h1>${recipeTitle}</h1>
+          ${imageUrl ? `<img src="${imageUrl}" alt="${recipeTitle}" class="recipe-image" />` : ''}
           ${message.text.replace(/# (.*)\n/, '<h1>$1</h1>\n')
                        .replace(/## (.*)\n/g, '<h2>$1</h2>\n')
                        .replace(/- (.*)/g, '<li>$1</li>')
@@ -542,6 +617,9 @@ const generateRecipe = async (ingredients) => {
                        .replace(/Ingredients\n/, '<ul>')
                        .replace(/Instructions\n/, '</ul><ol>')
                        .replace(/$/s, '</ol>')}
+          <div class="disclaimer">
+            ⚠️ Recipe image is provided for reference only and may not exactly match the actual dish.
+          </div>
           <div class="footer">
             Generated by NutriSift | ${new Date().toLocaleDateString()}
           </div>
@@ -562,241 +640,57 @@ const generateRecipe = async (ingredients) => {
     const titleMatch = message.text.match(/# (.*)\n/);
     const recipeTitle = titleMatch ? titleMatch[1] : "Recipe";
     
-    // Show sharing options dialog
-    const shareDialog = document.createElement('div');
-    shareDialog.className = 'share-dialog';
-    shareDialog.innerHTML = `
-      <div class="share-dialog-content">
-        <div class="share-dialog-header">
-          <h3>Share Recipe</h3>
-          <button class="share-dialog-close">&times;</button>
-        </div>
-        <div class="share-dialog-body">
-          <p>Choose how you want to share "${recipeTitle}":</p>
-          <div class="share-options">
-            <button class="share-option-btn whatsapp-btn">
-              <span class="share-icon">📱</span>
-              WhatsApp
-            </button>
-            <button class="share-option-btn pdf-btn">
-              <span class="share-icon">📄</span>
-              Download PDF
-            </button>
-            <button class="share-option-btn copy-btn">
-              <span class="share-icon">📋</span>
-              Copy Text
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(shareDialog);
+    // Format text for sharing
+    const plainText = message.text
+      .replace(/# (.*)\n/, '$1\n\n')
+      .replace(/## Ingredients\n/, 'INGREDIENTS:\n')
+      .replace(/## Instructions\n/, 'INSTRUCTIONS:\n')
+      .replace(/- /g, '• ')
+      .replace(/(\d+)\. /g, '$1. ');
     
-    // Add event handlers
-    const closeBtn = shareDialog.querySelector('.share-dialog-close');
-    const whatsappBtn = shareDialog.querySelector('.whatsapp-btn');
-    const pdfBtn = shareDialog.querySelector('.pdf-btn');
-    const copyBtn = shareDialog.querySelector('.copy-btn');
+    // Add disclaimer about recipe images
+    const shareText = `${plainText}\n\nNote: Recipe images are provided for reference only and may not exactly match the actual dish.\n\nShared via NutriSift Recipe Assistant`;
     
-    // Close dialog function
-    const closeDialog = () => {
-      document.body.removeChild(shareDialog);
-    };
-    
-    // Add event listeners
-    closeBtn.addEventListener('click', closeDialog);
-    
-    // Close on click outside
-    shareDialog.addEventListener('click', (e) => {
-      if (e.target === shareDialog) {
-        closeDialog();
-      }
-    });
-    
-    // WhatsApp share
-    whatsappBtn.addEventListener('click', () => {
-      // Format text for WhatsApp
-      const plainText = message.text
-        .replace(/# (.*)\n/, '$1\n\n')
-        .replace(/## Ingredients\n/, 'INGREDIENTS:\n')
-        .replace(/## Instructions\n/, 'INSTRUCTIONS:\n')
-        .replace(/- /g, '• ')
-        .replace(/(\d+)\. /g, '$1. ');
-    
-      // Encode text for URL
-      const encodedText = encodeURIComponent(`${plainText}\n\nShared via NutriSift Recipe Assistant`);
-    
-      // Create WhatsApp URL
-      const whatsappUrl = `https://wa.me/?text=${encodedText}`;
-    
-      // Open WhatsApp in new window
-      window.open(whatsappUrl, '_blank');
-      closeDialog();
-    });
-    
-    // PDF download
-    pdfBtn.addEventListener('click', async () => {
-      closeDialog();
-      setLoading(true);
-    
+    // Try to use the Web Share API if available
+    if (navigator.share) {
       try {
-        await generateAndDownloadPDF(message, recipeTitle);
+        await navigator.share({
+          title: recipeTitle,
+          text: shareText
+        });
         
-        // Show success toast
-        const toast = document.createElement('div');
-        toast.className = 'share-success';
-        toast.textContent = 'Recipe PDF saved!';
-        document.body.appendChild(toast);
-        
-        setTimeout(() => {
-          if (document.body.contains(toast)) {
-            document.body.removeChild(toast);
-          }
-        }, 3000);
-        
+        // Show success message
+        setSuccessMessage('Recipe shared successfully!');
+        setTimeout(() => setSuccessMessage(''), 3000);
       } catch (error) {
-        console.error('PDF generation error:', error);
+        console.error('Error sharing:', error);
         
-        // Show error toast
-        const errorToast = document.createElement('div');
-        errorToast.className = 'share-error';
-        errorToast.textContent = 'Could not generate PDF. Please try again.';
-        document.body.appendChild(errorToast);
-        
-        setTimeout(() => {
-          if (document.body.contains(errorToast)) {
-            document.body.removeChild(errorToast);
-          }
-        }, 3000);
-      } finally {
-        setLoading(false);
+        // If user cancelled sharing, don't show an error
+        if (error.name !== 'AbortError') {
+          // Fallback to clipboard
+          fallbackToClipboard(recipeTitle, shareText);
+        }
       }
-    });
-    
-    // Copy text
-    copyBtn.addEventListener('click', async () => {
-      try {
-        // Format text for clipboard
-        const plainText = message.text
-          .replace(/# (.*)\n/, '$1\n\n')
-          .replace(/## Ingredients\n/, 'INGREDIENTS:\n')
-          .replace(/## Instructions\n/, 'INSTRUCTIONS:\n');
-      
-        await navigator.clipboard.writeText(plainText);
-      
-        // Visual feedback
-        copyBtn.innerHTML = '<span class="share-icon">✓</span> Copied!';
-        setTimeout(() => {
-          closeDialog();
-        
-          // Show success toast
-          const toast = document.createElement('div');
-          toast.className = 'share-success';
-          toast.textContent = 'Recipe copied to clipboard!';
-          document.body.appendChild(toast);
-        
-          setTimeout(() => {
-            if (document.body.contains(toast)) {
-              document.body.removeChild(toast);
-            }
-          }, 3000);
-        }, 1000);
-      
-      } catch (error) {
-        console.error('Copy failed:', error);
-        closeDialog();
-      
-        // Show error toast
-        const errorToast = document.createElement('div');
-        errorToast.className = 'share-error';
-        errorToast.textContent = 'Could not copy text. Please try again.';
-        document.body.appendChild(errorToast);
-      
-        setTimeout(() => {
-          if (document.body.contains(errorToast)) {
-            document.body.removeChild(errorToast);
-          }
-        }, 3000);
-      }
-    });
+    } else {
+      // Fallback for browsers that don't support Web Share API
+      fallbackToClipboard(recipeTitle, shareText);
+    }
   };
 
-  // Helper function to generate and download PDF
-  const generateAndDownloadPDF = async (message, recipeTitle) => {
-    // Create temporary invisible div to render recipe for PDF
-    const pdfContainer = document.createElement('div');
-    pdfContainer.style.position = 'absolute';
-    pdfContainer.style.left = '-9999px';
-    pdfContainer.style.top = '-9999px';
-    document.body.appendChild(pdfContainer);
-    
-    // Format recipe content with proper styling for PDF
-    pdfContainer.innerHTML = `
-      <div style="font-family: 'Segoe UI', sans-serif; padding: 40px; max-width: 800px; background-color: white; color: black;">
-        <h1 style="font-size: 28pt; color: #2c5282; border-bottom: 3px solid #4299e1; padding-bottom: 15px; margin-bottom: 25px; font-weight: bold;">${recipeTitle}</h1>
-        <div style="margin-bottom: 40px;">
-          ${message.text
-            .replace(/# .*\n/, '')
-            .replace(/## Ingredients\n/, '<h2 style="font-size: 20pt; color: #2c5282; margin-top: 30px; margin-bottom: 20px; font-weight: bold;">Ingredients</h2><ul style="padding-left: 30px; margin-bottom: 30px; font-size: 12pt; line-height: 1.8;">')
-            .replace(/## Instructions\n/, '</ul><h2 style="font-size: 20pt; color: #2c5282; margin-top: 30px; margin-bottom: 20px; font-weight: bold;">Instructions</h2><ol style="padding-left: 30px; font-size: 12pt; line-height: 1.8;">')
-            .replace(/- (.*)/g, '<li style="margin-bottom: 12px; padding-left: 5px;">$1</li>')
-            .replace(/(\d+)\. (.*)/g, '<li style="margin-bottom: 16px; padding-left: 5px;"><span style="font-weight: bold; color: #2c5282;">Step $1:</span> $2</li>')
-            .replace(/$/s, '</ol>')}
-        </div>
-        <div style="margin-top: 40px; font-size: 10pt; color: #718096; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 15px;">
-          Generated by NutriSift | ${new Date().toLocaleDateString()}
-        </div>
-      </div>
-    `;
-    
+  // Add a helper function for clipboard fallback
+  const fallbackToClipboard = async (title, text) => {
     try {
-      // Import libraries dynamically
-      const { default: jsPDF } = await import('jspdf');
-      const { default: html2canvas } = await import('html2canvas');
+      await navigator.clipboard.writeText(text);
       
-      // Generate PDF with improved settings
-      const canvas = await html2canvas(pdfContainer, {
-        scale: 3,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#FFFFFF',
-        windowWidth: 1200,
-        imageTimeout: 15000,
-        allowTaint: false,
-        removeContainer: true
-      });
+      // Show success message
+      setSuccessMessage('Recipe copied to clipboard!');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (error) {
+      console.error('Failed to copy:', error);
       
-      const imgData = canvas.toDataURL('image/jpeg', 1.0);
-      
-      // Create PDF with proper dimensions
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-        compress: true
-      });
-      
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-      
-      // Calculate the ratio to fit the content better
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight) * 0.95;
-      const imgX = (pdfWidth - imgWidth * ratio) / 2;
-      const imgY = 10;
-      
-      pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
-      
-      // Generate filename and save
-      const fileName = `${recipeTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_recipe.pdf`;
-      pdf.save(fileName);
-      
-    } finally {
-      // Clean up
-      if (document.body.contains(pdfContainer)) {
-        document.body.removeChild(pdfContainer);
-      }
+      // Show error message
+      setErrorMessage('Could not copy recipe. Please try again.');
+      setTimeout(() => setErrorMessage(''), 3000);
     }
   };
 
@@ -1065,7 +959,24 @@ const handleClearChat = () => {
                   <div className="message-sender">{msg.sender === "user" ? "You" : "Chef Assistant"}</div>
                   <div className="message-text">
                     {msg.sender === "bot" ? (
-                      <ReactMarkdown>{msg.text}</ReactMarkdown>
+                      <>
+                        {msg.recipeData && msg.recipeData.image && msg.text.includes("# ") && (
+                          <div className="recipe-image-container">
+                            <div className="recipe-image-wrapper">
+                              <img 
+                                src={msg.recipeData.image} 
+                                alt={msg.recipeData.title || "Recipe"} 
+                                className="recipe-image"
+                              />
+                            </div>
+                            <div className="image-disclaimer">
+                              <span className="disclaimer-icon">ℹ️</span> 
+                              <span>Recipe image is provided for reference only and may not exactly match the actual dish.</span>
+                            </div>
+                          </div>
+                        )}
+                        <ReactMarkdown>{msg.text}</ReactMarkdown>
+                      </>
                     ) : (
                       msg.text
                     )}
