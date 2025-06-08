@@ -399,50 +399,82 @@ function DiscoverRecipePage() {
     };
   };
   
-  // Handle adding to grocery list
-  const handleAddToGroceryList = (recipe) => {
+  // Update the handleAddToGroceryList function to use API
+  const handleAddToGroceryList = async (recipe) => {
     setLoading(true);
     
     try {
-      // Get current grocery list from localStorage
-      const currentList = JSON.parse(localStorage.getItem('groceryItems') || '[]');
+      const userId = localStorage.getItem('userId');
+      const userEmail = localStorage.getItem('userEmail');
       
-      // Create a list of ingredients to add
-      const newIngredients = recipe.ingredients.map(ingredient => {
-        // Try to parse ingredient to extract quantity and name
-        const parts = ingredient.match(/^([\d./]+ \w+)?\s*(.+)/);
+      if (!userId || !userEmail) {
+        setError('You must be logged in to add items to your grocery list');
+        setTimeout(() => setError(null), 3000);
+        return;
+      }
+      
+      // Get current grocery list
+      let currentList = [];
+      
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
         
+        if (response.ok) {
+          const data = await response.json();
+          currentList = data.items || [];
+        } else {
+          currentList = JSON.parse(localStorage.getItem('groceryItems') || '[]');
+        }
+      } catch (error) {
+        console.error('Error fetching grocery list:', error);
+        currentList = JSON.parse(localStorage.getItem('groceryItems') || '[]');
+      }
+      
+      // Extract ingredient names and prepare for batch categorization
+      const ingredientNames = [];
+      const ingredientsData = [];
+      
+      recipe.ingredients.forEach(ingredient => {
+        const parts = ingredient.match(/^([\d./]+ \w+)?\s*(.+)/);
         if (parts) {
           const name = parts[2].trim();
           const quantity = parts[1] || '';
-          
-          // Check if ingredient already exists
-          const existingIndex = currentList.findIndex(item => 
-            item.name.toLowerCase() === name.toLowerCase()
-          );
-          
-          if (existingIndex >= 0) {
-            // Update existing item
-            return {
-              ...currentList[existingIndex],
-              count: currentList[existingIndex].count + 1,
-              meals: [...currentList[existingIndex].meals, recipe.title]
-            };
-          }
-          
-          // Create new item
+          ingredientNames.push(name);
+          ingredientsData.push({ name, quantity });
+        }
+      });
+      
+      // Batch categorize all ingredients
+      const categories = "other";
+      
+      // Create new ingredients with categories
+      const newIngredients = ingredientsData.map(({ name, quantity }) => {
+        const existingIndex = currentList.findIndex(item => 
+          item.name.toLowerCase() === name.toLowerCase()
+        );
+        
+        if (existingIndex >= 0) {
           return {
-            name,
-            quantity,
-            category: categorizeIngredient(name),
-            checked: false,
-            count: 1,
-            meals: [recipe.title]
+            ...currentList[existingIndex],
+            count: currentList[existingIndex].count + 1,
+            meals: [...currentList[existingIndex].meals, recipe.title]
           };
         }
-      }).filter(Boolean);
+        
+        return {
+          name,
+          quantity,
+          category: categories[name] || 'Other',
+          checked: false,
+          count: 1,
+          meals: [recipe.title]
+        };
+      });
       
-      // Find existing items to update and new items to add
+      // Process items
       const existingItemsToUpdate = newIngredients.filter(ingredient => 
         currentList.some(item => item.name.toLowerCase() === ingredient.name.toLowerCase())
       );
@@ -470,6 +502,21 @@ function DiscoverRecipePage() {
       // Save to localStorage
       localStorage.setItem('groceryItems', JSON.stringify(sortedList));
       
+      // Save to API
+      try {
+        const saveResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: sortedList })
+        });
+        
+        if (!saveResponse.ok) {
+          console.error('Error saving to API:', await saveResponse.text());
+        }
+      } catch (saveError) {
+        console.error('Error saving grocery list to API:', saveError);
+      }
+      
       // Show success message
       setSuccessMessage(`${recipe.ingredients.length} ingredients added to grocery list!`);
       setTimeout(() => setSuccessMessage(''), 5000); // Updated to 5 seconds
@@ -483,170 +530,7 @@ function DiscoverRecipePage() {
     }
   };
   
-  // Helper function to categorize ingredients
-  const categorizeIngredient = (ingredient) => {
-    const lowerIngredient = ingredient.toLowerCase();
-    
-    if (lowerIngredient.includes('milk') || lowerIngredient.includes('cheese') || 
-        lowerIngredient.includes('yogurt') || lowerIngredient.includes('butter')) {
-      return 'Dairy';
-    } else if (lowerIngredient.includes('chicken') || lowerIngredient.includes('beef') || 
-               lowerIngredient.includes('pork') || lowerIngredient.includes('fish') ||
-               lowerIngredient.includes('meat')) {
-      return 'Meat';
-    } else if (lowerIngredient.includes('flour') || lowerIngredient.includes('sugar') || 
-               lowerIngredient.includes('oil') || lowerIngredient.includes('pasta') ||
-               lowerIngredient.includes('rice') || lowerIngredient.includes('sauce')) {
-      return 'Pantry';
-    } else if (lowerIngredient.includes('apple') || lowerIngredient.includes('banana') || 
-               lowerIngredient.includes('berry') || lowerIngredient.includes('fruit')) {
-      return 'Fruits';
-    } else if (lowerIngredient.includes('lettuce') || lowerIngredient.includes('tomato') || 
-               lowerIngredient.includes('onion') || lowerIngredient.includes('potato') ||
-               lowerIngredient.includes('vegetable')) {
-      return 'Vegetables';
-    } else {
-      return 'Other';
-    }
-  };
-  
-  // Add this function to use a more reliable and legal image source
-  const getRecipeImage = async (recipe) => {
-    try {
-      // Create search queries in order of preference
-      const searchQueries = [
-        // First try specific search with title + cuisine + course
-        `${recipe.title} ${recipe.cuisine} ${recipe.course} food`,
-        // Then try with just title + cuisine
-        `${recipe.title} ${recipe.cuisine} food`,
-        // Then try just title + food
-        `${recipe.title} food`,
-        // Finally try just the main ingredient (if we can extract it)
-        recipe.title.split(' ')[0] + ' food'
-      ];
-      
-      // Try each search query in order until we find images
-      for (const query of searchQueries) {
-        const searchQuery = encodeURIComponent(query);
-        const pixabayApiKey = process.env.REACT_APP_PIXABAY_API_KEY;
-        const response = await fetch(
-          `${process.env.REACT_APP_PIXABAY_API_URL}/?key=${pixabayApiKey}&q=${searchQuery}&image_type=photo&per_page=3&category=food&orientation=horizontal&min_width=500`
-        );
-        
-        const data = await response.json();
-        if (data.hits && data.hits.length > 0) {
-          // Use the first image result
-          return data.hits[0].webformatURL;
-        }
-        
-        // If we didn't find any images, we'll try the next query
-        console.log(`No images found for query: ${query}, trying next...`);
-      }
-      
-      // If all searches failed, use a food-themed placeholder
-      console.log('All image searches failed, using placeholder');
-      return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/600x400/1a2235/ffffff?text=${encodeURIComponent(recipe.title)}`;
-    } catch (error) {
-      console.error('Error fetching recipe image:', error);
-      // Fallback to a food placeholder
-      return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/600x400/1a2235/ffffff?text=${encodeURIComponent(recipe.title)}`;
-    }
-  };
-  
-  // Update these functions in both DiscoverRecipePage.js and SavedRecipesPage.js
-  const handleShareViaEmail = (recipe) => {
-    const subject = encodeURIComponent(`Check out this recipe: ${recipe.title}`);
-    const body = encodeURIComponent(
-      `I found this amazing recipe for ${recipe.title}!\n\n` +
-      `Calories: ${recipe.calories} cal\n` +
-      `Diet: ${recipe.diet}\n` +
-      `Origin: ${recipe.origin}\n` +
-      `Course: ${recipe.course}\n` +
-      `Cuisine: ${recipe.cuisine}\n\n` +
-      `View the full recipe at: ${window.location.origin}/recipe/${recipe.id}\n\n` +
-      `Note: Recipe images are provided for reference only and may not exactly match the actual dish.`
-    );
-    
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
-    setShowShareDialog(false);
-  };
-
-  const handleCopyLink = (recipe) => {
-    // Create a shareable link with image reference
-    const shareText = `Check out this ${recipe.title} recipe! ${window.location.origin}/recipe/${recipe.id}\n\nNote: Recipe images are provided for reference only and may not exactly match the actual dish.`;
-    
-    navigator.clipboard.writeText(shareText)
-      .then(() => {
-        setSuccessMessage('Link copied to clipboard!');
-        setTimeout(() => setSuccessMessage(''), 3000);
-        setShowShareDialog(false);
-      })
-      .catch(err => {
-        console.error('Failed to copy link: ', err);
-      });
-  };
-
-  const handleShareViaWhatsApp = (recipe) => {
-    const text = encodeURIComponent(
-      `Check out this recipe for ${recipe.title}! ${window.location.origin}/recipe/${recipe.id}\n\nNote: Recipe images are provided for reference only and may not exactly match the actual dish.`
-    );
-    
-    window.open(`${process.env.REACT_APP_WHATSAPP_SHARE_URL}/?text=${text}`, '_blank');
-    setShowShareDialog(false);
-  };
-  
-  // Helper functions to extract ingredients and steps from recipes
-  const extractIngredients = (recipe) => {
-    // If ingredients is an array, return it directly
-    if (Array.isArray(recipe.ingredients)) {
-      return recipe.ingredients;
-    }
-    
-    // If ingredients is a string, split by newlines
-    if (typeof recipe.ingredients === 'string') {
-      return recipe.ingredients.split('\n').map(item => item.trim()).filter(Boolean);
-    }
-    
-    // Try to extract from text
-    if (recipe.text) {
-      const ingredientsMatch = recipe.text.match(/## Ingredients\n([\s\S]*?)(?=## Instructions|$)/);
-      if (ingredientsMatch && ingredientsMatch[1]) {
-        return ingredientsMatch[1]
-          .split('\n')
-          .map(line => line.replace(/^- /, '').trim())
-          .filter(Boolean);
-      }
-    }
-    
-    return [];
-  };
-
-  const extractSteps = (recipe) => {
-    // If steps is an array, return it directly
-    if (Array.isArray(recipe.steps)) {
-      return recipe.steps;
-    }
-    
-    // If steps is a string, split by newlines
-    if (typeof recipe.steps === 'string') {
-      return recipe.steps.split('\n').map(item => item.trim()).filter(Boolean);
-    }
-    
-    // Try to extract from text
-    if (recipe.text) {
-      const stepsMatch = recipe.text.match(/## Instructions\n([\s\S]*?)(?=##|$)/);
-      if (stepsMatch && stepsMatch[1]) {
-        return stepsMatch[1]
-          .split('\n')
-          .map(line => line.replace(/^\d+\.\s*/, '').trim())
-          .filter(Boolean);
-      }
-    }
-    
-    return [];
-  };
-  
-  // Update the handleShareRecipe function to share full recipe details
+  // Replace the handleShareRecipe function with this version that shares via email, link, or WhatsApp
   const handleShareRecipe = (recipe) => {
     // Extract recipe details
     const title = recipe.title || recipe.recipeName;
@@ -698,6 +582,203 @@ function DiscoverRecipePage() {
         alert(`Unable to copy recipe to clipboard. Please try again.`);
       });
   };
+   
+  // Get recipe image function
+const getRecipeImage = async (recipe) => {
+  // If recipe already has an image, use it
+  if (recipe.image) return recipe.image;
+  
+  try {
+    // Attempt to get an image from Pixabay based on recipe title
+    const query = encodeURIComponent(recipe.title);
+    const response = await fetch(
+      `${process.env.REACT_APP_PIXABAY_API_URL}/?key=${process.env.REACT_APP_PIXABAY_API_KEY}&q=${query}&image_type=photo&category=food&per_page=3`
+    );
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch image');
+    }
+    
+    const data = await response.json();
+    
+    // Return the first image if available, otherwise use a placeholder
+    if (data.hits && data.hits.length > 0) {
+      return data.hits[0].webformatURL;
+    }
+    
+    // Fallback to placeholder
+    return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/400x300?text=No+Image+Available`;
+  } catch (error) {
+    console.error('Error fetching recipe image:', error);
+    return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/400x300?text=No+Image+Available`;
+  }
+};
+
+// Extract ingredients function
+const extractIngredients = (recipe) => {
+  if (!recipe) return [];
+  
+  // Check if recipe has ingredients as an array
+  if (Array.isArray(recipe.ingredients)) {
+    return recipe.ingredients;
+  }
+  
+  // Check if recipe has ingredients as a string
+  if (typeof recipe.ingredients === 'string') {
+    return recipe.ingredients.split(',').map(item => item.trim());
+  }
+  
+  // Try to extract from recipe.text if available (for saved recipes)
+  if (recipe.text) {
+    const ingredientsMatch = recipe.text.match(/## Ingredients\n([\s\S]*?)(?=\n## |$)/);
+    if (ingredientsMatch && ingredientsMatch[1]) {
+      return ingredientsMatch[1]
+        .split('\n')
+        .map(line => line.replace(/^- /, '').trim())
+        .filter(Boolean);
+    }
+  }
+  
+  // Check if in recipeData (for saved recipes)
+  if (recipe.recipeData && recipe.recipeData.ingredients) {
+    return Array.isArray(recipe.recipeData.ingredients) 
+      ? recipe.recipeData.ingredients 
+      : recipe.recipeData.ingredients.split(',').map(item => item.trim());
+  }
+  
+  return [];
+};
+
+// Extract steps function
+const extractSteps = (recipe) => {
+  if (!recipe) return [];
+  
+  // Check if recipe has steps as an array
+  if (Array.isArray(recipe.steps)) {
+    return recipe.steps;
+  }
+  
+  // Check if recipe has steps as a string
+  if (typeof recipe.steps === 'string') {
+    return recipe.steps.split('\n').map(item => item.trim()).filter(Boolean);
+  }
+  
+  // Try to extract from recipe.text if available (for saved recipes)
+  if (recipe.text) {
+    const stepsMatch = recipe.text.match(/## Instructions\n([\s\S]*?)(?=\n## |$)/);
+    if (stepsMatch && stepsMatch[1]) {
+      return stepsMatch[1]
+        .split('\n')
+        .map(line => line.replace(/^\d+\.\s*/, '').trim())
+        .filter(Boolean);
+    }
+  }
+  
+  // Check if in recipeData (for saved recipes)
+  if (recipe.recipeData && recipe.recipeData.steps) {
+    return Array.isArray(recipe.recipeData.steps) 
+      ? recipe.recipeData.steps 
+      : recipe.recipeData.steps.split('\n').map(item => item.trim()).filter(Boolean);
+  }
+  
+  return [];
+};
+
+// Handle share via email function
+const handleShareViaEmail = (recipe) => {
+  if (!recipe) return;
+  
+  const ingredients = extractIngredients(recipe);
+  const steps = extractSteps(recipe);
+  
+  // Format ingredients and steps for email
+  const formattedIngredients = ingredients.map(ing => `• ${ing}`).join('%0D%0A');
+  const formattedSteps = steps.map((step, i) => `${i+1}. ${step}`).join('%0D%0A');
+  
+  // Create email subject and body
+  const subject = `Recipe: ${recipe.title || recipe.recipeName}`;
+  const body = `Check out this recipe!%0D%0A%0D%0A` +
+    `${recipe.title || recipe.recipeName}%0D%0A%0D%0A` +
+    `INGREDIENTS:%0D%0A${formattedIngredients}%0D%0A%0D%0A` +
+    `INSTRUCTIONS:%0D%0A${formattedSteps}%0D%0A%0D%0A` +
+    `From: NutriSift Recipe App`;
+  
+  // Open mail client
+  window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${body}`;
+  
+  // Close dialog
+  setShowShareDialog(false);
+  
+  // Show success message
+  setSuccessMessage('Email client opened!');
+  setTimeout(() => setSuccessMessage(''), 3000);
+};
+
+// Handle copy link function
+const handleCopyLink = (recipe) => {
+  if (!recipe) return;
+  
+  // In a real app, you'd generate a shareable link
+  // For this implementation, we'll just copy the recipe details to clipboard
+  
+  const ingredients = extractIngredients(recipe);
+  const steps = extractSteps(recipe);
+  
+  // Format ingredients and steps
+  const formattedIngredients = ingredients.map(ing => `• ${ing}`).join('\n');
+  const formattedSteps = steps.map((step, i) => `${i+1}. ${step}`).join('\n');
+  
+  // Create text to copy
+  const textToCopy = `${recipe.title || recipe.recipeName}\n\n` +
+    `INGREDIENTS:\n${formattedIngredients}\n\n` +
+    `INSTRUCTIONS:\n${formattedSteps}\n\n` +
+    `From: NutriSift Recipe App`;
+  
+  // Copy to clipboard
+  navigator.clipboard.writeText(textToCopy)
+    .then(() => {
+      // Close dialog
+      setShowShareDialog(false);
+      
+      // Show success message
+      setSuccessMessage('Recipe copied to clipboard!');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    })
+    .catch(err => {
+      console.error('Failed to copy: ', err);
+      setError('Failed to copy recipe to clipboard');
+      setTimeout(() => setError(null), 3000);
+    });
+};
+
+// Handle share via WhatsApp function
+const handleShareViaWhatsApp = (recipe) => {
+  if (!recipe) return;
+  
+  const ingredients = extractIngredients(recipe);
+  const steps = extractSteps(recipe);
+  
+  // Format ingredients and steps for WhatsApp
+  const formattedIngredients = ingredients.map(ing => `• ${ing}`).join('\n');
+  const formattedSteps = steps.map((step, i) => `${i+1}. ${step}`).join('\n');
+  
+  // Create text to share
+  const textToShare = `*${recipe.title || recipe.recipeName}*\n\n` +
+    `*INGREDIENTS:*\n${formattedIngredients}\n\n` +
+    `*INSTRUCTIONS:*\n${formattedSteps}\n\n` +
+    `From: NutriSift Recipe App`;
+  
+  // Open WhatsApp with the recipe
+  const whatsappUrl = `${process.env.REACT_APP_WHATSAPP_SHARE_URL}/?text=${encodeURIComponent(textToShare)}`;
+  window.open(whatsappUrl, '_blank');
+  
+  // Close dialog
+  setShowShareDialog(false);
+  
+  // Show success message
+  setSuccessMessage('Opening WhatsApp...');
+  setTimeout(() => setSuccessMessage(''), 3000);
+};
   
   return (
     <div className="discover-recipe-page">

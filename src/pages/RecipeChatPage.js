@@ -169,7 +169,7 @@ const generateRecipe = async (ingredients) => {
 `;
       
       // Add the formatted recipe to the messages with image
-      setMessages((msgs) => [
+      setMessages(msgs => [
         ...msgs,
         {
           sender: "bot",
@@ -200,7 +200,7 @@ const generateRecipe = async (ingredients) => {
         course: mockRecipe.course
       });
       
-      setMessages((msgs) => [
+      setMessages(msgs => [
         ...msgs,
         {
           sender: "bot",
@@ -214,7 +214,7 @@ const generateRecipe = async (ingredients) => {
     }
   } catch (error) {
     console.error('Recipe generation error:', error);
-    setMessages((msgs) => [
+    setMessages(msgs => [
       ...msgs,
       { 
         sender: "bot", 
@@ -705,63 +705,83 @@ const generateRecipe = async (ingredients) => {
     if (message.recipeData && message.recipeData.ingredients) {
       ingredients = message.recipeData.ingredients;
     } else {
-      // Try to extract ingredients section from text
       const ingredientsMatch = message.text.match(/## Ingredients\n([\s\S]*?)(?=\n## |\n$)/);
       if (ingredientsMatch && ingredientsMatch[1]) {
         ingredients = ingredientsMatch[1]
           .split('\n')
           .map(line => line.replace(/^- /, '').trim())
-          .filter(line => line);
+          .filter(Boolean);
       }
     }
     
     if (ingredients.length === 0) {
-      // Show error if no ingredients found
-      const errorToast = document.createElement('div');
-      errorToast.className = 'share-error';
-      errorToast.textContent = 'No ingredients found in recipe';
-      document.body.appendChild(errorToast);
-      
-      setTimeout(() => {
-        if (document.body.contains(errorToast)) {
-          document.body.removeChild(errorToast);
-        }
-      }, 3000);
+      setErrorMessage('No ingredients found in recipe');
+      setTimeout(() => setErrorMessage(''), 3000);
       return;
     }
     
-    // Show loading indicator
     setLoading(true);
     
     try {
-      // Format ingredients for grocery list
-      const groceryItemPromises = ingredients.map(async (ingredient) => {
-        // Try to extract quantity if it exists
+      const userId = localStorage.getItem('userId');
+      
+      if (!userId) {
+        setErrorMessage('You must be logged in to add items to your grocery list');
+        setTimeout(() => setErrorMessage(''), 3000);
+        setLoading(false);
+        return;
+      }
+      
+      // Get current grocery list
+      let currentList = [];
+      
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          currentList = data.items || [];
+        } else {
+          currentList = JSON.parse(localStorage.getItem('groceryItems') || '[]');
+        }
+      } catch (error) {
+        console.error('Error fetching grocery list:', error);
+        currentList = JSON.parse(localStorage.getItem('groceryItems') || '[]');
+      }
+      
+      // Prepare ingredients for batch categorization
+      const ingredientData = [];
+      const ingredientNames = [];
+      
+      ingredients.forEach(ingredient => {
         const parts = ingredient.match(/^([\d./]+ \w+)?\s*(.+)/);
         const quantity = parts && parts[1] ? parts[1] : '';
         const name = parts && parts[2] ? parts[2] : ingredient;
         
-        // Get category from API
-        const category = await categorizeIngredient(name);
-        
+        ingredientData.push({ name, quantity });
+        ingredientNames.push(name);
+      });
+      
+      // Batch categorize all ingredients
+      const categories = "Other";
+      
+      // Create grocery items with categories
+      const groceryItems = ingredientData.map(({ name, quantity }) => {
         return {
           name: name,
           quantity: quantity,
-          category: category,
+          category: categories[name] || 'Other',
           checked: false,
           count: 1,
           meals: [recipeTitle]
         };
       });
       
-      // Wait for all categorization promises to resolve
-      const groceryItems = await Promise.all(groceryItemPromises);
-      
-      // Get existing grocery items from localStorage
-      const existingItems = JSON.parse(localStorage.getItem('groceryItems') || '[]');
-      
-      // Merge new items with existing items (avoid duplicates)
-      const mergedItems = [...existingItems];
+      // Merge new items with existing items
+      const mergedItems = [...currentList];
       
       groceryItems.forEach(newItem => {
         const existingIndex = mergedItems.findIndex(item => 
@@ -769,120 +789,53 @@ const generateRecipe = async (ingredients) => {
         );
         
         if (existingIndex >= 0) {
-          // Update existing item
           mergedItems[existingIndex].count++;
           if (!mergedItems[existingIndex].meals.includes(recipeTitle)) {
             mergedItems[existingIndex].meals.push(recipeTitle);
           }
         } else {
-          // Add new item
           mergedItems.push(newItem);
         }
       });
       
       // Sort by category and name
-
       const sortedItems = mergedItems.sort((a, b) => {
-        // Safely handle undefined categories or names
         const categoryA = a.category || 'Other';
         const categoryB = b.category || 'Other';
         const nameA = a.name || '';
         const nameB = b.name || '';
         
-        // Sort by category first, then by name
         return categoryA.localeCompare(categoryB) || nameA.localeCompare(nameB);
       });
       
       // Save to localStorage
       localStorage.setItem('groceryItems', JSON.stringify(sortedItems));
       
-      // Show success toast
-      const toast = document.createElement('div');
-      toast.className = 'share-success';
-      toast.textContent = `${ingredients.length} ingredients added to grocery list!`;
-      document.body.appendChild(toast);
-      
-      setTimeout(() => {
-        if (document.body.contains(toast)) {
-          document.body.removeChild(toast);
+      // Save to API
+      try {
+        const saveResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: sortedItems })
+        });
+        
+        if (!saveResponse.ok) {
+          console.error('Error saving to API:', await saveResponse.text());
         }
-      }, 3000);
-    } catch (error) {
-      console.error('Error adding to grocery list:', error);
-      
-      // Show error toast
-      const errorToast = document.createElement('div');
-      errorToast.className = 'share-error';
-      errorToast.textContent = 'Error adding ingredients to grocery list';
-      document.body.appendChild(errorToast);
-      
-      setTimeout(() => {
-        if (document.body.contains(errorToast)) {
-          document.body.removeChild(errorToast);
-        }
-      }, 3000);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Update the categorizeIngredient function
-  const categorizeIngredient = async (ingredient) => {
-    try {
-      // Call the categorization API
-      const response = await fetch('http://localhost:5000/categorize', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ ingredient })
-      });
-      
-      if (!response.ok) {
-        throw new Error(`API returned status: ${response.status}`);
+      } catch (saveError) {
+        console.error('Error saving grocery list to API:', saveError);
       }
       
-      const data = await response.json();
-      // Ensure we always have a valid category string
-      return data.category || 'Other';
+      // Show success toast
+      setSuccessMessage(`${ingredients.length} ingredients added to grocery list!`);
+      setTimeout(() => setSuccessMessage(''), 3000);
+      
     } catch (error) {
-      console.error('Categorization API error:', error);
-      // Fallback to basic categorization if API fails
-      return fallbackCategorize(ingredient);
-    }
-  };
-
-  // Add a fallback function for when the API call fails
-  const fallbackCategorize = (ingredient) => {
-    const lowerIngredient = ingredient.toLowerCase();
-    
-    if (lowerIngredient.includes('flour') || lowerIngredient.includes('sugar') || 
-        lowerIngredient.includes('oil') || lowerIngredient.includes('pasta') ||
-        lowerIngredient.includes('rice') || lowerIngredient.includes('sauce')) {
-      return 'Pantry';
-    } else if (lowerIngredient.includes('milk') || lowerIngredient.includes('cheese') || 
-               lowerIngredient.includes('yogurt') || lowerIngredient.includes('butter') ||
-               lowerIngredient.includes('cream')) {
-      return 'Dairy';
-    } else if (lowerIngredient.includes('chicken') || lowerIngredient.includes('beef') || 
-               lowerIngredient.includes('pork') || lowerIngredient.includes('fish') ||
-               lowerIngredient.includes('meat') || lowerIngredient.includes('turkey')) {
-      return 'Meat';
-    } else if (lowerIngredient.includes('apple') || lowerIngredient.includes('banana') || 
-               lowerIngredient.includes('berry') || lowerIngredient.includes('fruit') ||
-               lowerIngredient.includes('orange') || lowerIngredient.includes('lemon')) {
-      return 'Fruits';
-    } else if (lowerIngredient.includes('lettuce') || lowerIngredient.includes('tomato') || 
-               lowerIngredient.includes('onion') || lowerIngredient.includes('potato') ||
-               lowerIngredient.includes('carrot') || lowerIngredient.includes('broccoli') ||
-               lowerIngredient.includes('vegetable')) {
-      return 'Vegetables';
-    } else if (lowerIngredient.includes('salt') || lowerIngredient.includes('pepper') ||
-               lowerIngredient.includes('spice') || lowerIngredient.includes('herb') ||
-               lowerIngredient.includes('garlic') || lowerIngredient.includes('seasoning')) {
-      return 'Spices';
-    } else {
-      return 'Other';
+      console.error('Error adding to grocery list:', error);
+      setErrorMessage('Error adding ingredients to grocery list');
+      setTimeout(() => setErrorMessage(''), 3000);
+    } finally {
+      setLoading(false);
     }
   };
 

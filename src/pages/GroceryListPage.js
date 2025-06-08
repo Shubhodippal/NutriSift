@@ -18,20 +18,44 @@ function GroceryListPage() {
   // First, add state for the menu
   const [menuOpen, setMenuOpen] = useState(false);
   
+  // Add these state variables at the top of the GroceryListPage component
+  const [isSaving, setIsSaving] = useState(false);
+  const [apiError, setApiError] = useState(null);
+  const [syncStatus, setSyncStatus] = useState('synced'); // 'synced', 'syncing', 'offline'
+  
   // Modify your existing useEffect to load from localStorage
   useEffect(() => {
     const recipes = JSON.parse(localStorage.getItem('savedRecipes') || '[]');
     setSavedRecipes(recipes);
     
-    // Load grocery items from localStorage if available
-    const savedGroceryItems = localStorage.getItem('groceryItems');
-    if (savedGroceryItems) {
-      setGroceryItems(JSON.parse(savedGroceryItems));
-    } else if (location.state?.mealPlan) {
-      const items = generateGroceryListFromMealPlan(location.state.mealPlan, recipes);
-      setGroceryItems(items);
-      localStorage.setItem('groceryItems', JSON.stringify(items));
-    }
+    const loadGroceryList = async () => {
+      // Show loading state
+      setSyncStatus('syncing');
+      
+      // Try to fetch from API first
+      const apiItems = await fetchGroceryListFromAPI();
+      
+      // If API fetch successful, use that data
+      if (apiItems) {
+        setGroceryItems(apiItems);
+        // Update localStorage with the latest from server
+        localStorage.setItem('groceryItems', JSON.stringify(apiItems));
+      } else {
+        // Fallback to localStorage if API fails
+        const savedGroceryItems = localStorage.getItem('groceryItems');
+        if (savedGroceryItems) {
+          setGroceryItems(JSON.parse(savedGroceryItems));
+        } else if (location.state?.mealPlan) {
+          const items = await generateGroceryListFromMealPlan(location.state.mealPlan, recipes);
+          setGroceryItems(items);
+          localStorage.setItem('groceryItems', JSON.stringify(items));
+          // Also try to save to API
+          saveGroceryListToAPI(items);
+        }
+      }
+    };
+    
+    loadGroceryList();
   }, [location.state]);
   
   // Add this effect to save changes when items are updated
@@ -41,79 +65,114 @@ function GroceryListPage() {
     }
   }, [groceryItems]);
   
-  const generateGroceryListFromMealPlan = (mealPlan, recipes) => {
-    const ingredientMap = {};
-    
-    // Extract all ingredients from each meal in the plan
-    Object.keys(mealPlan).forEach(day => {
-      Object.keys(mealPlan[day]).forEach(meal => {
-        const recipeId = mealPlan[day][meal];
-        if (recipeId) {
-          const recipe = recipes.find(r => r.id === recipeId);
-          if (recipe?.recipeData?.ingredients) {
-            recipe.recipeData.ingredients.forEach(ingredient => {
-              // Parse ingredient to extract quantity and name
-              const parts = ingredient.match(/^([\d./]+ \w+)?\s*(.+)/);
-              if (parts) {
-                const name = parts[2].trim();
-                if (ingredientMap[name]) {
-                  ingredientMap[name].count++;
-                  ingredientMap[name].meals.push(`${day} ${meal}`);
-                } else {
-                  ingredientMap[name] = {
-                    name,
-                    quantity: parts[1] || '',
-                    category: categorizeIngredient(name),
-                    checked: false,
-                    count: 1,
-                    meals: [`${day} ${meal}`]
-                  };
-                }
+  // Update the generateGroceryListFromMealPlan function
+const generateGroceryListFromMealPlan = async (mealPlan, recipes) => {
+  const ingredientMap = {};
+  const allIngredients = [];
+  
+  // First collect all ingredients
+  Object.keys(mealPlan).forEach(day => {
+    Object.keys(mealPlan[day]).forEach(meal => {
+      const recipeId = mealPlan[day][meal];
+      if (recipeId) {
+        const recipe = recipes.find(r => r.id === recipeId);
+        if (recipe?.recipeData?.ingredients) {
+          recipe.recipeData.ingredients.forEach(ingredient => {
+            const parts = ingredient.match(/^([\d./]+ \w+)?\s*(.+)/);
+            if (parts) {
+              const name = parts[2].trim();
+              allIngredients.push(name);
+              
+              if (ingredientMap[name]) {
+                ingredientMap[name].count++;
+                ingredientMap[name].meals.push(`${day} ${meal}`);
+              } else {
+                ingredientMap[name] = {
+                  name,
+                  quantity: parts[1] || '',
+                  category: 'Other', // Placeholder until categorized
+                  checked: false,
+                  count: 1,
+                  meals: [`${day} ${meal}`]
+                };
               }
-            });
-          }
+            }
+          });
         }
-      });
+      }
     });
+  });
+  
+  // Batch categorize all ingredients
+  /*try {
+    const categories = await batchCategorizeIngredients(allIngredients);
     
-    // Convert to array and sort by category
-    return Object.values(ingredientMap).sort((a, b) => 
-      a.category.localeCompare(b.category) || a.name.localeCompare(b.name)
-    );
-  };
+    // Update the categories
+    Object.keys(ingredientMap).forEach(name => {
+      ingredientMap[name].category = categories[name] || 'Other';
+    });
+  } catch (error) {
+    console.error('Error categorizing ingredients:', error);
+    // In case of failure, use Other as default category
+  }*/
   
-  const categorizeIngredient = (ingredient) => {
-    // Simple categorization logic - would be expanded in real app
-    const lowerIngredient = ingredient.toLowerCase();
-    if (lowerIngredient.includes('flour') || lowerIngredient.includes('sugar') || 
-        lowerIngredient.includes('oil') || lowerIngredient.includes('pasta')) {
-      return 'Pantry';
-    } else if (lowerIngredient.includes('milk') || lowerIngredient.includes('cheese') || 
-               lowerIngredient.includes('yogurt') || lowerIngredient.includes('butter')) {
-      return 'Dairy';
-    } else if (lowerIngredient.includes('chicken') || lowerIngredient.includes('beef') || 
-               lowerIngredient.includes('pork') || lowerIngredient.includes('fish')) {
-      return 'Meat';
-    } else if (lowerIngredient.includes('apple') || lowerIngredient.includes('banana') || 
-               lowerIngredient.includes('berry') || lowerIngredient.includes('fruit')) {
-      return 'Fruits';
-    } else if (lowerIngredient.includes('lettuce') || lowerIngredient.includes('tomato') || 
-               lowerIngredient.includes('onion') || lowerIngredient.includes('potato')) {
-      return 'Vegetables';
-    } else {
-      return 'Other';
+  // Convert to array and sort by category
+  return Object.values(ingredientMap).sort((a, b) => 
+    a.category.localeCompare(b.category) || a.name.localeCompare(b.name)
+  );
+};
+  
+  // Update toggleItemCheck
+// Update the toggleItemCheck function to use the specific toggle endpoint
+const toggleItemCheck = async (index) => {
+  const userId = localStorage.getItem('userId');
+  const item = groceryItems[index];
+  
+  // Optimistically update UI
+  const updatedItems = groceryItems.map((i, idx) => 
+    idx === index ? {...i, checked: !i.checked} : i
+  );
+  setGroceryItems(updatedItems);
+  
+  // Save to localStorage as fallback
+  localStorage.setItem('groceryItems', JSON.stringify(updatedItems));
+  
+  // If item has an ID, use the toggle endpoint
+  if (userId && item.id) {
+    setSyncStatus('syncing');
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/item/${item.id}/toggle`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ uid: userId })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to toggle item: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      if (result.success && result.items) {
+        // Update with server response to get any server-side changes
+        setGroceryItems(result.items);
+        localStorage.setItem('groceryItems', JSON.stringify(result.items));
+      }
+      
+      setSyncStatus('synced');
+    } catch (error) {
+      console.error('Error toggling item:', error);
+      setApiError('Failed to sync change. Using local data.');
+      setSyncStatus('offline');
     }
-  };
-  
-  const toggleItemCheck = (index) => {
-    setGroceryItems(items => 
-      items.map((item, i) => 
-        i === index ? {...item, checked: !item.checked} : item
-      )
-    );
-  };
-  
-  const addItemToGroceryList = () => {
+  } else if (userId) {
+    // If the item doesn't have an ID, save the whole list
+    saveGroceryListToAPI(updatedItems);
+  }
+};
+
+/*const addItemToGroceryList = () => {
     if (!newItemName) return;
     
     const newItem = {
@@ -129,56 +188,151 @@ function GroceryListPage() {
     setNewItemName('');
     setNewItemQuantity('');
     setNewItemCategory('Other');
-  };
+  };*/
   
-  // Add this function near your other functions
-  const handleAddItem = (e) => {
-    e.preventDefault();
-    
-    if (!newItemName.trim()) return;
+  // Update handleAddItem
+const handleAddItem = async (e) => {
+  e.preventDefault();
+  
+  if (!newItemName.trim()) return;
+  
+  const userId = localStorage.getItem('userId');
+  
+  if (!userId) {
+    setApiError('You must be logged in to add items');
+    return;
+  }
+  
+  setSyncStatus('syncing');
+  
+  try {
+    // Get category from Cohere API
+    const category = "Other";
     
     // Create the new item
     const newItem = {
       name: newItemName.trim(),
       quantity: newItemQuantity.trim(),
-      category: newItemCategory,
+      category: category,
       checked: false,
       count: 1,
       meals: ['Added manually']
     };
     
-    // Add to the grocery list
-    setGroceryItems(items => {
-      const updatedItems = [...items, newItem].sort((a, b) => 
-        a.category.localeCompare(b.category) || a.name.localeCompare(b.name)
-      );
-      
-      // Save to localStorage
-      localStorage.setItem('groceryItems', JSON.stringify(updatedItems));
-      
-      return updatedItems;
-    });
+    // Add to the grocery list locally
+    const updatedItems = [...groceryItems, newItem].sort((a, b) => 
+      a.category.localeCompare(b.category) || a.name.localeCompare(b.name)
+    );
+    
+    // Save to localStorage as fallback
+    localStorage.setItem('groceryItems', JSON.stringify(updatedItems));
+    
+    // Update state
+    setGroceryItems(updatedItems);
     
     // Reset form
     setNewItemName('');
     setNewItemQuantity('');
-  };
-  
-  const handleDeleteItem = (index) => {
-    setGroceryItems(items => {
-      const updatedItems = [...items];
-      updatedItems.splice(index, 1);
+    
+    // Save to API
+    try {
+      const saveResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ items: updatedItems })
+      });
       
-      // Save to localStorage
-      if (updatedItems.length > 0) {
-        localStorage.setItem('groceryItems', JSON.stringify(updatedItems));
-      } else {
-        localStorage.removeItem('groceryItems');
+      if (!saveResponse.ok) {
+        throw new Error(`Failed to save to API: ${saveResponse.status}`);
       }
       
-      return updatedItems;
-    });
-  };
+      setSyncStatus('synced');
+    } catch (error) {
+      console.error('Error saving to API:', error);
+      setApiError('Failed to save to server. Data saved locally only.');
+      setSyncStatus('offline');
+    }
+  } catch (error) {
+    console.error('Error categorizing ingredient:', error);
+    setApiError('Failed to categorize ingredient. Using "Other" category.');
+    
+    // Fallback to "Other" category
+    const newItem = {
+      name: newItemName.trim(),
+      quantity: newItemQuantity.trim(),
+      category: 'Other',
+      checked: false,
+      count: 1,
+      meals: ['Added manually']
+    };
+    
+    const updatedItems = [...groceryItems, newItem].sort((a, b) => 
+      a.category.localeCompare(b.category) || a.name.localeCompare(b.name)
+    );
+    
+    localStorage.setItem('groceryItems', JSON.stringify(updatedItems));
+    setGroceryItems(updatedItems);
+    setNewItemName('');
+    setNewItemQuantity('');
+    
+    // Try to save to API even with the fallback category
+    saveGroceryListToAPI(updatedItems);
+  }
+};
+
+  // Update handleDeleteItem to use the item-specific endpoint
+const handleDeleteItem = async (index) => {
+  const userId = localStorage.getItem('userId');
+  const item = groceryItems[index];
+  
+  // Optimistically update UI
+  const updatedItems = [...groceryItems];
+  updatedItems.splice(index, 1);
+  setGroceryItems(updatedItems);
+  
+  // Save to localStorage as fallback
+  if (updatedItems.length > 0) {
+    localStorage.setItem('groceryItems', JSON.stringify(updatedItems));
+  } else {
+    localStorage.removeItem('groceryItems');
+  }
+  
+  // If item has an ID, use the delete item endpoint
+  if (userId && item.id) {
+    setSyncStatus('syncing');
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/item/${item.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ uid: userId })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to delete item: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      if (result.success && result.items) {
+        // Update with server response
+        setGroceryItems(result.items);
+        localStorage.setItem('groceryItems', JSON.stringify(result.items));
+      }
+      
+      setSyncStatus('synced');
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      setApiError('Failed to sync deletion. Using local data.');
+      setSyncStatus('offline');
+    }
+  } else if (userId) {
+    // If the item doesn't have an ID, save the whole list
+    saveGroceryListToAPI(updatedItems);
+  }
+};
   
   // Add these functions after your other handler functions
 const handleEditStart = (index) => {
@@ -193,30 +347,77 @@ const handleEditCancel = () => {
   setEditingIndex(-1);
 };
 
-const handleEditSave = () => {
+// Update handleEditSave
+const handleEditSave = async () => {
   if (!editName.trim()) return;
   
-  setGroceryItems(items => {
-    const updatedItems = [...items];
-    updatedItems[editingIndex] = {
-      ...updatedItems[editingIndex],
-      name: editName.trim(),
-      quantity: editQuantity.trim(),
-      category: editCategory
-    };
-    
-    // Sort items again after edit in case category changed
-    const sortedItems = updatedItems.sort((a, b) => 
-      a.category.localeCompare(b.category) || a.name.localeCompare(b.name)
-    );
-    
-    // Save to localStorage
-    localStorage.setItem('groceryItems', JSON.stringify(sortedItems));
-    
-    return sortedItems;
-  });
+  const userId = localStorage.getItem('userId');
+  const item = groceryItems[editingIndex];
   
+  // Update item locally
+  const updatedItems = [...groceryItems];
+  updatedItems[editingIndex] = {
+    ...updatedItems[editingIndex],
+    name: editName.trim(),
+    itemName: editName.trim(), // Add this for backend compatibility
+    quantity: editQuantity.trim(),
+    category: editCategory
+  };
+  
+  // Sort items again after edit in case category changed
+  const sortedItems = updatedItems.sort((a, b) => 
+    a.category.localeCompare(b.category) || a.name.localeCompare(b.name)
+  );
+  
+  // Save to localStorage as fallback
+  localStorage.setItem('groceryItems', JSON.stringify(sortedItems));
+  
+  // Update state
+  setGroceryItems(sortedItems);
   setEditingIndex(-1);
+  
+  // If item has an ID, use the update item endpoint
+  if (userId && item.id) {
+    setSyncStatus('syncing');
+    try {
+      const updatedItem = {
+        ...item,
+        name: editName.trim(),
+        itemName: editName.trim(), // Backend uses itemName
+        quantity: editQuantity.trim(),
+        category: editCategory,
+        uid: userId
+      };
+      
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/item/${item.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedItem)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to update item: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      if (result.success && result.items) {
+        // Update with server response
+        setGroceryItems(result.items);
+        localStorage.setItem('groceryItems', JSON.stringify(result.items));
+      }
+      
+      setSyncStatus('synced');
+    } catch (error) {
+      console.error('Error updating item:', error);
+      setApiError('Failed to sync update. Using local data.');
+      setSyncStatus('offline');
+    }
+  } else if (userId) {
+    // If the item doesn't have an ID, save the whole list
+    saveGroceryListToAPI(sortedItems);
+  }
 };
 
 // Add this function near your other handler functions
@@ -415,6 +616,141 @@ const handleNavigation = (path) => {
   navigate(path);
 };
 
+// Add these API helper functions after your other function declarations
+
+// Fetch grocery list from API
+const fetchGroceryListFromAPI = async () => {
+  const userId = localStorage.getItem('userId');
+  
+  if (!userId) {
+    setApiError('User not logged in');
+    return null;
+  }
+  
+  try {
+    setApiError(null);
+    setSyncStatus('syncing');
+    
+    const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch grocery list: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to fetch grocery list');
+    }
+    
+    // Transform backend items to match frontend structure
+    const transformedItems = data.items.map(item => ({
+      id: item.id,
+      name: item.itemName || item.name,
+      quantity: item.quantity || '',
+      category: item.category || 'Other',
+      checked: item.checked || false,
+      count: 1, // Default
+      meals: item.meals || ['Unspecified']
+    }));
+    
+    setSyncStatus('synced');
+    return transformedItems;
+  } catch (error) {
+    console.error('Error fetching grocery list:', error);
+    setApiError('Failed to load grocery list from server. Using local data.');
+    setSyncStatus('offline');
+    return null;
+  }
+};
+
+// Save grocery list to API
+const saveGroceryListToAPI = async (items) => {
+  const userId = localStorage.getItem('userId');
+  let userEmail = localStorage.getItem('userEmail') || 'user@example.com';
+  
+  if (!userId) {
+    setApiError('User not logged in');
+    return false;
+  }
+  
+  try {
+    setIsSaving(true);
+    setApiError(null);
+    setSyncStatus('syncing');
+    
+    // Try to verify the email first
+    try {
+      const verifyResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users/verify/${userId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (verifyResponse.ok) {
+        const userData = await verifyResponse.json();
+        userEmail = userData.email; // Use verified email
+      }
+    } catch (verifyError) {
+      console.error('Error verifying user email:', verifyError);
+      // Continue with email from localStorage as fallback
+    }
+    
+    // Transform items to match backend structure with verified email
+    const transformedItems = items.map(item => ({
+      id: item.id, // Pass ID if it exists
+      uid: userId,
+      mail: userEmail, // Use verified email
+      itemName: item.name,
+      name: item.name,
+      quantity: item.quantity || '',
+      category: item.category || 'Other',
+      checked: item.checked || false,
+      state: item.checked ? 'checked' : 'active',
+      meals: item.meals || []
+    }));
+    
+    const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ items: transformedItems })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to save grocery list: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to save grocery list');
+    }
+    
+    // Update with server response to get IDs
+    if (result.items) {
+      setGroceryItems(result.items);
+      localStorage.setItem('groceryItems', JSON.stringify(result.items));
+    }
+    
+    setSyncStatus('synced');
+    return true;
+  } catch (error) {
+    console.error('Error saving grocery list:', error);
+    setApiError('Failed to save to server. Data saved locally only.');
+    setSyncStatus('offline');
+    return false;
+  } finally {
+    setIsSaving(false);
+  }
+};
   return (
     <div className="grocery-list-page">
       <header className="grocery-list-header">
@@ -426,16 +762,72 @@ const handleNavigation = (path) => {
         />
       </header>
       
+      {/* Add this below the header */}
+<div className="sync-status">
+  {syncStatus === 'syncing' && (
+    <div className="syncing">
+      <span className="sync-icon">🔄</span> Syncing...
+    </div>
+  )}
+  {syncStatus === 'synced' && (
+    <div className="synced">
+      <span className="sync-icon">✅</span> All changes saved
+    </div>
+  )}
+  {syncStatus === 'offline' && (
+    <div className="offline">
+      <span className="sync-icon">⚠️</span> Offline mode - changes saved locally
+    </div>
+  )}
+  {apiError && (
+    <div className="sync-error">
+      <span className="error-icon">❌</span> {apiError}
+    </div>
+  )}
+</div>
+      
       <div className="list-controls">
         <button onClick={handlePrintList}>
           🖨️ Print List
         </button>
-        <button onClick={() => {
-          setGroceryItems([]);
-          localStorage.removeItem('groceryItems');
-        }}>
-          🗑️ Clear List
-        </button>
+        <button onClick={async () => {
+  const userId = localStorage.getItem('userId');
+  
+  // Clear state and localStorage
+  setGroceryItems([]);
+  localStorage.removeItem('groceryItems');
+  
+  // Clear from API if logged in
+  if (userId) {
+    setSyncStatus('syncing');
+    try {
+      // Use the DELETE endpoint instead of sending an empty array
+      const clearResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!clearResponse.ok) {
+        throw new Error(`Failed to clear list on server: ${clearResponse.status}`);
+      }
+      
+      const result = await clearResponse.json();
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to clear grocery list');
+      }
+      
+      setSyncStatus('synced');
+    } catch (error) {
+      console.error('Error clearing list on server:', error);
+      setApiError('Failed to clear list on server. Cleared locally only.');
+      setSyncStatus('offline');
+    }
+  }
+}}>
+  🗑️ Clear List
+</button>
         <button onClick={handleShareList}>
           📤 Share List
         </button>

@@ -282,8 +282,8 @@ function LoginSignup({ onLogin }) {
     
     // Use the correct API endpoints
     const endpoint = isLogin 
-      ? 'http://localhost:8080/users/login' 
-      : 'http://localhost:8080/users';
+      ? 'https://backend.shubhodip.in/users/login' 
+      : 'https://backend.shubhodip.in/users';
     
     // Only send required fields based on login/signup
     const payload = isLogin 
