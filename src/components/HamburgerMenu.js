@@ -19,13 +19,12 @@ function HamburgerMenu({ additionalItems, onLogout, isLoggedIn }) {
   const defaultMenuItems = [
     { path: '/', icon: '🏠', label: 'Home' },
     { path: '/chat', icon: '💬', label: 'Recipe Chat' },
-    { path: '/discover-recipes', icon: '🔍', label: 'Discover Recipes' }, // Add this new item
+    { path: '/discover-recipes', icon: '🔍', label: 'Discover Recipes' }, 
     { path: '/saved-recipes', icon: '📚', label: 'Saved Recipes' },
     { path: '/grocery-list', icon: '🛒', label: 'Grocery List' },
     { path: '/nearby-restaurants', icon: '🍽️', label: 'Find Restaurants' },
   ];
 
-  // Add clear chat function for RecipeChatPage
   const handleClearChat = () => {
     if (typeof additionalItems?.clearChat === 'function') {
       additionalItems.clearChat();

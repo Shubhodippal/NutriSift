@@ -31,7 +31,7 @@
   padding: 1.5rem;
   border-radius: 16px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  overflow: hidden; /* Add this to prevent content from overflowing */
+  overflow: hidden; 
 }
 
 .filters-section h2 {
@@ -169,13 +169,13 @@
 .recipe-card {
   background-color: #1a2235;
   border-radius: 16px;
-  overflow: hidden; /* This ensures nothing spills outside the card's rounded corners */
+  overflow: hidden; 
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   display: flex;
   flex-direction: column;
   height: 100%;
-  position: relative; /* Added to establish positioning context */
+  position: relative; 
 }
 
 .recipe-card:hover {
@@ -206,31 +206,29 @@
   height: 100%;
   object-fit: cover;
   transition: transform 0.5s ease;
-  display: block; /* Prevent default image spacing */
+  display: block; 
 }
 
 .recipe-card:hover .recipe-image img {
   transform: scale(1.05);
 }
 
-/* Ensure content section flows smoothly from image */
 .recipe-content {
   padding: 16px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  background-color: #1a2235; /* Match card background */
-  margin-top: -10px; /* Create slight overlap with image */
+  background-color: #1a2235; 
+  margin-top: -10px; 
   position: relative;
   z-index: 2;
-  border-radius: 16px; /* Add rounded corners to content area */
-  border-top-left-radius: 30px; /* Exaggerate top corners for better blend */
+  border-radius: 16px; 
+  border-top-left-radius: 30px; 
   border-top-right-radius: 30px;
 }
 
-/* Add this to create better visual flow from image to content */
 .recipe-card h3 {
-  margin-top: 8px; /* Increase from 0 to add some spacing after the blend */
+  margin-top: 8px; 
   margin-bottom: 0.75rem;
   font-size: 1.2rem;
   color: #fff;
@@ -309,7 +307,7 @@
 }
 
 .view-recipe-button {
-  grid-column: 1 / -1; /* Make it span full width like in SavedRecipesPage */
+  grid-column: 1 / -1; 
   background-color: #4f8cff;
   color: white;
   border: none;
@@ -343,7 +341,6 @@
   transition: all 0.2s ease;
 }
 
-/* Add hover effects for all action buttons */
 .save-recipe-button:hover,
 .print-recipe-button:hover,
 .share-recipe-button:hover,
@@ -357,7 +354,6 @@
   font-size: 1.2rem;
 }
 
-/* Share dialog styles */
 .share-dialog {
   position: fixed;
   top: 0;
@@ -473,13 +469,11 @@
   margin-bottom: 0.4rem;
 }
 
-/* PDF container for rendering */
 .pdf-container {
   position: absolute;
   left: -9999px;
 }
 
-/* Make sure recipe steps preview is styled properly */
 .recipe-steps-preview {
   margin: 0.75rem 0;
   overflow: hidden;
@@ -502,7 +496,6 @@
   text-overflow: ellipsis;
 }
 
-/* Search group styles - improved containment and responsiveness */
 .search-group {
   grid-column: 1 / -1;
   margin-bottom: 1rem;
@@ -535,7 +528,6 @@
   box-shadow: 0 0 0 2px rgba(79, 140, 255, 0.2);
 }
 
-/* Search buttons container */
 .search-buttons {
   grid-column: 1 / -1;
   display: flex;
@@ -545,7 +537,6 @@
   box-sizing: border-box;
 }
 
-/* Primary search button */
 .search-recipes-button {
   flex: 1;
   padding: 0.9rem 1.5rem;
@@ -573,7 +564,6 @@
   cursor: not-allowed;
 }
 
-/* Loading state for search button */
 .search-recipes-button.loading {
   background: linear-gradient(135deg, #4f8cff 0%, #2d5cbe 100%);
   opacity: 0.7;
@@ -593,7 +583,6 @@
   margin-left: 10px;
 }
 
-/* Mobile responsiveness for recipe actions */
 @media (max-width: 768px) {
   .recipe-actions {
     grid-template-columns: repeat(2, 1fr);
@@ -626,7 +615,6 @@
   }
 }
 
-/* Add styles for the image disclaimer */
 .image-disclaimer {
   margin-top: 2rem;
   padding: 0.75rem 1rem;
@@ -653,7 +641,6 @@
   font-size: 1.1rem;
 }
 
-/* Share recipe preview */
 .share-recipe-preview {
   display: flex;
   flex-direction: column;
@@ -679,7 +666,6 @@
   text-align: center;
 }
 
-/* Share recipe disclaimer */
 .share-recipe-disclaimer {
   background: rgba(45, 55, 72, 0.7);
   border-radius: 6px;
@@ -696,7 +682,6 @@
   gap: 0.5rem;
 }
 
-/* Add these styles if not already present */
 .success-toast {
   position: fixed;
   bottom: 20px;

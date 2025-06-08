@@ -58,8 +58,8 @@ function Particles({ count = 1000 }) {
       const { time, factor, speed, x, y, z } = particles[i];
       
       // Slow down oscillation factors
-      const a = Math.cos(time) + Math.sin(time * 0.4) / 10; // from 0.8 to 0.4
-      const b = Math.sin(time) + Math.cos(time * 0.7) / 10; // from 1.5 to 0.7
+      const a = Math.cos(time) + Math.sin(time * 0.4) / 10; 
+      const b = Math.sin(time) + Math.cos(time * 0.7) / 10; 
       
       positions[i3] = x + a * factor;
       positions[i3 + 1] = y + b * factor;
@@ -72,9 +72,9 @@ function Particles({ count = 1000 }) {
     
     // Slow down light movement
     light.current.position.set(
-      Math.sin(Date.now() / 25000) * 500, // from 10000 to 25000
-      Math.cos(Date.now() / 25000) * 500, // from 10000 to 25000
-      Math.sin(Date.now() / 20000) * 500  // from 7000 to 20000
+      Math.sin(Date.now() / 25000) * 500, 
+      Math.cos(Date.now() / 25000) * 500, 
+      Math.sin(Date.now() / 20000) * 500  
     );
   });
   
