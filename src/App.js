@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { Link } from 'react-scroll'; // Add this import at the top
 import './App.css';
 import FeaturesSection from './FeaturesSection';
@@ -286,7 +286,7 @@ function HomePage() {
 
 function App() {
   return (
-    <Router basename="/NutriSift">
+    <Router> {/* Remove basename="/NutriSift" when using HashRouter */}
       <Routes>
         {/* Public routes - All routes are now accessible without authentication */}
         <Route path="/" element={<HomePage />} />

@@ -13,6 +13,32 @@
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <title>NutriSift | AI Recipe Generator</title>
     <base href="/nutri-sift/">
+    <script>
+      // Handle redirects from 404.html
+      (function() {
+        const redirect = sessionStorage.redirect;
+        delete sessionStorage.redirect;
+        if (redirect && redirect !== location.href) {
+          history.replaceState(null, null, redirect);
+        }
+        
+        // Handle GitHub Pages SPA routing
+        const l = window.location;
+        if (l.search) {
+          const q = {};
+          l.search.slice(1).split('&').forEach(v => {
+            const a = v.split('=');
+            q[a[0]] = a.slice(1).join('=').replace(/~and~/g, '&');
+          });
+          if (q['/']) {
+            history.replaceState(null, null, 
+              l.pathname.slice(0, -1) + (q['/'] || '') +
+              l.hash
+            );
+          }
+        }
+      })();
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
