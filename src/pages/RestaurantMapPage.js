@@ -17,11 +17,23 @@ L.Icon.Default.mergeOptions({
 // Component to update map view when location changes
 function ChangeView({ center }) {
   const map = useMap();
+  
   useEffect(() => {
-    if (center && center.length === 2) {
-      map.setView(center, 15);
+    if (center && center.length === 2 && map) {
+      // Add a slight delay to ensure map is ready
+      setTimeout(() => {
+        try {
+          map.setView(center, 15, {
+            animate: true,
+            duration: 1
+          });
+        } catch (err) {
+          console.error("Error updating map view:", err);
+        }
+      }, 100);
     }
   }, [center, map]);
+  
   return null;
 }
 
@@ -261,38 +273,47 @@ function RestaurantMapPage() {
         const data = await response.json();
         
         // Process results
-        const extractedRestaurants = data.elements
-          .filter(element => element.tags && element.tags.name)
-          .map(node => {
-            // Calculate actual distance
-            const distance = calculateDistance(
-              userLocation[0], 
-              userLocation[1], 
-              node.lat, 
-              node.lon
-            );
-            
-            return {
-              id: node.id,
-              name: node.tags.name || 'Unnamed Restaurant',
-              type: node.tags.amenity || 'restaurant',
-              cuisine: node.tags.cuisine || '',
-              lat: node.lat,
-              lon: node.lon,
-              distance: distance.toFixed(1), // Distance in km with 1 decimal
-              address: node.tags['addr:street'] 
-                ? `${node.tags['addr:housenumber'] || ''} ${node.tags['addr:street'] || ''}`
-                : 'Address not available',
-              website: node.tags.website || '',
-              phone: node.tags.phone || '',
-            };
-          })
-          // Filter to ensure restaurants are actually within the radius
+        const extractedRestaurants = await Promise.all(
+          data.elements
+            .filter(element => element.tags && element.tags.name)
+            .map(async (node) => {
+              // Calculate actual distance
+              const distance = calculateDistance(
+                userLocation[0], 
+                userLocation[1], 
+                node.lat, 
+                node.lon
+              );
+              
+              const restaurant = {
+                id: node.id,
+                name: node.tags.name || 'Unnamed Restaurant',
+                type: node.tags.amenity || 'restaurant',
+                cuisine: node.tags.cuisine || '',
+                lat: node.lat,
+                lon: node.lon,
+                distance: distance.toFixed(1), // Distance in km with 1 decimal
+                address: node.tags['addr:street'] 
+                  ? `${node.tags['addr:housenumber'] || ''} ${node.tags['addr:street'] || ''}`
+                  : 'Address not available',
+                website: node.tags.website || '',
+                phone: node.tags.phone || '',
+              };
+              
+              // Get an image for the restaurant
+              restaurant.image = await getRestaurantImage(restaurant);
+              
+              return restaurant;
+            })
+        );
+        
+        // Filter to ensure restaurants are actually within the radius
+        const filteredRestaurants = extractedRestaurants
           .filter(restaurant => parseFloat(restaurant.distance) <= searchRadius/1000)
           // Sort by distance
           .sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
         
-        setRestaurants(extractedRestaurants);
+        setRestaurants(filteredRestaurants);
       } catch (err) {
         console.error("Error fetching restaurants:", err);
         setError("Failed to load nearby restaurants. Please try again later.");
@@ -368,7 +389,6 @@ function RestaurantMapPage() {
   // Update the refreshLocation function with success logging
   const refreshLocation = () => {
     setIsLoading(true);
-    setMapReady(false);
     setLocationError("Obtaining precise location...");
     
     // Try both approaches simultaneously for best results
@@ -596,6 +616,45 @@ function RestaurantMapPage() {
     }
   };
   
+  // Function to get restaurant images
+  const getRestaurantImage = async (restaurant) => {
+    try {
+      // Create search queries in order of preference
+      const searchQueries = [
+        // First try specific search with name + cuisine + type
+        `${restaurant.name} ${restaurant.cuisine || ''} ${restaurant.type.replace('_', ' ')}`,
+        // Then try with just name + cuisine
+        `${restaurant.name} ${restaurant.cuisine || ''}`,
+        // Then try just name + restaurant
+        `${restaurant.name} restaurant`,
+        // Finally try just the type
+        `${restaurant.type.replace('_', ' ')} food`
+      ];
+      
+      // Try each search query in order until we find images
+      for (const query of searchQueries) {
+        const searchQuery = encodeURIComponent(query);
+        const pixabayApiKey = process.env.REACT_APP_PIXABAY_API_KEY;
+        const response = await fetch(
+          `${process.env.REACT_APP_PIXABAY_API_URL}/?key=${pixabayApiKey}&q=${searchQuery}&image_type=photo&per_page=3&category=food&orientation=horizontal&min_width=500`
+        );
+        
+        const data = await response.json();
+        if (data.hits && data.hits.length > 0) {
+          // Use the first image result
+          return data.hits[0].webformatURL;
+        }
+      }
+      
+      // If all searches failed, use a food-themed placeholder
+      return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/300x200/1a2235/ffffff?text=${encodeURIComponent(restaurant.name)}`;
+    } catch (error) {
+      console.error('Error fetching restaurant image:', error);
+      // Fallback to a restaurant placeholder
+      return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/300x200/1a2235/ffffff?text=${encodeURIComponent(restaurant.name)}`;
+    }
+  };
+  
   // Add this for auto-clearing error messages
   useEffect(() => {
     let timer;
@@ -636,6 +695,7 @@ function RestaurantMapPage() {
       <div className="map-controls">
         <div className="category-filters">
           {[
+
             { id: 'all', name: 'All Restaurants', icon: '🍽️' },
             { id: 'restaurant', name: 'General', icon: '🍴' },
             { id: 'fast_food', name: 'Fast Food', icon: '🍔' },
@@ -652,7 +712,7 @@ function RestaurantMapPage() {
               <span className="category-name">{category.name}</span>
             </button>
           ))}
-          
+
           {/* 2. Add a "Restaurants Found" button to scroll to results */}
           <button 
             className="scroll-to-results-button"
@@ -701,6 +761,14 @@ function RestaurantMapPage() {
           {locationError && (
             <div className="location-error-message">
               {locationError}
+            </div>
+          )}
+          
+          {/* Add this new GPS reminder */}
+          {locationAccuracy && locationAccuracy > 500 && (
+            <div className="gps-reminder">
+              <span className="gps-icon">📡</span>
+              <span>Please turn on your device's GPS/Location Services for better accuracy</span>
             </div>
           )}
           
@@ -754,7 +822,6 @@ function RestaurantMapPage() {
           </div>
         ) : (
           <MapContainer 
-            key={`map-${userLocation[0]}-${userLocation[1]}`}
             center={userLocation} 
             zoom={15} 
             style={{ height: '100%', width: '100%', cursor: 'grab' }}
@@ -801,6 +868,11 @@ function RestaurantMapPage() {
               >
                 <Popup>
                   <div className="restaurant-popup">
+                    {restaurant.image && (
+                      <div className="popup-image">
+                        <img src={restaurant.image} alt={restaurant.name} />
+                      </div>
+                    )}
                     <h3>{restaurant.name}</h3>
                     <p className="restaurant-distance">
                       <strong>Distance:</strong> {restaurant.distance} km
@@ -891,46 +963,52 @@ function RestaurantMapPage() {
                 className={`restaurant-card ${selectedRestaurant && selectedRestaurant.id === restaurant.id ? 'selected' : ''}`}
                 onClick={() => setSelectedRestaurant(restaurant)}
               >
-                <h3>{restaurant.name}</h3>
-                <p className="restaurant-distance">
-                  <span className="distance-icon">📍</span> {restaurant.distance} km away
-                </p>
-                <p className="restaurant-type">
-                  <span className="type-icon">
-                    {restaurant.type === 'restaurant' ? '🍴' : 
-                     restaurant.type === 'cafe' ? '☕' : 
-                     restaurant.type === 'fast_food' ? '🍔' : 
-                     restaurant.type === 'bar' ? '🍸' : 
-                     restaurant.type === 'pizza' ? '🍕' : '🍽️'}
-                  </span>
-                  <span>{restaurant.type.replace('_', ' ')}</span>
-                </p>
-                {restaurant.cuisine && (
-                  <p className="restaurant-cuisine">Cuisine: {restaurant.cuisine}</p>
-                )}
-                <p className="restaurant-address">{restaurant.address}</p>
-                <div className="restaurant-actions">
-                  {restaurant.website && (
+                <div className="restaurant-image">
+                  <img src={restaurant.image} alt={restaurant.name} />
+                  <div className="restaurant-type-badge">
+                    <span className="type-icon">
+                      {restaurant.type === 'restaurant' ? '🍴' : 
+                       restaurant.type === 'cafe' ? '☕' : 
+                       restaurant.type === 'fast_food' ? '🍔' : 
+                       restaurant.type === 'bar' ? '🍸' : 
+                       restaurant.type === 'pizza' ? '🍕' : '🍽️'}
+                    </span>
+                    <span>{restaurant.type.replace('_', ' ')}</span>
+                  </div>
+                </div>
+                <div className="restaurant-content">
+                  <h3>{restaurant.name}</h3>
+                  <p className="restaurant-distance">
+                    <span className="distance-icon">📍</span> {restaurant.distance} km away
+                  </p>
+                  {restaurant.cuisine && (
+                    <p className="restaurant-cuisine">Cuisine: {restaurant.cuisine}</p>
+                  )}
+                  <p className="restaurant-address">{restaurant.address}</p>
+                  <div className="restaurant-actions">
+                    {restaurant.website && (
+                      <a 
+                        href={restaurant.website.startsWith('http') ? restaurant.website : `http://${restaurant.website}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="restaurant-link"
+                      >
+                        Website
+                      </a>
+                    )}
                     <a 
-                      href={restaurant.website.startsWith('http') ? restaurant.website : `http://${restaurant.website}`} 
+                      href={`https://www.openstreetmap.org/directions?from=${userLocation[0]},${userLocation[1]}&to=${restaurant.lat},${restaurant.lon}`} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="restaurant-link"
                     >
-                      Website
+                      Directions
                     </a>
-                  )}
-                  <a 
-                    href={`https://www.openstreetmap.org/directions?from=${userLocation[0]},${userLocation[1]}&to=${restaurant.lat},${restaurant.lon}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="restaurant-link"
-                  >
-                    Directions
-                  </a>
+                  </div>
                 </div>
               </div>
             ))}
+
           </div>
         ) : (
           <div className="no-restaurants">
@@ -970,29 +1048,13 @@ function RestaurantMapPage() {
           )}
         </div>
       )}
-      
-      {/* Fallback manual location button */}
-      {!showManualEntry && (
-        <div className="fallback-manual-location">
-          <p>Can't find your location?</p>
-          <button 
-            className="manual-location-button"
-            onClick={() => setShowManualEntry(true)}
-          >
-            <span>📍</span> Enter Location Manually
-          </button>
-        </div>
-      )}
 
-      {/* Add this near your Get Precise Location button: */}
-      <div className="location-tips">
-        <p>For best location accuracy:</p>
-        <ul>
-          <li>Use a mobile device with GPS</li>
-          <li>Allow location permissions in browser settings</li>
-          <li>Try outdoors or near windows</li>
-          <li>If still having trouble, use the "Enter Location Manually" option</li>
-        </ul>
+      {/* Add disclaimer about images */}
+      <div className="image-disclaimer">
+        <p>
+          <span className="disclaimer-icon">ℹ️</span> 
+          Restaurant images are provided for reference only and may not exactly match the actual establishment.
+        </p>
       </div>
     </div>
   );
