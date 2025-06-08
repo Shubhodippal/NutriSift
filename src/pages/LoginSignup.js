@@ -289,7 +289,7 @@ function LoginSignup({ onLogin }) {
         answer: formData.answer
       });
       
-      const response = await fetch('https://backend.shubhodip.in/users/register', {
+      const response = await fetch('https://backend.shubhodip.in/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
