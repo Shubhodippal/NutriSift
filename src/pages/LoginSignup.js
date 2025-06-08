@@ -70,8 +70,10 @@ function LoginSignup({ onLogin }) {
   const handleToggle = () => {
     if (formMode === 'login') {
       setFormMode('signup');
+      setIsLogin(false); // Add this line to sync with formMode
     } else {
       setFormMode('login');
+      setIsLogin(true); // Add this line to sync with formMode
     }
     
     setFormError('');
@@ -89,6 +91,7 @@ function LoginSignup({ onLogin }) {
   // Add a function to handle forgot password clicks
   const handleForgotPassword = () => {
     setFormMode('forgotPassword');
+    setIsLogin(false); // Add this to ensure we're not in login mode
     setFormError('');
     setFormData(prev => ({ ...prev, password: '' }));
   };
@@ -96,6 +99,7 @@ function LoginSignup({ onLogin }) {
   // Add a function to go back to login
   const handleBackToLogin = () => {
     setFormMode('login');
+    setIsLogin(true); // Add this line to sync with formMode
     setFormError('');
   };
 
