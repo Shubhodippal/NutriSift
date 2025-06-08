@@ -211,180 +211,144 @@ function LoginSignup({ onLogin }) {
     }
   };
 
-  const handleSubmit = async (e) => {
+  // Handle login separately
+  const handleLogin = async (e) => {
     e.preventDefault();
     
-    if (formMode === 'forgotPassword') {
-      // For password reset
-      const validation = validatePassword(formData.newPassword);
-      if (!validation.valid) {
-        setShowPasswordPolicy(true);
-        setFormError('Please ensure your password meets all requirements.');
-        return;
-      }
-      
-      try {
-        const response = await fetch('http://localhost:8080/users/reset-password', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            email: formData.email,
-            newPassword: formData.newPassword 
-          })
-        });
-        
-        // Play success sound
-        if (audioRef.current) {
-          audioRef.current.play().catch(err => {
-            console.log("Audio couldn't play:", err);
-          });
-        }
-
-        // Show success animation
-        setAnimateSuccess(true);
-        
-        // Reset form to login mode after animation
-        setTimeout(() => {
-          // Keep the email for convenience
-          const currentEmail = formData.email;
-          
-          // Reset form mode
-          setFormMode('login');
-          
-          // Reset form with the same email
-          setFormData({
-            email: currentEmail,
-            password: '',
-            name: '',
-            phone: '',
-            securityQuestion: '',
-            answer: '',
-            newPassword: '',
-            securityQuestionFetched: false,
-            answerVerified: false
-          });
-          
-          // Show success message instead of error
-          setFormSuccess('Password reset successful! Please log in with your new password.');
-        }, 800);
-      } catch (error) {
-        console.error('Error:', error);
-        setFormError('Error connecting to the server. Please try again.');
-      }
-      return;
-    }
-    
-    // For signup, validate password before submission
-    if (!isLogin) {
-      const validation = validatePassword(formData.password);
-      if (!validation.valid) {
-        setShowPasswordPolicy(true);
-        setFormError('Please ensure your password meets all requirements.');
-        return;
-      }
-    }
-    
-    // Use the correct API endpoints
-    const endpoint = isLogin 
-      ? 'https://backend.shubhodip.in/users/login' 
-      : 'https://backend.shubhodip.in/users';
-    
-    // Only send required fields based on login/signup
-    const payload = isLogin 
-      ? { email: formData.email, password: formData.password }
-      : formData;
-    
     try {
-      const response = await fetch(endpoint, {
+      const response = await fetch('https://backend.shubhodip.in/users/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ 
+          email: formData.email, 
+          password: formData.password 
+        })
       });
 
-      // Check if response is ok
       if (response.ok) {
-        // Check content type to determine how to parse the response
         const contentType = response.headers.get("content-type");
         let data;
         
         if (contentType && contentType.includes("application/json")) {
-          // Parse as JSON if it's JSON
           data = await response.json();
         } else {
-          // Parse as text if it's not JSON
           data = await response.text();
         }
         
-        if (isLogin) {
-          // Extract user ID and email from the response
-          const userId = extractUserId(data);
-          const userEmail = extractUserEmail(data);
-          
-          if (userId) {
-            // Save user ID and email to localStorage
-            localStorage.setItem('userId', userId);
-            localStorage.setItem('userEmail', userEmail || formData.email); // Use form email as fallback
-            
-            // Pass user ID to parent component via onLogin callback
-            if (onLogin) onLogin(userId);
-          }
-          
-          // Use the success handler to navigate to chat
-          handleSuccess('/chat');
-        } else {
-          // For signup, extract user ID and log in automatically
-          const userId = extractUserId(data);
-          if (userId) {
-            // Save user ID to localStorage (automatic login)
-            localStorage.setItem('userId', userId);
-            
-            // Pass user ID to parent component via onLogin callback
-            if (onLogin) onLogin(userId);
-            
-            // Show a more specific success message
-            setAnimateSuccess(true);
-            
-            // Use the success handler to navigate to chat (same as login)
-            handleSuccess('/chat');
-          } else {
-            // If we couldn't extract a user ID, just go to home page
-            handleSuccess('/');
-          }
+        const userId = extractUserId(data);
+        const userEmail = extractUserEmail(data);
+        
+        if (userId) {
+          localStorage.setItem('userId', userId);
+          localStorage.setItem('userEmail', userEmail || formData.email);
+          if (onLogin) onLogin(userId);
         }
+        
+        handleSuccess('/chat');
       } else {
-        // Handle error response
-        if (response.status === 409) {
-          // This is the specific error for existing email
-          setFormError('An account with this email already exists. Please log in instead.');
-        } else if (response.status === 401 || response.status === 403) {
-          // Authentication errors - invalid credentials
+        if (response.status === 401 || response.status === 403) {
           setFormError('Invalid email or password. Please try again.');
         } else if (response.status === 404) {
-          // User not found
           setFormError('Account not found. Please check your email or create a new account.');
         } else {
-          try {
-            const errorData = await response.json();
-            setFormError(errorData.message || 'Something went wrong. Please try again.');
-          } catch (e) {
-            const errorText = await response.text();
-            // Handle different error text messages
-            if (errorText === "Email already exists.") {
-              setFormError('An account with this email already exists. Please log in instead.');
-            } else if (errorText.includes("Invalid") || errorText.includes("incorrect") || 
-                      errorText.includes("wrong password") || errorText.includes("password doesn't match")) {
-              setFormError('Invalid email or password. Please try again.');
-            } else if (errorText.includes("not found") || errorText.includes("doesn't exist")) {
-              setFormError('Account not found. Please check your email or create a new account.');
-            } else {
-              setFormError(errorText || 'Something went wrong. Please try again.');
-            }
-          }
+          const errorText = await response.text();
+          setFormError(errorText || 'Something went wrong. Please try again.');
         }
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error connecting to the server.');
+      setFormError('Error connecting to the server.');
+    }
+  };
+
+  // Handle signup separately 
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    
+    const validation = validatePassword(formData.password);
+    if (!validation.valid) {
+      setShowPasswordPolicy(true);
+      setFormError('Please ensure your password meets all requirements.');
+      return;
+    }
+    
+    // Make sure security question and answer are selected
+    if (!formData.securityQuestion || !formData.answer) {
+      setFormError('Please select a security question and provide an answer.');
+      return;
+    }
+    
+    try {
+      // Log the payload for debugging
+      console.log("Sending signup payload:", {
+        email: formData.email,
+        password: formData.password,
+        name: formData.name,
+        phone: formData.phone,
+        securityQuestion: formData.securityQuestion,
+        answer: formData.answer
+      });
+      
+      const response = await fetch('https://backend.shubhodip.in/users/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          name: formData.name,
+          phone: formData.phone,
+          securityQuestion: formData.securityQuestion,
+          answer: formData.answer
+        })
+      });
+
+      if (response.ok) {
+        const contentType = response.headers.get("content-type");
+        let data;
+        
+        if (contentType && contentType.includes("application/json")) {
+          data = await response.json();
+        } else {
+          data = await response.text();
+        }
+        
+        const userId = extractUserId(data);
+        
+        if (userId) {
+          localStorage.setItem('userId', userId);
+          localStorage.setItem('userEmail', formData.email);
+          if (onLogin) onLogin(userId);
+          
+          setAnimateSuccess(true);
+          handleSuccess('/chat');
+        } else {
+          handleSuccess('/');
+        }
+      } else {
+        if (response.status === 409) {
+          setFormError('An account with this email already exists. Please log in instead.');
+        } else {
+          const errorText = await response.text();
+          setFormError(errorText || 'Something went wrong. Please try again.');
+        }
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setFormError('Error connecting to the server.');
+    }
+  };
+
+  // Add this to the form submit handler
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    if (formMode === 'login') {
+      handleLogin(e);
+    } else if (formMode === 'signup') {
+      handleSignup(e);
+    } else if (formMode === 'forgotPassword') {
+      // Your existing forgot password logic
+      // ...
     }
   };
   
@@ -537,6 +501,44 @@ function LoginSignup({ onLogin }) {
                       value={formData.phone} 
                       onChange={handleChange} 
                       placeholder="Enter your phone number"
+                      required 
+                    />
+                  </div>
+                </div>
+                
+                {/* Security question dropdown */}
+                <div className="form-group">
+                  <label>Security Question</label>
+                  <div className="input-wrapper">
+                    <span className="input-icon">🔐</span>
+                    <select
+                      name="securityQuestion"
+                      value={formData.securityQuestion}
+                      onChange={handleChange}
+                      required
+                      className="security-dropdown"
+                    >
+                      <option value="" disabled>Select a security question</option>
+                      {securityQuestions.map((question, index) => (
+                        <option key={index} value={question}>
+                          {question}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                
+                {/* Security answer input */}
+                <div className="form-group">
+                  <label>Security Answer</label>
+                  <div className="input-wrapper">
+                    <span className="input-icon">✅</span>
+                    <input 
+                      type="text" 
+                      name="answer" 
+                      value={formData.answer} 
+                      onChange={handleChange} 
+                      placeholder="Answer to your security question"
                       required 
                     />
                   </div>
