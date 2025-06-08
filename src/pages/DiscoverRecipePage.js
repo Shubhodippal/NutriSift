@@ -457,10 +457,14 @@ function DiscoverRecipePage() {
         );
         
         if (existingIndex >= 0) {
+          const existingItem = currentList[existingIndex];
+          // Ensure meals is an array before spreading
+          const meals = Array.isArray(existingItem.meals) ? existingItem.meals : [];
+          
           return {
-            ...currentList[existingIndex],
-            count: currentList[existingIndex].count + 1,
-            meals: [...currentList[existingIndex].meals, recipe.title]
+            ...existingItem,
+            count: (existingItem.count || 0) + 1,
+            meals: [...meals, recipe.title]
           };
         }
         
