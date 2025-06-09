@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -26,7 +27,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class ChatController {
 
     private static final String COHERE_API_URL = "https://api.cohere.com/v2/chat";
-    private static final String COHERE_API_KEY = "qDLLn4ntg1Lj1KnyuiBq5Rf3WjcdYmEWhtSi7f3H";
+    @Value("${cohere.api.key}")
+    private String COHERE_API_KEY;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @PostMapping
