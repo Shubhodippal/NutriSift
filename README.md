@@ -195,12 +195,27 @@ NutriSift is a comprehensive AI-powered recipe management application designed t
    ```
 
 2. **Configure application properties**:
-   Update `src/main/resources/application.properties` with your database connection details:
+   Create `src/main/resources/application.properties` :
    ```
-   spring.datasource.url=jdbc:mysql://localhost:3306/nutrisift
-   spring.datasource.username=your_username
-   spring.datasource.password=your_password
-   spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+    spring.application.name=Nutrisift
+    spring.datasource.url=jdbc:mariadb://<DB_HOST>:<DB_PORT>/<DB_NAME>
+    spring.datasource.username=<DB_USERNAME>
+    spring.datasource.password=<DB_PASSWORD>
+    spring.datasource.driver-class-name=org.mariadb.jdbc.Driver
+    spring.jpa.show-sql=true
+    
+    spring.jpa.hibernate.ddl-auto=none
+    spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MariaDBDialect
+    
+    # JWT Configuration
+    jwt.secret=<YOUR_JWT_SECRET>
+    jwt.expiration=86400000
+    
+    # Allow connections from external devices
+    server.address=0.0.0.0
+    
+    # Cohere API Key
+    cohere.api.key=<YOUR_COHERE_API_KEY>
    ```
 
 3. **Build the application**:
