@@ -590,25 +590,11 @@ nutri-sift/
 │   │   └── 404.html (for GitHub Pages)
 │   ├── src/
 │   │   ├── assets/
-│   │   │   ├── images/
-│   │   │   ├── icons/
-│   │   │   └── sounds/
-│   │   │       └── success.mp3
+│   │   │   ├── success.mp3
 │   │   ├── components/
 │   │   │   ├── AnimatedBackground.js
 │   │   │   ├── HamburgerMenu.js
 │   │   │   ├── HamburgerMenu.css
-│   │   │   ├── RecipeCard.js
-│   │   │   ├── RecipeCard.css
-│   │   │   ├── FilterBar.js
-│   │   │   ├── FilterBar.css
-│   │   │   └── ... (other components)
-│   │   ├── contexts/
-│   │   │   ├── AuthContext.js
-│   │   │   └── RecipeContext.js
-│   │   ├── hooks/
-│   │   │   ├── useLocalStorage.js
-│   │   │   └── useRecipes.js
 │   │   ├── pages/
 │   │   │   ├── DiscoverRecipePage.js
 │   │   │   ├── DiscoverRecipePage.css
@@ -624,24 +610,22 @@ nutri-sift/
 │   │   │   ├── SavedRecipesPage.css
 │   │   │   ├── RestaurantMapPage.js
 │   │   │   └── RestaurantMapPage.css
-│   │   ├── services/
-│   │   │   ├── api.js
-│   │   │   ├── recipeService.js
-│   │   │   ├── authService.js
-│   │   │   └── imageService.js
-│   │   ├── utils/
-│   │   │   ├── formatters.js
-│   │   │   └── validators.js
 │   │   ├── App.js
 │   │   ├── App.css
 │   │   ├── index.js
-│   │   └── index.css
+│   │   ├── index.css
+│   │   ├── AboutSection.js
+│   │   ├── FeaturesSection.js
+│   │   ├── HowItWorksSection.js
+│   │   ├── PricingSection.js
+│   │   ├── RecipeGallery.js
+│   │   ├── reportWebVitals.js
+│   │   ├── setupTests.js
+|   |   └── TestimonialsSection.js
 │   ├── .env
-│   ├── .env.sample
 │   ├── .gitignore
 │   ├── package.json
-│   ├── package-lock.json
-│   └── README.md
+│   └── package-lock.json
 │
 ├── Backend/
 │   └── demo/
@@ -652,22 +636,29 @@ nutri-sift/
 │       │   │   │       └── shubhodip/
 │       │   │   │           └── nutrisift/
 │       │   │   │               ├── ChatController.java
+│       │   │   │               ├── ChatRequest.java
+│       │   │   │               ├── ChatResponseDTO.java
 │       │   │   │               ├── GroceryItem.java
 │       │   │   │               ├── GroceryListController.java
 │       │   │   │               ├── GroceryListDAO.java
 │       │   │   │               ├── GroceryListDAOImpl.java
 │       │   │   │               ├── GroceryListRequest.java
 │       │   │   │               ├── GroceryListResponse.java
+│       │   │   │               ├── LoginRequest.java
 │       │   │   │               ├── NutrisiftApplication.java
+│       │   │   │               ├── PasswordResetRequest.java
 │       │   │   │               ├── RecipeController.java
 │       │   │   │               ├── RecipeFilterRequest.java
 │       │   │   │               ├── SavedRecipe.java
 │       │   │   │               ├── SavedRecipeDAO.java
 │       │   │   │               ├── SavedRecipeDAOImpl.java
 │       │   │   │               ├── SaveRecipeRequest.java
+│       │   │   │               ├── SecurityAnswerRequest.java
+│       │   │   │               ├── SecurityConfig.java
 │       │   │   │               ├── User.java
 │       │   │   │               ├── UserController.java
-│       │   │   │               └── UserDAO.java
+│       │   │   │               ├── UserDAO.java
+│       │   │   │               └── UserDAOImpl.java
 │       │   │   └── resources/
 │       │   │       └── application.properties
 │       │   └── test/
