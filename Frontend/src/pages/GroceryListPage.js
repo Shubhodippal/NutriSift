@@ -894,60 +894,61 @@ function GroceryListPage() {
               e.preventDefault();
               handleEditSave();
             }}>
-              <div className="form-row">
-                <div className="form-group">
-                  <label><span className="label-icon">📝</span> Item Name</label>
-                  <div className="input-wrapper">
-                    <input 
-                      type="text" 
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      placeholder="Enter item name"
-                      required
-                      className="enhanced-input"
-                    />
-                  </div>
+              <div className="modal-form-container">
+                <div className="form-field">
+                  <label>
+                    <span className="field-icon">📝</span>
+                    Item Name
+                  </label>
+                  <input 
+                    type="text" 
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="Enter item name"
+                    required
+                  />
                 </div>
                 
-                <div className="form-group">
-                  <label><span className="label-icon">⚖️</span> Quantity</label>
-                  <div className="input-wrapper">
-                    <input 
-                      type="text" 
-                      value={editQuantity}
-                      onChange={(e) => setEditQuantity(e.target.value)}
-                      placeholder="e.g., 2 lbs, 3 cups"
-                      className="enhanced-input"
-                    />
-                  </div>
+                <div className="form-field">
+                  <label>
+                    <span className="field-icon">⚖️</span>
+                    Quantity
+                  </label>
+                  <input 
+                    type="text" 
+                    value={editQuantity}
+                    onChange={(e) => setEditQuantity(e.target.value)}
+                    placeholder="e.g., 2 lbs, 3 cups"
+                  />
                 </div>
                 
-                <div className="form-group">
-                  <label><span className="label-icon">🏷️</span> Category</label>
-                  <div className="select-wrapper">
-                    <select 
-                      value={editCategory}
-                      onChange={(e) => setEditCategory(e.target.value)}
-                      className="enhanced-input"
-                    >
-                      <option value="Pantry">🥫 Pantry</option>
-                      <option value="Dairy">🥛 Dairy</option>
-                      <option value="Meat">🥩 Meat</option>
-                      <option value="Fruits">🍎 Fruits</option>
-                      <option value="Vegetables">🥦 Vegetables</option>
-                      <option value="Other">📦 Other</option>
-                    </select>
-                  </div>
+                <div className="form-field">
+                  <label>
+                    <span className="field-icon">🏷️</span>
+                    Category
+                  </label>
+                  <select 
+                    value={editCategory}
+                    onChange={(e) => setEditCategory(e.target.value)}
+                  >
+                    <option value="Pantry">🥫 Pantry</option>
+                    <option value="Dairy">🥛 Dairy</option>
+                    <option value="Meat">🥩 Meat</option>
+                    <option value="Fruits">🍎 Fruits</option>
+                    <option value="Vegetables">🥦 Vegetables</option>
+                    <option value="Other">📦 Other</option>
+                  </select>
                 </div>
-                
-                <button type="submit" className="update-button pulse-animation">
-                  <span className="button-icon">✔️</span>
-                  Update Item
+              </div>
+
+              <div className="modal-actions">
+                <button type="submit" className="update-button">
+                  <span>✓</span> Update Item
                 </button>
               </div>
             </form>
             <button className="close-modal" onClick={() => setEditingIndex(-1)}>
-              <span className="close-icon">❌</span>
+              ×
             </button>
           </div>
         </div>

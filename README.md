@@ -458,14 +458,8 @@ Your personal recipe library:
 2. **Search & Filter**:
    - Search by title or ingredients
    - Filter by diet, course, or cuisine
-3. **Organization**:
-   - Categorize recipes by tags
-4. **Batch Operations**:
-   - Select multiple recipes
-   - Delete selected
-   - Add all ingredients to grocery list
-5. **Recipe Actions**: Same actions as Discover page
-6. **Sync Status**: Indicator showing cloud sync status
+3. **Recipe Actions**: Same actions as Discover page
+4. **Sync Status**: Indicator showing cloud sync status
 
 ### Recipe Details
 
@@ -485,19 +479,12 @@ Comprehensive single recipe view:
    - Ingredient checklist
    - Built-in timers
    - Progress tracking
-3. **Action Bar**:
-   - Save/unsave toggle
-   - Add to grocery list
-   - Print
-   - Share
-   - Edit (for user-created recipes)
 
 ### Grocery List
 
 Intelligent shopping assistant:
 
 1. **Category View**:
-   - Ingredients organized by food category
    - Clear visual separation between categories
 2. **Item Management**:
    - Check/uncheck items
@@ -507,14 +494,10 @@ Intelligent shopping assistant:
 3. **Batch Operations**:
    - Clear completed items
    - Clear all items
-   - Select multiple for deletion
-4. **Recipe Association**:
-   - See which recipes ingredients are from
-   - Jump to recipe details
-5. **Print & Share**:
+4. **Print & Share**:
    - Print formatted grocery list
-   - Share list via messaging apps
-6. **Persistence**:
+   - Share list to anyone
+5. **Persistence**:
    - List saves between sessions
    - Syncs across devices when logged in
 
