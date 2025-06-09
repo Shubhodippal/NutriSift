@@ -194,8 +194,8 @@ NutriSift is a comprehensive AI-powered recipe management application designed t
    cd nutri-sift/Backend/demo
    ```
 
-2. **Configure application properties**:
-   Create `src/main/resources/application.properties` :
+2. **Create the application properties file**:
+   `src/main/resources/application.properties` :
    ```
     spring.application.name=Nutrisift
     spring.datasource.url=jdbc:mariadb://<DB_HOST>:<DB_PORT>/<DB_NAME>
