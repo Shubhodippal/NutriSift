@@ -343,11 +343,6 @@ function GroceryListPage() {
     }
   };
 
-  /*const handleUpdateItem = (e) => {
-    e.preventDefault();
-    handleEditSave();
-  };*/
-
   const handlePrintList = () => {
     const printWindow = window.open('', '_blank');
     

@@ -143,7 +143,7 @@ function LoginSignup({ onLogin }) {
     }
     
     try {
-      const response = await fetch(`http://localhost:8080/users/security-question?email=${encodeURIComponent(formData.email)}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users/security-question?email=${encodeURIComponent(formData.email)}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -164,6 +164,7 @@ function LoginSignup({ onLogin }) {
     }
   };
 
+  // Update handleVerifyAnswer function to use environment variables
   const handleVerifyAnswer = async () => {
     if (!formData.answer) {
       setFormError('Please enter your answer');
@@ -171,7 +172,7 @@ function LoginSignup({ onLogin }) {
     }
     
     try {
-      const response = await fetch('http://localhost:8080/users/verify-answer', {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users/verify-answer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -192,11 +193,12 @@ function LoginSignup({ onLogin }) {
     }
   };
 
+  // Update handleLogin function to use environment variables
   const handleLogin = async (e) => {
     e.preventDefault();
     
     try {
-      const response = await fetch('https://backend.shubhodip.in/users/login', {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -241,6 +243,7 @@ function LoginSignup({ onLogin }) {
     }
   };
 
+  // Update handleSignup function to use environment variables
   const handleSignup = async (e) => {
     e.preventDefault();
     
@@ -266,7 +269,7 @@ function LoginSignup({ onLogin }) {
         securityAnswer: formData.answer 
       });
       
-      const response = await fetch('https://backend.shubhodip.in/users', {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

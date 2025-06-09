@@ -176,7 +176,7 @@ function DiscoverRecipePage() {
         prompt: "Discovered via recipe search"
       };
       
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}${process.env.REACT_APP_RECIPES_ENDPOINT}/save`, {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}$recipes/save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

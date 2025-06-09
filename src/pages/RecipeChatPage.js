@@ -59,7 +59,6 @@ const [messages, setMessages] = useState(() => {
     const saved = localStorage.getItem('savedRecipes');
     return saved ? JSON.parse(saved) : [];
   });
-  //const [menuOpen, setMenuOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [savingRecipe, setSavingRecipe] = useState(false);
@@ -345,7 +344,7 @@ const generateMockRecipe = (ingredients) => {
         cuisine: cuisine || ''
       };
       
-      const response = await fetch('https://backend.shubhodip.in/recipes/save', {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/recipes/save`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(recipeData)

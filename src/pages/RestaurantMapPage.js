@@ -314,15 +314,6 @@ function RestaurantMapPage() {
     fetchRestaurants();
   }, [userLocation, selectedCategory, searchRadius, mapReady]);
   
-  /*const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
-  
-  const handleNavigation = (path) => {
-    setMenuOpen(false);
-    navigate(path);
-  };*/
-  
   const handleCategoryChange = (categoryId) => {
     setSelectedCategory(categoryId);
   };
@@ -458,103 +449,6 @@ function RestaurantMapPage() {
       setIsLoading(false);
     }
   };
-  
-  /*const getPreciseLocation = () => {
-    setIsLoading(true);
-    setLocationError("Getting precise location... This may take a moment");
-    
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude, accuracy } = position.coords;
-          console.log(`✅ Got precise location: ${latitude},${longitude} (accuracy: ${accuracy}m)`);
-          setUserLocation([latitude, longitude]);
-          setLocationAccuracy(accuracy);
-          
-          if (accuracy < 100) {
-            setLocationError(null);
-          } else {
-            setLocationError(`Location found with ${Math.round(accuracy)}m accuracy. For better results, try outdoors.`);
-          }
-          
-          setMapReady(true);
-          setTimeout(() => setIsLoading(false), 500);
-        },
-        (error) => {
-          console.error("High-accuracy geolocation error:", error);
-          
-          if (error.code === error.TIMEOUT) {
-            setLocationError("High-accuracy location timed out. Trying with standard accuracy...");
-            
-            navigator.geolocation.getCurrentPosition(
-              (fallbackPosition) => {
-                const { latitude, longitude, accuracy } = fallbackPosition.coords;
-                console.log(`⚠️ Using fallback location: ${latitude},${longitude} (accuracy: ${accuracy}m)`);
-                
-                setUserLocation([latitude, longitude]);
-                setLocationAccuracy(accuracy);
-                setLocationError(`Got location with ${Math.round(accuracy)}m accuracy (standard mode).`);
-                setMapReady(true);
-                setTimeout(() => setIsLoading(false), 500);
-              },
-              (fallbackError) => {
-                console.error("Standard geolocation also failed:", fallbackError);
-                
-                let errorMessage;
-                switch(fallbackError.code) {
-                  case fallbackError.PERMISSION_DENIED:
-                    errorMessage = "Location access denied. Please check your browser settings.";
-                    break;
-                  case fallbackError.POSITION_UNAVAILABLE:
-                    errorMessage = "Your location is unavailable. Try again or enter location manually.";
-                    break;
-                  case fallbackError.TIMEOUT:
-                    errorMessage = "Location request timed out again. Your device may have poor GPS reception.";
-                    break;
-                  default:
-                    errorMessage = `Error getting your location: ${fallbackError.message}`;
-                }
-                
-                setLocationError(errorMessage);
-                setMapReady(true); 
-                setTimeout(() => setIsLoading(false), 500);
-              },
-              { 
-                enableHighAccuracy: false,  
-                timeout: 10000,             
-                maximumAge: 60000           
-              }
-            );
-          } else {
-            let errorMessage;
-            switch(error.code) {
-              case error.PERMISSION_DENIED:
-                errorMessage = "Location access denied. Please check your browser settings.";
-                break;
-              case error.POSITION_UNAVAILABLE:
-                errorMessage = "Your location is unavailable. Try again or enter location manually.";
-                break;
-              default:
-                errorMessage = `Error getting your location: ${error.message}`;
-            }
-            
-            setLocationError(errorMessage);
-            setMapReady(true);
-            setTimeout(() => setIsLoading(false), 500);
-          }
-        },
-        { 
-          enableHighAccuracy: true,  
-          timeout: 30000,            
-          maximumAge: 0              
-        }
-      );
-    } else {
-      setLocationError("Geolocation is not supported by your browser.");
-      setMapReady(true);
-      setTimeout(() => setIsLoading(false), 500);
-    }
-  };*/
   
   const getRestaurantImage = async (restaurant) => {
     try {
