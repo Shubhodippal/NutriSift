@@ -428,52 +428,6 @@
   color: #e2e8f0;
 }
 
-.share-options {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-}
-
-.share-option-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 1.2rem;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: #232b3d;
-  color: #e2e8f0;
-  font-weight: 500;
-}
-
-.share-option-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-  background: rgba(79, 140, 255, 0.1);
-}
-
-.whatsapp-btn {
-  grid-column: span 2;
-  background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
-  color: white;
-}
-
-.whatsapp-btn:hover {
-  background: linear-gradient(135deg, #2DD973 0%, #139D8D 100%);
-}
-
-.share-icon {
-  font-size: 1.8rem;
-  margin-bottom: 0.4rem;
-}
-
-.pdf-container {
-  position: absolute;
-  left: -9999px;
-}
-
 .recipe-steps-preview {
   margin: 0.75rem 0;
   overflow: hidden;

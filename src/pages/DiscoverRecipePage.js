@@ -18,10 +18,8 @@ function DiscoverRecipePage() {
   const [course, setCourse] = useState('any');
   const [cuisine, setCuisine] = useState('any');
   
-  // New state for the search query
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Share dialog state
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   
@@ -48,7 +46,7 @@ function DiscoverRecipePage() {
     { value: 'any', label: 'Any Origin' },
     { value: 'italian', label: 'Italian' },
     { value: 'mexican', label: 'Mexican' },
-    { value: 'indian', label: 'Indian' }, // Fixed: was using comma instead of colon
+    { value: 'indian', label: 'Indian' }, 
     { value: 'chinese', label: 'Chinese' },
     { value: 'japanese', label: 'Japanese' },
     { value: 'american', label: 'American' },
@@ -80,18 +78,14 @@ function DiscoverRecipePage() {
     { value: 'healthy', label: 'Healthy' }
   ];
   
-  // Remove the useEffect hook that automatically calls fetchRecipes
-  
-  // Updated fetchRecipes function - only called when search button is clicked
   const fetchRecipes = async () => {
     setLoading(true);
     setError(null);
     setHasSearched(true);
     
     try {
-      // Prepare the filter parameters
       const params = {
-        query: searchQuery.trim(),  // Add this line
+        query: searchQuery.trim(),  
         calorieRange,
         diet: diet === 'any' ? null : diet,
         origin: origin === 'any' ? null : origin,
@@ -99,7 +93,6 @@ function DiscoverRecipePage() {
         cuisine: cuisine === 'any' ? null : cuisine
       };
       
-      // Make the API call to your backend
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}${process.env.REACT_APP_RECIPE_SEARCH_ENDPOINT}`, {
         method: 'POST',
         headers: {
@@ -114,10 +107,7 @@ function DiscoverRecipePage() {
       
       const data = await response.json();
       
-      // Format the response data to match your UI expectations
-      // Update the formattedRecipes creation in your fetchRecipes function
       const formattedRecipes = await Promise.all(data.map(async recipe => {
-        // Get image URL with our custom function
         const imageUrl = recipe.imageUrl || await getRecipeImage(recipe);
         
         return {
@@ -157,7 +147,6 @@ function DiscoverRecipePage() {
     }
   };
   
-  // Update the handleSaveRecipe function to include a timeout for the success message
   const handleSaveRecipe = async (recipe) => {
     try {
       const userId = localStorage.getItem('userId');
@@ -165,11 +154,10 @@ function DiscoverRecipePage() {
       
       if (!userId) {
         setError('You must be logged in to save recipes');
-        setTimeout(() => setError(null), 5000); // Updated to 5 seconds
+        setTimeout(() => setError(null), 5000); 
         return false;
       }
       
-      // Format recipe data for the API - use actual steps from the recipe
       const recipeData = {
         uid: userId,
         mail: userEmail || '',
@@ -177,7 +165,6 @@ function DiscoverRecipePage() {
         ingredients: Array.isArray(recipe.ingredients) 
           ? recipe.ingredients.join('\n') 
           : recipe.ingredients,
-        // Use actual steps from the recipe instead of placeholder text
         steps: Array.isArray(recipe.steps) 
           ? recipe.steps.join('\n') 
           : recipe.steps,
@@ -189,7 +176,6 @@ function DiscoverRecipePage() {
         prompt: "Discovered via recipe search"
       };
       
-      // Make API call to save the recipe
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}${process.env.REACT_APP_RECIPES_ENDPOINT}/save`, {
         method: 'POST',
         headers: {
@@ -202,51 +188,41 @@ function DiscoverRecipePage() {
         throw new Error(`Failed to save recipe: ${response.status}`);
       }
       
-      // Also save to localStorage for offline access with actual recipe data
       const savedRecipes = JSON.parse(localStorage.getItem('savedRecipes') || '[]');
       
-      // Check if recipe already exists
       if (savedRecipes.some(r => r.id === recipe.id)) {
         setSuccessMessage('Recipe already saved');
       } else {
-        // Format steps for markdown display
         const stepsMarkdown = Array.isArray(recipe.steps)
           ? recipe.steps.map((step, index) => `${index + 1}. ${step}`).join('\n')
           : typeof recipe.steps === 'string'
             ? recipe.steps.split('\n').map((step, index) => `${index + 1}. ${step.trim()}`).join('\n')
             : 'No instructions available';
         
-        // Add new recipe with actual steps
         savedRecipes.push({
           id: recipe.id,
           title: recipe.title,
           text: `# ${recipe.title}\n\n**Nutritional & Recipe Information:**\n- Calories: ${recipe.calories}\n- Diet: ${recipe.diet}\n- Origin: ${recipe.origin}\n- Course: ${recipe.course}\n- Cuisine: ${recipe.cuisine}\n\n## Ingredients\n${recipe.ingredients.map(i => `- ${i}`).join('\n')}\n\n## Instructions\n${stepsMarkdown}`,
           savedAt: new Date().toISOString()
         });
-        
-        // Save back to localStorage
         localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
         
         setSuccessMessage('Recipe saved successfully!');
       }
       
-      // Add this timeout to clear the success message after 5 seconds
       setTimeout(() => setSuccessMessage(''), 5000);
       
-      // Return true to indicate success
       return true;
     } catch (error) {
       console.error('Error saving recipe:', error);
       setError('Failed to save recipe. Please try again.');
-      setTimeout(() => setError(null), 5000); // Updated to 5 seconds
+      setTimeout(() => setError(null), 5000); 
       return false;
     }
   };
   
-  // Replace the handleViewRecipe function with this version that doesn't save
   const handleViewRecipe = (recipe) => {
     try {
-      // Create a recipe detail object with all necessary data
       const recipeDetail = {
         id: recipe.id,
         title: recipe.title,
@@ -272,21 +248,18 @@ function DiscoverRecipePage() {
         }
       };
       
-      // Store the recipe detail in sessionStorage to be retrieved by the detail page
-      // This ensures we have all data without saving to user's recipes
       sessionStorage.setItem('viewingRecipe', JSON.stringify(recipeDetail));
       
-      // Navigate to the recipe detail page
       navigate(`/recipe/view/${recipe.id}`);
     } catch (error) {
       console.error('Error viewing recipe:', error);
       setError('Failed to view recipe details. Please try again.');
-      setTimeout(() => setError(null), 5000); // Updated to 5 seconds
+      setTimeout(() => setError(null), 5000); 
     }
   };
   
   const resetFilters = () => {
-    setSearchQuery('');  // Add this line
+    setSearchQuery('');  
     setCalorieRange('any');
     setDiet('any');
     setOrigin('any');
@@ -294,14 +267,9 @@ function DiscoverRecipePage() {
     setCuisine('any');
   };
   
-  
-  
-  // Handle printing recipe
   const handlePrintRecipe = (recipe) => {
-    // Create a new window for the PDF content
     const printWindow = window.open('', '_blank');
     
-    // Set the content with image and disclaimer
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
@@ -392,14 +360,12 @@ function DiscoverRecipePage() {
       </html>
     `);
     
-    // Trigger print after content loads
     printWindow.document.close();
     printWindow.onload = function() {
       printWindow.print();
     };
   };
   
-  // Update the handleAddToGroceryList function to use API
   const handleAddToGroceryList = async (recipe) => {
     setLoading(true);
     
@@ -413,7 +379,6 @@ function DiscoverRecipePage() {
         return;
       }
       
-      // Get current grocery list
       let currentList = [];
       
       try {
@@ -433,7 +398,6 @@ function DiscoverRecipePage() {
         currentList = JSON.parse(localStorage.getItem('groceryItems') || '[]');
       }
       
-      // Extract ingredient names and prepare for batch categorization
       const ingredientNames = [];
       const ingredientsData = [];
       
@@ -447,10 +411,8 @@ function DiscoverRecipePage() {
         }
       });
       
-      // Batch categorize all ingredients
       const categories = "other";
       
-      // Create new ingredients with categories
       const newIngredients = ingredientsData.map(({ name, quantity }) => {
         const existingIndex = currentList.findIndex(item => 
           item.name.toLowerCase() === name.toLowerCase()
@@ -458,7 +420,6 @@ function DiscoverRecipePage() {
         
         if (existingIndex >= 0) {
           const existingItem = currentList[existingIndex];
-          // Ensure meals is an array before spreading
           const meals = Array.isArray(existingItem.meals) ? existingItem.meals : [];
           
           return {
@@ -478,7 +439,6 @@ function DiscoverRecipePage() {
         };
       });
       
-      // Process items
       const existingItemsToUpdate = newIngredients.filter(ingredient => 
         currentList.some(item => item.name.toLowerCase() === ingredient.name.toLowerCase())
       );
@@ -487,7 +447,6 @@ function DiscoverRecipePage() {
         !currentList.some(item => item.name.toLowerCase() === ingredient.name.toLowerCase())
       );
       
-      // Update existing items
       const updatedList = currentList.map(item => {
         const matchingItem = existingItemsToUpdate.find(
           ingredient => ingredient.name.toLowerCase() === item.name.toLowerCase()
@@ -495,18 +454,14 @@ function DiscoverRecipePage() {
         return matchingItem ? matchingItem : item;
       });
       
-      // Add new items
       const finalList = [...updatedList, ...newItemsToAdd];
       
-      // Sort ingredients by category
       const sortedList = finalList.sort((a, b) => 
         a.category.localeCompare(b.category) || a.name.localeCompare(b.name)
       );
       
-      // Save to localStorage
       localStorage.setItem('groceryItems', JSON.stringify(sortedList));
       
-      // Save to API
       try {
         const saveResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
           method: 'POST',
@@ -521,9 +476,8 @@ function DiscoverRecipePage() {
         console.error('Error saving grocery list to API:', saveError);
       }
       
-      // Show success message
       setSuccessMessage(`${recipe.ingredients.length} ingredients added to grocery list!`);
-      setTimeout(() => setSuccessMessage(''), 5000); // Updated to 5 seconds
+      setTimeout(() => setSuccessMessage(''), 5000); 
       
     } catch (error) {
       console.error('Error adding to grocery list:', error);
@@ -534,29 +488,23 @@ function DiscoverRecipePage() {
     }
   };
   
-  // Replace the handleShareRecipe function with this version that shares via email, link, or WhatsApp
   const handleShareRecipe = (recipe) => {
-    // Extract recipe details
     const title = recipe.title || recipe.recipeName;
     const ingredients = extractIngredients(recipe);
     const steps = extractSteps(recipe);
     
-    // Format detailed content for sharing
     const formattedIngredients = ingredients.map(ing => `• ${ing}`).join('\n');
     const formattedSteps = steps.map((step, i) => `${i+1}. ${step}`).join('\n');
     
-    // Create comprehensive text
     const text = `📝 ${title}\n\n` +
       `📋 INGREDIENTS:\n${formattedIngredients}\n\n` +
       `👨‍🍳 INSTRUCTIONS:\n${formattedSteps}\n\n` +
       `From: NutriSift Recipe App`;
     
-    // Try to use the Web Share API if available
     if (navigator.share) {
       navigator.share({
         title: title,
         text: text
-        // Note: Not including URL so it's just the recipe content
       })
       .then(() => {
         console.log('Successfully shared');
@@ -565,16 +513,13 @@ function DiscoverRecipePage() {
       })
       .catch((error) => {
         console.log('Error sharing:', error);
-        // Fallback to clipboard if sharing fails
         fallbackToClipboard(title, text);
       });
     } else {
-      // Fallback for browsers that don't support Web Share API
       fallbackToClipboard(title, text);
     }
   };
 
-  // Add the fallback function
   const fallbackToClipboard = (title, text) => {
     navigator.clipboard.writeText(text)
       .then(() => {
@@ -587,13 +532,10 @@ function DiscoverRecipePage() {
       });
   };
    
-  // Get recipe image function
 const getRecipeImage = async (recipe) => {
-  // If recipe already has an image, use it
   if (recipe.image) return recipe.image;
   
   try {
-    // Attempt to get an image from Pixabay based on recipe title
     const query = encodeURIComponent(recipe.title);
     const response = await fetch(
       `${process.env.REACT_APP_PIXABAY_API_URL}/?key=${process.env.REACT_APP_PIXABAY_API_KEY}&q=${query}&image_type=photo&category=food&per_page=3`
@@ -605,12 +547,10 @@ const getRecipeImage = async (recipe) => {
     
     const data = await response.json();
     
-    // Return the first image if available, otherwise use a placeholder
     if (data.hits && data.hits.length > 0) {
       return data.hits[0].webformatURL;
     }
     
-    // Fallback to placeholder
     return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/400x300?text=No+Image+Available`;
   } catch (error) {
     console.error('Error fetching recipe image:', error);
@@ -618,21 +558,17 @@ const getRecipeImage = async (recipe) => {
   }
 };
 
-// Extract ingredients function
 const extractIngredients = (recipe) => {
   if (!recipe) return [];
   
-  // Check if recipe has ingredients as an array
   if (Array.isArray(recipe.ingredients)) {
     return recipe.ingredients;
   }
   
-  // Check if recipe has ingredients as a string
   if (typeof recipe.ingredients === 'string') {
     return recipe.ingredients.split(',').map(item => item.trim());
   }
   
-  // Try to extract from recipe.text if available (for saved recipes)
   if (recipe.text) {
     const ingredientsMatch = recipe.text.match(/## Ingredients\n([\s\S]*?)(?=\n## |$)/);
     if (ingredientsMatch && ingredientsMatch[1]) {
@@ -643,7 +579,6 @@ const extractIngredients = (recipe) => {
     }
   }
   
-  // Check if in recipeData (for saved recipes)
   if (recipe.recipeData && recipe.recipeData.ingredients) {
     return Array.isArray(recipe.recipeData.ingredients) 
       ? recipe.recipeData.ingredients 
@@ -653,21 +588,17 @@ const extractIngredients = (recipe) => {
   return [];
 };
 
-// Extract steps function
 const extractSteps = (recipe) => {
   if (!recipe) return [];
   
-  // Check if recipe has steps as an array
   if (Array.isArray(recipe.steps)) {
     return recipe.steps;
   }
   
-  // Check if recipe has steps as a string
   if (typeof recipe.steps === 'string') {
     return recipe.steps.split('\n').map(item => item.trim()).filter(Boolean);
   }
   
-  // Try to extract from recipe.text if available (for saved recipes)
   if (recipe.text) {
     const stepsMatch = recipe.text.match(/## Instructions\n([\s\S]*?)(?=\n## |$)/);
     if (stepsMatch && stepsMatch[1]) {
@@ -678,7 +609,6 @@ const extractSteps = (recipe) => {
     }
   }
   
-  // Check if in recipeData (for saved recipes)
   if (recipe.recipeData && recipe.recipeData.steps) {
     return Array.isArray(recipe.recipeData.steps) 
       ? recipe.recipeData.steps 
@@ -686,102 +616,6 @@ const extractSteps = (recipe) => {
   }
   
   return [];
-};
-
-// Handle share via email function
-const handleShareViaEmail = (recipe) => {
-  if (!recipe) return;
-  
-  const ingredients = extractIngredients(recipe);
-  const steps = extractSteps(recipe);
-  
-  // Format ingredients and steps for email
-  const formattedIngredients = ingredients.map(ing => `• ${ing}`).join('%0D%0A');
-  const formattedSteps = steps.map((step, i) => `${i+1}. ${step}`).join('%0D%0A');
-  
-  // Create email subject and body
-  const subject = `Recipe: ${recipe.title || recipe.recipeName}`;
-  const body = `Check out this recipe!%0D%0A%0D%0A` +
-    `${recipe.title || recipe.recipeName}%0D%0A%0D%0A` +
-    `INGREDIENTS:%0D%0A${formattedIngredients}%0D%0A%0D%0A` +
-    `INSTRUCTIONS:%0D%0A${formattedSteps}%0D%0A%0D%0A` +
-    `From: NutriSift Recipe App`;
-  
-  // Open mail client
-  window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${body}`;
-  
-  // Close dialog
-  setShowShareDialog(false);
-  
-  // Show success message
-  setSuccessMessage('Email client opened!');
-  setTimeout(() => setSuccessMessage(''), 3000);
-};
-
-// Handle copy link function
-const handleCopyLink = (recipe) => {
-  if (!recipe) return;
-  
-  // In a real app, you'd generate a shareable link
-  // For this implementation, we'll just copy the recipe details to clipboard
-  
-  const ingredients = extractIngredients(recipe);
-  const steps = extractSteps(recipe);
-  
-  // Format ingredients and steps
-  const formattedIngredients = ingredients.map(ing => `• ${ing}`).join('\n');
-  const formattedSteps = steps.map((step, i) => `${i+1}. ${step}`).join('\n');
-  
-  // Create text to copy
-  const textToCopy = `${recipe.title || recipe.recipeName}\n\n` +
-    `INGREDIENTS:\n${formattedIngredients}\n\n` +
-    `INSTRUCTIONS:\n${formattedSteps}\n\n` +
-    `From: NutriSift Recipe App`;
-  
-  // Copy to clipboard
-  navigator.clipboard.writeText(textToCopy)
-    .then(() => {
-      // Close dialog
-      setShowShareDialog(false);
-      
-      // Show success message
-      setSuccessMessage('Recipe copied to clipboard!');
-      setTimeout(() => setSuccessMessage(''), 3000);
-    })
-    .catch(err => {
-      console.error('Failed to copy: ', err);
-      setError('Failed to copy recipe to clipboard');
-      setTimeout(() => setError(null), 3000);
-    });
-};
-
-// Handle share via WhatsApp function
-const handleShareViaWhatsApp = (recipe) => {
-  if (!recipe) return;
-  
-  const ingredients = extractIngredients(recipe);
-  const steps = extractSteps(recipe);
-  
-  // Format ingredients and steps for WhatsApp
-  const formattedIngredients = ingredients.map(ing => `• ${ing}`).join('\n');
-  const formattedSteps = steps.map((step, i) => `${i+1}. ${step}`).join('\n');
-  
-  // Create text to share
-  const textToShare = `*${recipe.title || recipe.recipeName}*\n\n` +
-    `*INGREDIENTS:*\n${formattedIngredients}\n\n` +
-    `*INSTRUCTIONS:*\n${formattedSteps}\n\n` +
-    `From: NutriSift Recipe App`;
-  
-  // Open WhatsApp with the recipe
-  const whatsappUrl = `${process.env.REACT_APP_WHATSAPP_SHARE_URL}/?text=${encodeURIComponent(textToShare)}`;
-  window.open(whatsappUrl, '_blank');
-  
-  // Close dialog
-  setShowShareDialog(false);
-  
-  // Show success message
-  setSuccessMessage('Opening WhatsApp...');
-  setTimeout(() => setSuccessMessage(''), 3000);
 };
   
   return (
@@ -917,8 +751,6 @@ const handleShareViaWhatsApp = (recipe) => {
                 <div key={recipe.id} className="recipe-card">
                   <div className="recipe-image">
                     <img src={recipe.image} alt={recipe.title} />
-                    {/* Remove the course badge from here */}
-                    {/* <div className="recipe-course-badge">{recipe.course}</div> */}
                   </div>
                   <div className="recipe-content">
                     <h3>{recipe.title}</h3>
@@ -926,7 +758,6 @@ const handleShareViaWhatsApp = (recipe) => {
                       <span className="recipe-calories">{recipe.calories} cal</span>
                       <span className="recipe-diet">{recipe.diet}</span>
                       <span className="recipe-origin">{recipe.origin}</span>
-                      {/* Add the course badge here */}
                       {recipe.course && <span className="recipe-course">{recipe.course}</span>}
                     </div>
                     <div className="recipe-cuisine">{recipe.cuisine} cuisine</div>
@@ -998,7 +829,6 @@ const handleShareViaWhatsApp = (recipe) => {
         </div>
       )}
       
-      {/* Share Recipe Dialog */}
       {showShareDialog && (
         <div className="share-dialog">
           <div className="share-dialog-content">
@@ -1014,40 +844,15 @@ const handleShareViaWhatsApp = (recipe) => {
             <div className="share-dialog-body">
               <p>Share this delicious recipe with friends and family:</p>
               
-              {/* Recipe preview */}
               <div className="share-recipe-preview">
                 <img src={selectedRecipe?.image} alt={selectedRecipe?.title} />
                 <h4>{selectedRecipe?.title}</h4>
               </div>
               
-              {/* Disclaimer */}
               <div className="share-recipe-disclaimer">
                 <p>⚠️ Recipe images are provided for reference only and may not exactly match the actual dish.</p>
               </div>
               
-              <div className="share-options">
-                <button 
-                  className="share-option-btn email-btn"
-                  onClick={() => handleShareViaEmail(selectedRecipe)}
-                >
-                  <span className="share-icon">📧</span>
-                  Email
-                </button>
-                <button 
-                  className="share-option-btn copy-btn"
-                  onClick={() => handleCopyLink(selectedRecipe)}
-                >
-                  <span className="share-icon">📋</span>
-                  Copy Link
-                </button>
-                <button 
-                  className="share-option-btn whatsapp-btn"
-                  onClick={() => handleShareViaWhatsApp(selectedRecipe)}
-                >
-                  <span className="share-icon">📱</span>
-                  WhatsApp
-                </button>
-              </div>
             </div>
           </div>
         </div>
