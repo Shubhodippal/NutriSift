@@ -1,8 +1,3 @@
-# Complete Updated README.md File
-
-Here's the fully updated README.md file with the new Database Setup section included:
-
-markdown
 # NutriSift - AI-Powered Recipe Management Platform
 
 ![NutriSift Logo](./logo.png)
