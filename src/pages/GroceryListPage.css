@@ -176,7 +176,6 @@
   margin-left: 8px;
 }
 
-/* Enhanced Add Item Form */
 .add-item-form {
   background: linear-gradient(145deg, #1e2a3e 0%, #141c2b 100%);
   border: 1px solid #3d4e69;
@@ -221,15 +220,15 @@
 .form-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.5rem; /* Increased gap for better separation */
+  gap: 1.5rem; 
   margin-bottom: 1rem;
 }
 
 .form-group {
-  flex: 1 1 250px; /* Changed from flex: 1 to flex-grow, flex-shrink, flex-basis */
-  min-width: 0; /* Remove min-width to prevent overflow */
+  flex: 1 1 250px; 
+  min-width: 0; 
   margin-bottom: 1.5rem;
-  position: relative; /* Ensure relative positioning for absolute elements */
+  position: relative; 
 }
 
 .form-group label {
@@ -258,7 +257,7 @@
 
 .input-wrapper, .select-wrapper {
   position: relative;
-  width: 100%; /* Ensure full width */
+  width: 100%; 
   margin-top: 0.5rem;
 }
 
@@ -292,7 +291,7 @@
   transition: all 0.3s ease;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
   letter-spacing: 0.3px;
-  box-sizing: border-box; /* Ensure padding is included in width */
+  box-sizing: border-box; 
 }
 
 .enhanced-input:hover {
@@ -345,7 +344,6 @@
   background: rgba(79, 140, 255, 0.25);
 }
 
-/* Input focus effects for the entire form group */
 .form-group:focus-within label {
   color: #4f8cff;
 }
@@ -371,9 +369,9 @@
   justify-content: center;
   gap: 0.8rem;
   box-shadow: 0 8px 20px rgba(79, 140, 255, 0.3);
-  flex: 0 0 auto; /* Prevent the button from growing or shrinking */
-  align-self: flex-end; /* Align with the bottom of input fields */
-  margin-bottom: 1.5rem; /* Match form-group margin-bottom */
+  flex: 0 0 auto; 
+  align-self: flex-end; 
+  margin-bottom: 1.5rem; 
 }
 
 .add-button:hover {
@@ -405,7 +403,6 @@
   }
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .form-row {
     flex-direction: column;
@@ -440,7 +437,6 @@
   }
 }
 
-/* Improved Hamburger Menu Styles */
 .hamburger-menu-container {
   position: relative;
 }
@@ -465,7 +461,6 @@
   background: #2d3748;
 }
 
-/* Fixed hamburger icon styles */
 .hamburger-icon,
 .hamburger-icon:before,
 .hamburger-icon:after {
@@ -495,7 +490,6 @@
   top: 6px;
 }
 
-/* Animation for active state */
 .hamburger-button.active .hamburger-icon {
   background-color: transparent;
 }
@@ -551,7 +545,6 @@
   font-size: 1.2rem;
 }
 
-/* Print styles */
 @media print {
   .grocery-list-page {
     background: white;
@@ -608,7 +601,6 @@
   font-size: 1.1rem;
 }
 
-/* Make delete button more visible on mobile */
 @media (max-width: 768px) {
   .delete-item-button {
     opacity: 0.8;
@@ -616,7 +608,6 @@
   }
 }
 
-/* Item edit mode */
 .item-actions {
   display: flex;
   align-items: center;
@@ -721,7 +712,6 @@ li.editing {
   border-color: #4f8cff;
 }
 
-/* Mobile responsiveness for edit mode */
 @media (max-width: 768px) {
   .edit-actions {
     flex-direction: column;
@@ -733,7 +723,6 @@ li.editing {
   }
 }
 
-/* Toast notifications */
 .share-success, .share-error {
   position: fixed;
   bottom: 30px;
@@ -766,7 +755,6 @@ li.editing {
   to { opacity: 0; transform: translate(-50%, 20px); }
 }
 
-/* Sync status styles */
 .sync-status {
   text-align: center;
   padding: 0.5rem;
@@ -785,7 +773,6 @@ li.editing {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Form alignment fixes */
 .add-item-form {
   background-color: #197bdd;
   border-radius: 12px;
@@ -832,7 +819,6 @@ li.editing {
   box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
 }
 
-/* Add button alignment */
 .add-button {
   height: 42px;
   align-self: flex-end;
@@ -840,7 +826,6 @@ li.editing {
   white-space: nowrap;
 }
 
-/* List controls alignment */
 .list-controls {
   display: flex;
   flex-wrap: wrap;
@@ -855,7 +840,6 @@ li.editing {
   max-width: 200px;
 }
 
-/* Grocery list item alignment */
 .grocery-list ul {
   padding: 0;
 }
@@ -927,7 +911,6 @@ li.editing {
   opacity: 1;
 }
 
-/* Edit item modal alignment */
 .edit-item-modal {
   position: fixed;
   top: 0;
@@ -963,7 +946,6 @@ li.editing {
   color: #666;
 }
 
-/* Responsive fixes */
 @media (max-width: 768px) {
   .form-group {
     flex: 1 1 100%;
@@ -996,7 +978,6 @@ li.editing {
   }
 }
 
-/* Item editing styles */
 .item-edit-form {
   display: flex;
   flex-wrap: wrap;
@@ -1047,7 +1028,6 @@ li.editing {
   color: #333;
 }
 
-/* Checked item styling */
 .grocery-list li.checked .item-name,
 .grocery-list li.checked .item-quantity {
   text-decoration: line-through;

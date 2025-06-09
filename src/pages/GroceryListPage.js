@@ -906,9 +906,9 @@ function GroceryListPage() {
           <div className="modal-content">
             <h2>Edit Item</h2>
             <form onSubmit={(e) => {
-  e.preventDefault();
-  handleEditSave();
-}}>
+              e.preventDefault();
+              handleEditSave();
+            }}>
               <div className="form-row">
                 <div className="form-group">
                   <label><span className="label-icon">📝</span> Item Name</label>

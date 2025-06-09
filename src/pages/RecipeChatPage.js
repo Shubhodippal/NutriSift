@@ -7,22 +7,15 @@ import HamburgerMenu from '../components/HamburgerMenu';
 const BOT_AVATAR = "👩‍🍳";
 const USER_AVATAR = "🧑";
 
-// Add this function to get recipe images - place it before the RecipeChatPage component
 const getRecipeImage = async (recipe) => {
   try {
-    // Create search queries in order of preference
     const searchQueries = [
-      // First try specific search with title + cuisine + course
       `${recipe.title} ${recipe.cuisine || ''} ${recipe.course || ''} food`,
-      // Then try with just title + cuisine
       `${recipe.title} ${recipe.cuisine || ''} food`,
-      // Then try just title + food
       `${recipe.title} food`,
-      // Finally try just the main ingredient (if we can extract it)
       recipe.title.split(' ')[0] + ' food'
     ];
     
-    // Try each search query in order until we find images
     for (const query of searchQueries) {
       const searchQuery = encodeURIComponent(query);
       const pixabayApiKey = process.env.REACT_APP_PIXABAY_API_KEY;
@@ -32,24 +25,19 @@ const getRecipeImage = async (recipe) => {
       
       const data = await response.json();
       if (data.hits && data.hits.length > 0) {
-        // Use the first image result
         return data.hits[0].webformatURL;
       }
     }
     
-    // If all searches failed, use a food-themed placeholder
     return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/600x400/1a2235/ffffff?text=${encodeURIComponent(recipe.title)}`;
   } catch (error) {
     console.error('Error fetching recipe image:', error);
-    // Fallback to a food placeholder
     return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/600x400/1a2235/ffffff?text=${encodeURIComponent(recipe.title)}`;
   }
 };
 
 function RecipeChatPage() {
-  // Update the messages state initialization to load from localStorage
 const [messages, setMessages] = useState(() => {
-  // Try to load chat history from localStorage
   const savedMessages = localStorage.getItem('chatHistory');
   if (savedMessages) {
     try {
@@ -58,7 +46,6 @@ const [messages, setMessages] = useState(() => {
       console.error('Error loading saved chat history:', e);
     }
   }
-  // Default welcome message if no history
   return [{ 
     sender: "bot", 
     text: "Hi! Tell me what ingredients you have, and I'll suggest a recipe tailored just for you." 
@@ -68,7 +55,6 @@ const [messages, setMessages] = useState(() => {
   const [loading, setLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [savedRecipes, setSavedRecipes] = useState(() => {
-    // Load saved recipes from localStorage on component mount
     const saved = localStorage.getItem('savedRecipes');
     return saved ? JSON.parse(saved) : [];
   });
@@ -88,7 +74,6 @@ const [messages, setMessages] = useState(() => {
     "tofu, broccoli, ginger, soy sauce"
   ];
 
-  // Save recipes to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
   }, [savedRecipes]);
@@ -98,14 +83,12 @@ const [messages, setMessages] = useState(() => {
   }, [messages]);
 
   useEffect(() => {
-    // Add a slight delay to ensure the animation completes before scrolling
     const timer = setTimeout(() => {
       chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 100);
     return () => clearTimeout(timer);
   }, [messages]);
 
-  // Hide suggestions after user starts typing
   useEffect(() => {
     if (input.trim().length > 0) {
       setShowSuggestions(false);
@@ -114,11 +97,9 @@ const [messages, setMessages] = useState(() => {
     }
   }, [input]);
 
-  // Add this useEffect after the existing useEffects to save messages when they change
-useEffect(() => {
-  // Save chat history to localStorage whenever messages change
-  localStorage.setItem('chatHistory', JSON.stringify(messages));
-}, [messages]);
+  useEffect(() => {
+    localStorage.setItem('chatHistory', JSON.stringify(messages));
+  }, [messages]);
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -134,10 +115,8 @@ useEffect(() => {
     inputRef.current?.focus();
   };
 
-  // Update the generateRecipe function to fetch and include images
 const generateRecipe = async (ingredients) => {
   try {
-    // Call the API
     try {
       const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/recipe`, {
         method: 'POST',
@@ -151,24 +130,21 @@ const generateRecipe = async (ingredients) => {
       
       const data = await res.json();
       
-      // Get an image for the recipe
       const imageUrl = await getRecipeImage({
         title: data.title,
         cuisine: data.cuisine,
         course: data.course
       });
       
-      // Format the response to include metadata in the markdown
       const metadataSection = `
-**Nutritional & Recipe Information:**
-- Calories: ${data.calories || 'Not available'}
-- Diet: ${data.diet || 'Not specified'}
-- Origin: ${data.origin || 'Not specified'}
-- Course: ${data.course || 'Not specified'}
-- Cuisine: ${data.cuisine || 'Not specified'}
-`;
+      **Nutritional & Recipe Information:**
+      - Calories: ${data.calories || 'Not available'}
+      - Diet: ${data.diet || 'Not specified'}
+      - Origin: ${data.origin || 'Not specified'}
+      - Course: ${data.course || 'Not specified'}
+      - Cuisine: ${data.cuisine || 'Not specified'}
+      `;
       
-      // Add the formatted recipe to the messages with image
       setMessages(msgs => [
         ...msgs,
         {
@@ -190,10 +166,8 @@ const generateRecipe = async (ingredients) => {
     } catch (apiError) {
       console.error('API Error:', apiError);
       
-      // Fallback: Generate a mock recipe instead of showing an error
       const mockRecipe = generateMockRecipe(ingredients);
       
-      // Get an image for the recipe
       const imageUrl = await getRecipeImage({
         title: mockRecipe.title,
         cuisine: mockRecipe.cuisine,
@@ -225,37 +199,31 @@ const generateRecipe = async (ingredients) => {
 };
 
   const parseRecipeFromText = (text, originalIngredients) => {
-    // Default values in case parsing fails
     let title = "Recipe with " + originalIngredients.split(',')[0];
     let ingredients = [];
     let steps = [];
     
     try {
-      // Try to extract title (usually the first line)
       const titleMatch = text.match(/^(.*?)(?:\n|$)/);
       if (titleMatch && titleMatch[1].trim().length > 0) {
         title = titleMatch[1].trim();
       }
       
-      // Try to extract ingredients section
       let ingredientsSection = '';
       if (text.includes('Ingredients:') || text.includes('INGREDIENTS')) {
         ingredientsSection = text.split(/Ingredients:|INGREDIENTS/)[1].split(/Instructions:|INSTRUCTIONS|Directions:|DIRECTIONS|Steps:|STEPS/)[0];
       }
       
-      // Parse ingredients list
       if (ingredientsSection) {
         ingredients = ingredientsSection
           .split('\n')
           .filter(line => line.trim().length > 0)
           .map(line => line.replace(/^[-•*]\s*/, '').trim());
       } else {
-        // Fallback: use the provided ingredients
         ingredients = originalIngredients.split(',').map(i => i.trim());
         ingredients.push('Salt and pepper to taste');
       }
       
-      // Try to extract instructions section
       let instructionsSection = '';
       if (text.includes('Instructions:') || text.includes('INSTRUCTIONS') || 
           text.includes('Directions:') || text.includes('DIRECTIONS') ||
@@ -264,14 +232,12 @@ const generateRecipe = async (ingredients) => {
         instructionsSection = sections.length > 1 ? sections[1] : '';
       }
       
-      // Parse steps
       if (instructionsSection) {
         steps = instructionsSection
           .split('\n')
           .filter(line => line.trim().length > 0)
           .map(line => line.replace(/^\d+\.\s*/, '').trim());
       } else {
-        // Fallback: create basic steps
         steps = [
           `Cook with ${ingredients.slice(0, 3).join(', ')}.`,
           'Season to taste.',
@@ -279,7 +245,6 @@ const generateRecipe = async (ingredients) => {
         ];
       }
       
-      // Ensure we have at least some ingredients and steps
       if (ingredients.length === 0) {
         ingredients = originalIngredients.split(',').map(i => i.trim());
       }
@@ -290,7 +255,6 @@ const generateRecipe = async (ingredients) => {
       
     } catch (parseError) {
       console.error('Error parsing recipe:', parseError);
-      // Return basic recipe structure based on original ingredients
       return generateMockRecipe(originalIngredients);
     }
     
@@ -301,13 +265,9 @@ const generateRecipe = async (ingredients) => {
     };
   };
 
-  // Update the mock recipe generator to include metadata
-
   const generateMockRecipe = (ingredients) => {
-    // Parse ingredients from the input string
     const ingredientList = ingredients.split(/,\s*/).filter(i => i.trim().length > 0);
     
-    // Generate a simple title based on the ingredients
     const mainIngredient = ingredientList[0] || 'Mixed';
     const secondaryIngredient = ingredientList.length > 1 ? ingredientList[1] : '';
     
@@ -315,7 +275,6 @@ const generateRecipe = async (ingredients) => {
       ? `${mainIngredient.charAt(0).toUpperCase() + mainIngredient.slice(1)} and ${secondaryIngredient} Dish`
       : `${mainIngredient.charAt(0).toUpperCase() + mainIngredient.slice(1)} Special`;
     
-    // Determine mock cuisine and course based on ingredients
     let cuisine = 'Fusion';
     let course = 'Main Dish';
     
@@ -333,7 +292,6 @@ const generateRecipe = async (ingredients) => {
       course = 'Appetizer';
     }
     
-    // Create a structured mock recipe with metadata
     return {
       title,
       ingredients: [
@@ -370,7 +328,6 @@ const generateRecipe = async (ingredients) => {
     inputRef.current?.focus();
   };
 
-  // Save recipe to local storage
   const saveRecipeToDatabase = async (recipe) => {
     try {
       const userId = localStorage.getItem('userId');
@@ -380,11 +337,9 @@ const generateRecipe = async (ingredients) => {
         throw new Error('User not logged in');
       }
       
-      // Parse recipe text to extract ingredients and steps
       const ingredientsMatch = recipe.text.match(/## Ingredients\n([\s\S]*?)(?=## Instructions)/);
       const stepsMatch = recipe.text.match(/## Instructions\n([\s\S]*?)(?=##|$)/);
       
-      // Get ingredients and steps, removing markdown list markers
       const ingredients = ingredientsMatch 
         ? ingredientsMatch[1].trim() 
         : '';
@@ -392,15 +347,12 @@ const generateRecipe = async (ingredients) => {
         ? stepsMatch[1].trim() 
         : '';
       
-      // Extract title with fallbacks
       let recipeName = 'Untitled Recipe';
       
-      // First try markdown heading
       const titleMatch = recipe.text.match(/# (.*?)(?:\n|$)/);
       if (titleMatch && titleMatch[1] && titleMatch[1].trim()) {
         recipeName = titleMatch[1].trim();
       } 
-      // Then try recipe.title or recipeData.title
       else if (recipe.title && typeof recipe.title === 'string' && recipe.title.trim()) {
         recipeName = recipe.title.trim();
       }
@@ -408,10 +360,8 @@ const generateRecipe = async (ingredients) => {
         recipeName = recipe.recipeData.title.trim();
       }
       
-      // Extract additional metadata with multiple methods
       let calories, diet, origin, course, cuisine;
       
-      // Method 1: Try to get from recipeData object
       if (recipe.recipeData) {
         calories = recipe.recipeData.calories;
         diet = recipe.recipeData.diet;
@@ -420,7 +370,6 @@ const generateRecipe = async (ingredients) => {
         cuisine = recipe.recipeData.cuisine;
       }
       
-      // Method 2: Extract from text if not found in recipeData
       if (!calories) {
         const caloriesMatch = recipe.text.match(/Calories: ([^\n]*)/);
         calories = caloriesMatch ? caloriesMatch[1].trim() : '';
@@ -448,7 +397,6 @@ const generateRecipe = async (ingredients) => {
       
       console.log('Saving recipe with name:', recipeName);
       
-      // Format data for API according to backend model
       const recipeData = {
         uid: userId,
         mail: userEmail , 
@@ -475,15 +423,12 @@ const generateRecipe = async (ingredients) => {
         throw new Error(`Failed to save recipe: ${response.status} ${errorText}`);
       }
       
-      // Check content type to determine how to process the response
       const contentType = response.headers.get("content-type");
       let result;
       
       if (contentType && contentType.includes("application/json")) {
-        // Parse as JSON if it's JSON
         result = await response.json();
       } else {
-        // Handle as text if it's not JSON
         const text = await response.text();
         result = { message: text, success: true };
       }
@@ -496,13 +441,10 @@ const generateRecipe = async (ingredients) => {
     }
   };
 
-  // Replace the handleSaveRecipe function with this improved version
   const handleSaveRecipe = async (message) => {
     try {
-      // Show saving indicator
       setSavingRecipe(true);
       
-      // Create recipe object with required data
       const recipe = {
         id: Date.now().toString(),
         text: message.text,
@@ -510,23 +452,18 @@ const generateRecipe = async (ingredients) => {
         savedAt: new Date().toISOString()
       };
       
-      // First save to database
       const savedRecipe = await saveRecipeToDatabase(recipe);
       
-      // Update with server ID if available
       if (savedRecipe && savedRecipe.id) {
         recipe.id = savedRecipe.id;
       }
       
-      // Update local state
       setSavedRecipes(prev => [...prev, recipe]);
       
-      // Show success message
       setSuccessMessage(savedRecipe.message || 'Recipe saved successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (error) {
       console.error('Error saving recipe:', error);
-      // Show error message
       setErrorMessage('Failed to save recipe. Please try again.');
       setTimeout(() => setErrorMessage(''), 5000);
     } finally {
