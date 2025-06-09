@@ -451,7 +451,7 @@ const generateRecipe = async (ingredients) => {
       // Format data for API according to backend model
       const recipeData = {
         uid: userId,
-        mail: userEmail || 'user@example.com', 
+        mail: userEmail , 
         prompt: recipe.userInput || input || '', 
         recipeName: recipeName,
         ingredients: ingredients || 'No ingredients specified',
