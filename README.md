@@ -2,7 +2,7 @@
 
 After carefully reviewing your codebase, I noticed your README file is missing detailed information about the Spring Boot backend implementation. Here's an updated README that accurately reflects your complete project structure and technology stack:
 
-```markdown
+markdown
 # NutriSift - AI-Powered Recipe Management Platform
 
 ![NutriSift Logo](https://via.placeholder.com/200x200/1a2235/ffffff?text=NutriSift)
