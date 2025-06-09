@@ -33,7 +33,6 @@ const recipeExamples = [
   }
 ];
 
-// Create a variable outside component to persist between re-renders
 let hasCompletedGalleryBefore = false;
 
 function RecipeGallery() {
@@ -44,8 +43,8 @@ function RecipeGallery() {
   const [isScrollingUp, setIsScrollingUp] = useState(false);
   const [isReverseScrolling, setIsReverseScrolling] = useState(false);
   const lastScrollY = useRef(0);
-  const scrollAccumulator = useRef(0); // Added for slower scrolling
-  const scrollThreshold = 150; // Increased threshold for slower scrolling
+  const scrollAccumulator = useRef(0); 
+  const scrollThreshold = 150; 
   const galleryRef = useRef(null);
   const containerRef = useRef(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -55,9 +54,8 @@ function RecipeGallery() {
   const aboutRef = useRef(null);
   const featuresRef = useRef(null);
   const autoScrollInterval = useRef(null);
-  const lastSection = useRef(''); // Track the last section we were in
+  const lastSection = useRef(''); 
   
-  // Find all section references on mount
   useEffect(() => {
     howItWorksRef.current = document.getElementById('how');
     pricingRef.current = document.getElementById('pricing');
@@ -66,9 +64,7 @@ function RecipeGallery() {
     featuresRef.current = document.getElementById('features');
   }, []);
   
-  // Ensure smooth initial load
   useEffect(() => {
-    // Set initial load to false after a delay
     const timer = setTimeout(() => {
       setIsInitialLoad(false);
     }, 500);
@@ -76,7 +72,6 @@ function RecipeGallery() {
     return () => clearTimeout(timer);
   }, []);
   
-  // Track scroll direction with more reliability and track section position
   useEffect(() => {
     let lastScroll = window.pageYOffset;
     
@@ -84,14 +79,12 @@ function RecipeGallery() {
       const currentScroll = window.pageYOffset;
       const isScrollUp = currentScroll < lastScroll;
       
-      // Track which section we're in or coming from
       const howSection = howItWorksRef.current;
       const featuresSection = featuresRef.current;
       const pricingSection = pricingRef.current;
       const testimonialsSection = testimonialsRef.current;
       const aboutSection = aboutRef.current;
       
-      // Find which section we're in or coming from
       if (aboutSection && currentScroll >= aboutSection.offsetTop - 100) {
         if (lastSection.current !== 'about') {
           lastSection.current = 'about';
@@ -123,34 +116,25 @@ function RecipeGallery() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   
-  // Update the external variable when all images have been viewed
   useEffect(() => {
     if (hasViewedAllImages) {
       hasCompletedGalleryBefore = true;
     }
   }, [hasViewedAllImages]);
   
-  // Enhanced reverse auto-scrolling when scrolling back up to gallery
   useEffect(() => {
-    // Clear any existing interval first to prevent overlapping
     if (autoScrollInterval.current) {
       clearInterval(autoScrollInterval.current);
       autoScrollInterval.current = null;
     }
     
-    // Trigger reverse scrolling when: 
-    // 1. Gallery is in view
-    // 2. We're scrolling up 
-    // 3. We're coming from a section below the gallery (how, pricing, testimonials, about)
     const isComingFromBelow = ['how', 'pricing', 'testimonials', 'about'].includes(lastSection.current);
     
     if (isInView && isScrollingUp && isComingFromBelow && !isReverseScrolling) {
       setIsReverseScrolling(true);
       
-      // Reset to the last image
       setCurrentIndex(recipeExamples.length - 1);
       
-      // Auto-scroll back through images at a slower pace for better visibility
       autoScrollInterval.current = setInterval(() => {
         setCurrentIndex(prevIndex => {
           if (prevIndex <= 0) {
@@ -161,17 +145,15 @@ function RecipeGallery() {
           }
           return prevIndex - 1;
         });
-      }, 800); // Even slower timing for better visibility (increased from 600ms)
+      }, 800); 
     }
     
-    // Cleanup interval when gallery is no longer in view
     if (!isInView && autoScrollInterval.current) {
       clearInterval(autoScrollInterval.current);
       autoScrollInterval.current = null;
       setIsReverseScrolling(false);
     }
     
-    // Cleanup on unmount
     return () => {
       if (autoScrollInterval.current) {
         clearInterval(autoScrollInterval.current);
@@ -180,21 +162,18 @@ function RecipeGallery() {
     };
   }, [isInView, isScrollingUp, isReverseScrolling]);
   
-  // Improved intersection observer with higher sensitivity
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // Don't set isInView during initial load
         if (!isInitialLoad) {
           setIsInView(entry.isIntersecting);
           
-          // Reset scroll accumulator when entering view
           if (entry.isIntersecting) {
             scrollAccumulator.current = 0;
           }
         }
       },
-      { threshold: [0.1, 0.5] } // Multiple thresholds for better detection
+      { threshold: [0.1, 0.5] } 
     );
     
     if (containerRef.current) {
@@ -208,45 +187,33 @@ function RecipeGallery() {
     };
   }, [isInitialLoad]);
   
-  // Handle wheel events for horizontal scrolling when in gallery - SLOWED DOWN
   useEffect(() => {
     const handleWheel = (e) => {
       if (!isInView || isReverseScrolling) return;
       
-      // If the wheel event has horizontal scrolling, let browser handle it
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
       
-      // Don't prevent default scroll - let the page scroll normally
-      // But slow down the horizontal scrolling by accumulating scroll values
-      
-      // Accumulate scroll value
       scrollAccumulator.current += Math.abs(e.deltaY);
       
-      // Only change slide when we've accumulated enough scroll
       if (scrollAccumulator.current >= scrollThreshold) {
         const direction = e.deltaY > 0 ? 1 : -1;
         
         if (direction > 0) {
-          // Scroll right (next image)
           if (currentIndex < recipeExamples.length - 1) {
             setCurrentIndex(currentIndex + 1);
           } else {
-            // Reached the end of images
             setHasViewedAllImages(true);
           }
         } else if (direction < 0) {
-          // Scroll left (previous image)
           if (currentIndex > 0) {
             setCurrentIndex(currentIndex - 1);
           }
         }
         
-        // Reset accumulator after changing slide
         scrollAccumulator.current = 0;
       }
     };
     
-    // Add event listener when gallery is in view
     if (isInView && !isInitialLoad) {
       containerRef.current.addEventListener('wheel', handleWheel, { passive: true });
     }
@@ -258,7 +225,6 @@ function RecipeGallery() {
     };
   }, [isInView, currentIndex, isInitialLoad, isReverseScrolling]);
   
-  // Handle keyboard navigation for horizontal gallery
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!isInView) return;
@@ -280,27 +246,23 @@ function RecipeGallery() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isInView, currentIndex]);
   
-  // Smooth animation to current slide when index changes
   useEffect(() => {
     if (galleryRef.current) {
       const slideWidth = galleryRef.current.clientWidth;
       galleryRef.current.style.transition = isReverseScrolling 
-        ? "transform 0.8s ease-out" // Slower transition during reverse scrolling
+        ? "transform 0.8s ease-out" 
         : "transform 0.5s ease-out";
       galleryRef.current.style.transform = `translateX(-${currentIndex * slideWidth}px)`;
     }
   }, [currentIndex, isReverseScrolling]);
   
-  // Handle window resize to maintain proper slide positioning
   useEffect(() => {
     const handleResize = () => {
       if (galleryRef.current) {
         const slideWidth = galleryRef.current.clientWidth;
-        // Disable transition during resize to prevent jumpy behavior
         galleryRef.current.style.transition = "none";
         galleryRef.current.style.transform = `translateX(-${currentIndex * slideWidth}px)`;
         
-        // Re-enable transition after a small delay
         setTimeout(() => {
           if (galleryRef.current) {
             galleryRef.current.style.transition = "transform 0.5s ease-out";

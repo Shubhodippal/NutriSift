@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
-import { Link } from 'react-scroll'; // Add this import at the top
+import { Link } from 'react-scroll'; 
 import './App.css';
 import FeaturesSection from './FeaturesSection';
 import HowItWorksSection from './HowItWorksSection';
@@ -11,58 +11,46 @@ import RecipeChatPage from './pages/RecipeChatPage';
 import SavedRecipesPage from './pages/SavedRecipesPage';
 import RecipeDetailPage from './pages/RecipeDetailPage';
 import GroceryListPage from './pages/GroceryListPage';
-import LoginSignup from './pages/LoginSignup'; // Add this import
+import LoginSignup from './pages/LoginSignup';
 import AnimatedBackground from './components/AnimatedBackground';
 import RecipeGallery from './RecipeGallery';
-import RestaurantMapPage from './pages/RestaurantMapPage'; // Add this import
+import RestaurantMapPage from './pages/RestaurantMapPage'; 
 import HamburgerMenu from './components/HamburgerMenu';
-import DiscoverRecipePage from './pages/DiscoverRecipePage'; // Add the import for the new page
+import DiscoverRecipePage from './pages/DiscoverRecipePage'; 
 
 function HomePage() {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   
-  // Check if user is logged in on component mount
   useEffect(() => {
     const userId = localStorage.getItem('userId');
     setIsLoggedIn(!!userId);
   }, []);
   
-  // Handle logout functionality
   const handleLogout = () => {
-    // Ask for confirmation before logging out
     if (window.confirm('Are you sure you want to log out?')) {
-      // Clear localStorage
       localStorage.clear();
       
-      // Clear cookies
       document.cookie.split(";").forEach(cookie => {
         const eqPos = cookie.indexOf("=");
         const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
         document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
       });
       
-      // Update state
       setIsLoggedIn(false);
       
-      // Redirect to home page
       navigate('/');
       
-      // Show toast notification instead of alert
       showToastNotification('Logout successful!');
     }
   };
   
-  // Function to show toast notification
   const showToastNotification = (message) => {
-    // Create toast element
     const toast = document.createElement('div');
     toast.className = 'toast-notification';
     toast.textContent = message;
     document.body.appendChild(toast);
     
-    // Remove toast after 3 seconds
     setTimeout(() => {
       if (document.body.contains(toast)) {
         document.body.removeChild(toast);
@@ -70,18 +58,6 @@ function HomePage() {
     }, 3000);
   };
   
-  // Toggle hamburger menu
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
-  
-  // Close menu when navigating
-  const handleNavigation = (path) => {
-    setMenuOpen(false);
-    navigate(path);
-  };
-  
-  // Add scroll animation detection
   useEffect(() => {
     const handleScroll = () => {
       const sections = document.querySelectorAll('.pro-section');
@@ -97,7 +73,6 @@ function HomePage() {
     };
     
     window.addEventListener('scroll', handleScroll);
-    // Trigger once on load
     handleScroll();
     
     return () => window.removeEventListener('scroll', handleScroll);
@@ -117,7 +92,7 @@ function HomePage() {
             to="features" 
             smooth={true} 
             duration={500} 
-            offset={-80} // Adjust based on your navbar height
+            offset={-80} 
             className="navbar-link"
           >
             Features
@@ -159,7 +134,6 @@ function HomePage() {
             About
           </Link>
           
-          {/* Hamburger menu button */}
           <HamburgerMenu 
             isLoggedIn={isLoggedIn}
             onLogout={handleLogout}
@@ -286,18 +260,17 @@ function HomePage() {
 
 function App() {
   return (
-    <Router> {/* Remove basename="/NutriSift" when using HashRouter */}
+    <Router> 
       <Routes>
-        {/* Public routes - All routes are now accessible without authentication */}
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginSignup />} />
         <Route path="/chat" element={<RecipeChatPage />} />
         <Route path="/saved-recipes" element={<SavedRecipesPage />} />
         <Route path="/recipe/:id" element={<RecipeDetailPage />} />
-        <Route path="/recipe/view/:id" element={<RecipeDetailPage />} /> {/* Add this new route */}
+        <Route path="/recipe/view/:id" element={<RecipeDetailPage />} /> 
         <Route path="/grocery-list" element={<GroceryListPage />} />
         <Route path="/nearby-restaurants" element={<RestaurantMapPage />} />
-        <Route path="/discover-recipes" element={<DiscoverRecipePage />} /> {/* Add the new route */}
+        <Route path="/discover-recipes" element={<DiscoverRecipePage />} /> 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
