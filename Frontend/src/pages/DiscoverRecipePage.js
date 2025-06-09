@@ -21,7 +21,7 @@ function DiscoverRecipePage() {
   const [searchQuery, setSearchQuery] = useState('');
   
   const [showShareDialog, setShowShareDialog] = useState(false);
-  const [selectedRecipe/*, setSelectedRecipe*/] = useState(null);
+  const [selectedRecipe] = useState(null);
   
   // Options for filter dropdowns
   const calorieRanges = [
@@ -176,7 +176,7 @@ function DiscoverRecipePage() {
         prompt: "Discovered via recipe search"
       };
       
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}$recipes/save`, {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}$/recipes/save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

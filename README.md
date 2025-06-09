@@ -5,7 +5,7 @@ Here's the fully updated README.md file with the new Database Setup section incl
 markdown
 # NutriSift - AI-Powered Recipe Management Platform
 
-![NutriSift Logo](https://github.com/Shubhodippal/NutriSift.git/logo.png)
+![NutriSift Logo](./logo.png)
 
 ## 📋 Overview
 
@@ -29,20 +29,17 @@ NutriSift is a comprehensive AI-powered recipe management application designed t
   - Cuisine styles (traditional, fusion, street food, gourmet, etc.)
 - **Comprehensive Search**: Full-text search across recipe titles and ingredients
 - **Visual Gallery**: Browse recipes with high-quality preview images
-- **Sort Options**: Sort by popularity, calories, or alphabetically
 
 ### 📚 Recipe Management
 - **Personal Library**: Save unlimited recipes to your personal collection
 - **Custom Organization**: Categorize and tag recipes for easy retrieval
 - **Favorites Marking**: Mark top recipes as favorites for quick access
 - **Search & Filter**: Quickly find saved recipes with powerful search functionality
-- **Bulk Operations**: Select multiple recipes for batch operations
 
 ### 📱 Multi-Platform Sharing
 - **Native Share Integration**: Share directly via your device's native share menu
 - **Email Sharing**: Send recipes via email with formatted content
 - **Copy to Clipboard**: One-click copy for sharing in messaging apps
-- **Social Media Integration**: Direct sharing to social platforms (where supported)
 
 ### 🖨️ Advanced Printing
 - **Print-Optimized Formatting**: Beautifully formatted recipe printouts
@@ -52,7 +49,6 @@ NutriSift is a comprehensive AI-powered recipe management application designed t
 
 ### 🛒 Smart Grocery List
 - **One-Click Adding**: Add all ingredients from a recipe to your grocery list
-- **Automatic Categorization**: Ingredients automatically sorted by food category
 - Food categories include:
   - Fruits
   - Vegetables
@@ -92,7 +88,6 @@ NutriSift is a comprehensive AI-powered recipe management application designed t
 - **Local Storage**: Recipe and grocery data persists between sessions
 - **Cloud Backup**: User data is backed up to the server
 - **Cross-Device Access**: Access your data from any device
-- **Offline Support**: Basic functionality available offline
 
 ## 🛠️ Technology Stack
 
@@ -160,7 +155,7 @@ NutriSift is a comprehensive AI-powered recipe management application designed t
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/nutri-sift.git
+   git clone https://github.com/Shubhodippal/NutriSift.git
    cd nutri-sift/Frontend
    ```
 
@@ -427,8 +422,7 @@ The AI-powered recipe generation interface:
    - Add ingredients to your grocery list
    - Print the recipe
    - Share the recipe
-4. **Conversation History**: View and reference previous recipe suggestions
-5. **Suggested Prompts**: Get inspiration with pre-defined ingredient combinations
+4. **Suggested Prompts**: Get inspiration with pre-defined ingredient combinations
 
 ### Discover Recipes
 
@@ -464,10 +458,8 @@ Your personal recipe library:
 2. **Search & Filter**:
    - Search by title or ingredients
    - Filter by diet, course, or cuisine
-   - Sort by name, date saved, or calories
 3. **Organization**:
    - Categorize recipes by tags
-   - Mark favorites
 4. **Batch Operations**:
    - Select multiple recipes
    - Delete selected
@@ -765,4 +757,3 @@ For major changes, please open an issue first to discuss what you would like to 
 ## ⚠️ Disclaimer
 
 Recipe images are provided for reference only and may not exactly match the actual dish. Nutritional information is approximate and should not be used for medical purposes. Always verify ingredients for allergens and dietary restrictions. NutriSift is not responsible for any adverse reactions to recipes or cooking mishaps.
-```

@@ -562,7 +562,7 @@ function GroceryListPage() {
 
   const saveGroceryListToAPI = async (items) => {
     const userId = localStorage.getItem('userId');
-    let userEmail = localStorage.getItem('userEmail') || 'user@example.com';
+    let userEmail = localStorage.getItem('userEmail');
     
     if (!userId) {
       setApiError('User not logged in');

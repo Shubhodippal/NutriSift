@@ -33,7 +33,6 @@ const getRecipeImage = async (recipe) => {
 function SavedRecipesPage() {
   const [recipes, setRecipes] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  //const [menuOpen, setMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -123,16 +122,6 @@ function SavedRecipesPage() {
       alert('Failed to delete recipe. Please try again.');
     }
   };
-
-  /*const formatPreviewText = (text) => {
-    return text
-      .replace(/# (.*)\n/, '$1\n')
-      .replace(/## Ingredients\n/, 'Ingredients: ')
-      .replace(/## Instructions\n/, 'Instructions: ')
-      .replace(/- /g, '• ')
-      .replace(/\n/g, ' ')
-      .substring(0, 150) + '...';
-  };*/
 
   const filteredRecipes = recipes
     .filter(recipe => {
@@ -349,7 +338,6 @@ function SavedRecipesPage() {
             meals: [recipe.title || recipe.recipeName]
           };
         }
-        // Explicitly return undefined if parts is falsy
         return undefined;
       }).filter(Boolean);
       

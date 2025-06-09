@@ -164,7 +164,6 @@ function LoginSignup({ onLogin }) {
     }
   };
 
-  // Update handleVerifyAnswer function to use environment variables
   const handleVerifyAnswer = async () => {
     if (!formData.answer) {
       setFormError('Please enter your answer');
@@ -193,7 +192,6 @@ function LoginSignup({ onLogin }) {
     }
   };
 
-  // Update handleLogin function to use environment variables
   const handleLogin = async (e) => {
     e.preventDefault();
     
@@ -243,7 +241,6 @@ function LoginSignup({ onLogin }) {
     }
   };
 
-  // Update handleSignup function to use environment variables
   const handleSignup = async (e) => {
     e.preventDefault();
     
