@@ -52,7 +52,6 @@
   cursor: pointer !important;
 }
 
-/* Fix for popup content cursor */
 .leaflet-popup-content {
   cursor: auto !important;
 }
@@ -284,7 +283,6 @@
   font-size: 1.1rem;
 }
 
-/* Add styling for the location tooltip */
 .location-tooltip {
   background-color: rgba(220, 20, 60, 0.9) !important;
   color: white !important;
@@ -301,7 +299,6 @@
   border-top-color: rgba(220, 20, 60, 0.9) !important;
 }
 
-/* Add styles for the location control elements */
 .location-control {
   margin-top: 15px;
   display: flex;
@@ -351,7 +348,6 @@
   line-height: 1.4;
 }
 
-/* Style for the new scroll to results button */
 .scroll-to-results-button {
   margin-left: auto;
   background: linear-gradient(135deg, #4f8cff 0%, #2563eb 100%);
@@ -390,7 +386,6 @@
   font-weight: 700;
 }
 
-/* Add these styles for the manual location entry */
 .manual-location-button {
   display: flex;
   align-items: center;
@@ -444,7 +439,6 @@
   cursor: not-allowed;
 }
 
-/* Add styling for precision location elements */
 .precise-location-button {
   display: flex;
   align-items: center;
@@ -487,7 +481,6 @@
   accent-color: #ff4757;
 }
 
-/* Media queries for responsive design */
 @media (max-width: 768px) {
   .category-filter .category-name {
     display: none;
@@ -516,7 +509,6 @@
   }
 }
 
-/* Add this to your CSS file */
 .gps-reminder {
   background-color: #fff3cd;
   color: #856404;
@@ -541,7 +533,6 @@
   100% { opacity: 0.8; }
 }
 
-/* Restaurant image styles */
 .restaurant-image {
   position: relative;
   height: 160px;
@@ -576,7 +567,6 @@
   backdrop-filter: blur(4px);
 }
 
-/* Popup image styles */
 .popup-image {
   width: 100%;
   height: 120px;
@@ -591,7 +581,6 @@
   object-fit: cover;
 }
 
-/* Add image disclaimer */
 .image-disclaimer {
   font-size: 0.7rem;
   color: #a0aec0;

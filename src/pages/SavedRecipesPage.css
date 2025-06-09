@@ -20,6 +20,7 @@
   margin: 0;
   background: linear-gradient(135deg, #4f8cff 0%, #6a5af9 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -61,7 +62,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 2rem;
-  row-gap: 3rem; /* Increase the vertical gap specifically */
+  row-gap: 3rem; 
   margin-bottom: 2rem;
 }
 
@@ -89,7 +90,6 @@
   box-sizing: border-box;
 }
 
-/* Improve content container to prevent overflow */
 .recipe-card-content {
   padding: 1.2rem;
   display: flex;
@@ -97,7 +97,7 @@
   flex: 1;
   width: 100%;
   box-sizing: border-box;
-  align-items: flex-start; /* Ensure content aligns properly */
+  align-items: flex-start; 
 }
 
 .recipe-card-image {
@@ -105,7 +105,7 @@
   width: 100%;
   height: 180px;
   overflow: hidden;
-  margin-bottom: 0; /* Remove margin since we're using padding on content */
+  margin-bottom: 0; 
 }
 
 .recipe-card-image::after {
@@ -154,24 +154,23 @@
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
-  width: 100%; /* Full width for proper alignment */
-  padding: 0 0.25rem; /* Add slight padding */
+  width: 100%; 
+  padding: 0 0.25rem; 
   box-sizing: border-box;
 }
 
-/* Fix metadata container */
 .recipe-metadata {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 0.75rem;
-  width: 100%; /* Use full width */
-  padding: 0 0.25rem; /* Match title padding */
+  width: 100%; 
+  padding: 0 0.25rem; 
   box-sizing: border-box;
 }
 
-/* Adjust metadata items */
 .recipe-metadata-item {
   background: #2d3748;
   color: #e2e8f0;
@@ -179,8 +178,8 @@
   border-radius: 4px;
   font-size: 0.75rem;
   font-weight: 500;
-  display: inline-block; /* Better than nowrap for wrapping behavior */
-  max-width: calc(100% - 12px); /* Account for gap */
+  display: inline-block; 
+  max-width: calc(100% - 12px); 
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -188,8 +187,8 @@
 .recipe-preview {
   color: #a0aec0;
   margin-bottom: 1rem;
-  min-height: 60px; /* Reduced from 80px */
-  max-height: 90px; /* Reduced from 100px */
+  min-height: 60px; 
+  max-height: 90px; 
   overflow: hidden;
   width: 100%;
   font-size: 0.9rem;
@@ -203,7 +202,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
-  -webkit-line-clamp: 3; /* Limit to 3 lines */
+  -webkit-line-clamp: 3; 
+  line-clamp: 3; 
   -webkit-box-orient: vertical;
 }
 
@@ -284,7 +284,6 @@
   font-size: 1.2rem;
 }
 
-/* Responsive layout for buttons */
 @media (max-width: 768px) {
   .recipe-actions {
     grid-template-columns: repeat(2, 1fr);
@@ -295,7 +294,6 @@
   }
 }
 
-/* No recipes found styles */
 .no-recipes {
   text-align: center;
   padding: 3rem;
@@ -326,7 +324,6 @@
   box-shadow: 0 6px 15px rgba(79, 140, 255, 0.3);
 }
 
-/* Hamburger Menu Styles */
 .hamburger-menu-container {
   position: relative;
 }
@@ -351,7 +348,6 @@
   background: #2d3748;
 }
 
-/* Fixed hamburger icon styles */
 .hamburger-icon,
 .hamburger-icon:before,
 .hamburger-icon:after {
@@ -381,7 +377,6 @@
   top: 6px;
 }
 
-/* Animation for active state */
 .hamburger-button.active .hamburger-icon {
   background-color: transparent;
 }
@@ -437,7 +432,6 @@
   font-size: 1.2rem;
 }
 
-/* Loading and Error Styles */
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -478,7 +472,6 @@
   cursor: pointer;
 }
 
-/* Share dialog styles */
 .share-dialog {
   position: fixed;
   top: 0;
@@ -594,13 +587,11 @@
   margin-bottom: 0.4rem;
 }
 
-/* PDF container for rendering */
 .pdf-container {
   position: absolute;
   left: -9999px;
 }
 
-/* Make sure mobile layout is good */
 @media (max-width: 768px) {
   .recipe-card-actions {
     grid-template-columns: repeat(2, 1fr);
@@ -611,7 +602,6 @@
   }
 }
 
-/* Share recipe preview */
 .share-recipe-preview {
   display: flex;
   flex-direction: column;
@@ -637,7 +627,6 @@
   text-align: center;
 }
 
-/* Share recipe disclaimer */
 .share-recipe-disclaimer {
   background: rgba(45, 55, 72, 0.7);
   border-radius: 6px;
@@ -654,7 +643,6 @@
   gap: 0.5rem;
 }
 
-/* Image disclaimer styling */
 .image-disclaimer {
   background-color: #1a2235;
   border: 1px solid #2d3748;

@@ -3,22 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import './SavedRecipesPage.css';
 import HamburgerMenu from '../components/HamburgerMenu';
 
-// Add the getRecipeImage function outside the component
 const getRecipeImage = async (recipe) => {
   try {
-    // Create search queries in order of preference
     const searchQueries = [
-      // First try specific search with title + cuisine + course
       `${recipe.title || recipe.recipeName} ${recipe.cuisine || ''} ${recipe.course || ''} food`,
-      // Then try with just title + cuisine
       `${recipe.title || recipe.recipeName} ${recipe.cuisine || ''} food`,
-      // Then try just title + food
       `${recipe.title || recipe.recipeName} food`,
-      // Finally try just the main ingredient (if we can extract it)
       (recipe.title || recipe.recipeName).split(' ')[0] + ' food'
     ];
     
-    // Try each search query in order until we find images
     for (const query of searchQueries) {
       const searchQuery = encodeURIComponent(query);
       const pixabayApiKey = process.env.REACT_APP_PIXABAY_API_KEY;
@@ -28,47 +21,31 @@ const getRecipeImage = async (recipe) => {
       
       const data = await response.json();
       if (data.hits && data.hits.length > 0) {
-        // Use the first image result
         return data.hits[0].webformatURL;
       }
     }
     
-    // If all searches failed, use a food-themed placeholder
-    return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/600x400/1a2235/ffffff?text=${encodeURIComponent(recipe.title || recipe.recipeName)}`;
   } catch (error) {
     console.error('Error fetching recipe image:', error);
-    // Fallback to a food placeholder
-    return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/600x400/1a2235/ffffff?text=${encodeURIComponent(recipe.title || recipe.recipeName)}`;
   }
 };
 
 function SavedRecipesPage() {
   const [recipes, setRecipes] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  //const [filter, setFilter] = useState('all');
-  const [menuOpen, setMenuOpen] = useState(false);
+  //const [menuOpen, setMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  //const [showShareDialog, setShowShareDialog] = useState(false);
-  //const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate();
 
-  // Load recipes from API on component mount
-  useEffect(() => {
-    fetchSavedRecipes();
-  }, []);
-  
-  // Fetch recipes from API
-  const fetchSavedRecipes = async () => {
+  const fetchSavedRecipes = React.useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      // Get user ID from localStorage
       const userId = localStorage.getItem('userId');
       
       if (!userId) {
-        // User not logged in, redirect to login
         navigate('/login');
         return;
       }
@@ -84,40 +61,32 @@ function SavedRecipesPage() {
       
       const data = await response.json();
       
-      // Transform backend data to match frontend structure and add images
       const transformedData = await Promise.all(data.map(async recipe => {
-        // Get an image for the recipe
         const imageUrl = recipe.imageUrl || await getRecipeImage(recipe);
         
         return {
           id: recipe.id,
-          title: recipe.recipeName, // Backend uses recipeName instead of title
+          title: recipe.recipeName, 
           ingredients: recipe.ingredients,
           steps: recipe.steps,
           prompt: recipe.prompt,
           savedAt: recipe.savedTimeDate,
-          // Create a markdown formatted text from the recipe parts
           text: `# ${recipe.recipeName}\n\n## Ingredients\n${recipe.ingredients}\n\n## Instructions\n${recipe.steps}`,
-          // Include all other fields
           calories: recipe.calories,
           diet: recipe.diet,
           origin: recipe.origin,
           course: recipe.course,
           cuisine: recipe.cuisine,
-          // Add the image URL
           image: imageUrl
         };
       }));
       
       setRecipes(transformedData);
-      
-      // Also update localStorage for offline access
       localStorage.setItem('savedRecipes', JSON.stringify(transformedData));
     } catch (err) {
       console.error('Error fetching recipes:', err);
       setError('Failed to load your saved recipes. Using local data if available.');
       
-      // Fallback to localStorage if API fails
       const savedRecipes = localStorage.getItem('savedRecipes');
       if (savedRecipes) {
         setRecipes(JSON.parse(savedRecipes));
@@ -125,12 +94,14 @@ function SavedRecipesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
+  
+  useEffect(() => {
+    fetchSavedRecipes();
+  }, [fetchSavedRecipes]);
 
-  // Handle deleting a recipe
   const handleDeleteRecipe = async (id) => {
     try {      
-      // Delete from API
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}${process.env.REACT_APP_RECIPES_ENDPOINT}/${id}`, {
         method: 'DELETE',
         headers: { 
@@ -142,11 +113,9 @@ function SavedRecipesPage() {
         throw new Error(`Failed to delete recipe: ${response.status}`);
       }
       
-      // Update local state
       const updatedRecipes = recipes.filter(recipe => recipe.id !== id);
       setRecipes(updatedRecipes);
       
-      // Update localStorage
       localStorage.setItem('savedRecipes', JSON.stringify(updatedRecipes));
       
     } catch (err) {
@@ -155,19 +124,7 @@ function SavedRecipesPage() {
     }
   };
 
-  // Toggle menu
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
-
-  // Navigation handler
-  const handleNavigation = (path) => {
-    setMenuOpen(false);
-    navigate(path);
-  };
-
-  const formatPreviewText = (text) => {
-    // Remove markdown formatting and create a clean preview
+  /*const formatPreviewText = (text) => {
     return text
       .replace(/# (.*)\n/, '$1\n')
       .replace(/## Ingredients\n/, 'Ingredients: ')
@@ -175,31 +132,25 @@ function SavedRecipesPage() {
       .replace(/- /g, '• ')
       .replace(/\n/g, ' ')
       .substring(0, 150) + '...';
-  };
+  };*/
 
   const filteredRecipes = recipes
     .filter(recipe => {
-      // Search in either title or recipeName field
       const searchText = recipe.title || recipe.recipeName || '';
       return searchText.toLowerCase().includes(searchTerm.toLowerCase());
     })
     .sort((a, b) => {
-      // Sort by savedAt or savedTimeDate
       const dateA = a.savedAt || a.savedTimeDate || new Date(0);
       const dateB = b.savedAt || b.savedTimeDate || new Date(0);
       return new Date(dateB) - new Date(dateA);
     });
 
-  // Handle printing recipe
   const handlePrintRecipe = (recipe) => {
-    // Extract all ingredients and steps using the helper functions
     const ingredients = extractIngredients(recipe);
     const steps = extractSteps(recipe);
     
-    // Create a new window for the PDF content
     const printWindow = window.open('', '_blank');
     
-    // Set the content with all ingredients and steps
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
@@ -286,36 +237,29 @@ function SavedRecipesPage() {
       </html>
     `);
     
-    // Trigger print after content loads
     printWindow.document.close();
     printWindow.onload = function() {
       printWindow.print();
     };
   };
 
-  // Update the handleShareRecipe function to share full recipe details
   const handleShareRecipe = (recipe) => {
-    // Extract recipe details
     const title = recipe.title || recipe.recipeName;
     const ingredients = extractIngredients(recipe);
     const steps = extractSteps(recipe);
     
-    // Format detailed content for sharing
     const formattedIngredients = ingredients.map(ing => `• ${ing}`).join('\n');
     const formattedSteps = steps.map((step, i) => `${i+1}. ${step}`).join('\n');
     
-    // Create comprehensive text
     const text = `📝 ${title}\n\n` +
       `📋 INGREDIENTS:\n${formattedIngredients}\n\n` +
       `👨‍🍳 INSTRUCTIONS:\n${formattedSteps}\n\n` +
       `From: NutriSift Recipe App`;
     
-    // Try to use the Web Share API if available
     if (navigator.share) {
       navigator.share({
         title: title,
         text: text
-        // Note: Not including URL so it's just the recipe content
       })
       .then(() => {
         console.log('Successfully shared');
@@ -324,16 +268,13 @@ function SavedRecipesPage() {
       })
       .catch((error) => {
         console.log('Error sharing:', error);
-        // Fallback to clipboard if sharing fails
         fallbackToClipboard(title, text);
       });
     } else {
-      // Fallback for browsers that don't support Web Share API
       fallbackToClipboard(title, text);
     }
   };
 
-  // Update the fallback function to use the detailed content
   const fallbackToClipboard = (title, text) => {
     navigator.clipboard.writeText(text)
       .then(() => {
@@ -346,7 +287,6 @@ function SavedRecipesPage() {
       });
   };
   
-  // Update the handleAddToGroceryList function
   const handleAddToGroceryList = async (recipe) => {
     setLoading(true);
     
@@ -358,14 +298,11 @@ function SavedRecipesPage() {
         return;
       }
       
-      // Extract ingredients from recipe
       const ingredients = extractIngredients(recipe);
       
-      // Get current grocery list - try API first, then fallback to localStorage
       let currentList = [];
       
       try {
-        // Fetch current grocery list from API
         const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
           method: 'GET',
           headers: {
@@ -377,31 +314,25 @@ function SavedRecipesPage() {
           const data = await response.json();
           currentList = data.items || [];
         } else {
-          // Fallback to localStorage
           currentList = JSON.parse(localStorage.getItem('groceryItems') || '[]');
         }
       } catch (error) {
-        // Fallback to localStorage on API error
         console.error('Error fetching grocery list:', error);
         currentList = JSON.parse(localStorage.getItem('groceryItems') || '[]');
       }
       
-      // Create a list of ingredients to add
       const newIngredients = ingredients.map(ingredient => {
-        // Try to parse ingredient to extract quantity and name
         const parts = ingredient.match(/^([\d./]+ \w+)?\s*(.+)/);
         
         if (parts) {
           const name = parts[2].trim();
           const quantity = parts[1] || '';
           
-          // Check if ingredient already exists
           const existingIndex = currentList.findIndex(item => 
             item.name.toLowerCase() === name.toLowerCase()
           );
           
           if (existingIndex >= 0) {
-            // Update existing item
             return {
               ...currentList[existingIndex],
               count: currentList[existingIndex].count + 1,
@@ -409,7 +340,6 @@ function SavedRecipesPage() {
             };
           }
           
-          // Create new item
           return {
             name,
             quantity,
@@ -419,9 +349,10 @@ function SavedRecipesPage() {
             meals: [recipe.title || recipe.recipeName]
           };
         }
+        // Explicitly return undefined if parts is falsy
+        return undefined;
       }).filter(Boolean);
       
-      // Process items the same way as before
       const existingItemsToUpdate = newIngredients.filter(ingredient => 
         currentList.some(item => item.name.toLowerCase() === ingredient.name.toLowerCase())
       );
@@ -430,7 +361,6 @@ function SavedRecipesPage() {
         !currentList.some(item => item.name.toLowerCase() === ingredient.name.toLowerCase())
       );
       
-      // Update existing items
       const updatedList = currentList.map(item => {
         const matchingItem = existingItemsToUpdate.find(
           ingredient => ingredient.name.toLowerCase() === item.name.toLowerCase()
@@ -438,18 +368,14 @@ function SavedRecipesPage() {
         return matchingItem ? matchingItem : item;
       });
       
-      // Add new items
       const finalList = [...updatedList, ...newItemsToAdd];
       
-      // Sort ingredients by category
       const sortedList = finalList.sort((a, b) => 
         a.category.localeCompare(b.category) || a.name.localeCompare(b.name)
       );
       
-      // Save to localStorage as fallback
       localStorage.setItem('groceryItems', JSON.stringify(sortedList));
       
-      // Save to API
       try {
         const saveResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
           method: 'POST',
@@ -466,7 +392,6 @@ function SavedRecipesPage() {
         console.error('Error saving grocery list to API:', saveError);
       }
       
-      // Show success message
       setSuccessMessage(`${ingredients.length} ingredients added to grocery list!`);
       setTimeout(() => setSuccessMessage(''), 3000);
       
@@ -479,7 +404,6 @@ function SavedRecipesPage() {
     }
   };
 
-  // Helper function to categorize ingredients
   const categorizeIngredient = (ingredient) => {
     const lowerIngredient = ingredient.toLowerCase();
     
@@ -506,19 +430,15 @@ function SavedRecipesPage() {
     }
   };
 
-  // Helper functions to extract ingredients and steps from saved recipes
   const extractIngredients = (recipe) => {
-    // If ingredients is an array, return it directly
     if (Array.isArray(recipe.ingredients)) {
       return recipe.ingredients;
     }
     
-    // If ingredients is a string, split by newlines
     if (typeof recipe.ingredients === 'string') {
       return recipe.ingredients.split('\n').map(item => item.trim()).filter(Boolean);
     }
     
-    // Try to extract from text
     if (recipe.text) {
       const ingredientsMatch = recipe.text.match(/## Ingredients\n([\s\S]*?)(?=## Instructions|$)/);
       if (ingredientsMatch && ingredientsMatch[1]) {
@@ -533,17 +453,14 @@ function SavedRecipesPage() {
   };
 
   const extractSteps = (recipe) => {
-    // If steps is an array, return it directly
     if (Array.isArray(recipe.steps)) {
       return recipe.steps;
     }
     
-    // If steps is a string, split by newlines
     if (typeof recipe.steps === 'string') {
       return recipe.steps.split('\n').map(item => item.trim()).filter(Boolean);
     }
     
-    // Try to extract from text
     if (recipe.text) {
       const stepsMatch = recipe.text.match(/## Instructions\n([\s\S]*?)(?=##|$)/);
       if (stepsMatch && stepsMatch[1]) {
@@ -562,7 +479,6 @@ function SavedRecipesPage() {
       <header className="saved-recipes-header">
         <h1>📚 Your Saved Recipes</h1>
         
-        {/* Replace with component */}
         <HamburgerMenu 
           isLoggedIn={true}
         />
@@ -612,7 +528,6 @@ function SavedRecipesPage() {
                   <h4>Steps Preview:</h4>
                   <p>
                     {(() => {
-                      // Use the extractSteps helper function to get properly formatted steps
                       const steps = extractSteps(recipe);
                       if (steps && steps.length > 0) {
                         return steps[0].length > 100 
@@ -661,7 +576,6 @@ function SavedRecipesPage() {
         </div>
       )}
 
-      {/* Image Disclaimer - Add this before the success toast */}
       <div className="image-disclaimer">
         <p>
           <span className="disclaimer-icon">ℹ️</span>
@@ -669,7 +583,6 @@ function SavedRecipesPage() {
         </p>
       </div>
 
-      {/* Success Message Toast */}
       {successMessage && (
         <div className="success-toast">
           <span className="toast-icon">✅</span>

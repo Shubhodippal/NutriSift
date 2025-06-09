@@ -9,53 +9,38 @@ function RecipeDetailPage() {
   const [recipe, setRecipe] = useState(null);
   const [servings, setServings] = useState(4);
   const [activeStep, setActiveStep] = useState(0);
-  const [loading, setLoading] = useState(true); // Add this line
-  // Add this error state
+  const [loading, setLoading] = useState(true); 
   const [error, setError] = useState(null);
   
-  // Add the getRecipeImage function (same as above)
-const getRecipeImage = async (recipe) => {
-  try {
-    // Create search queries in order of preference
-    const searchQueries = [
-      // First try specific search with title + cuisine + course
-      `${recipe.title} ${recipe.cuisine || ''} ${recipe.course || ''} food`,
-      // Then try with just title + cuisine
-      `${recipe.title} ${recipe.cuisine || ''} food`,
-      // Then try just title + food
-      `${recipe.title} food`,
-      // Finally try just the main ingredient (if we can extract it)
-      recipe.title.split(' ')[0] + ' food'
-    ];
-    
-    // Try each search query in order until we find images
-    for (const query of searchQueries) {
-      const searchQuery = encodeURIComponent(query);
-      const pixabayApiKey = process.env.REACT_APP_PIXABAY_API_KEY;
-      const response = await fetch(
-        `${process.env.REACT_APP_PIXABAY_API_URL}/?key=${pixabayApiKey}&q=${searchQuery}&image_type=photo&per_page=3&category=food&orientation=horizontal&min_width=500`
-      );
+  const getRecipeImage = async (recipe) => {
+    try {
+      const searchQueries = [
+        `${recipe.title} ${recipe.cuisine || ''} ${recipe.course || ''} food`,
+        `${recipe.title} ${recipe.cuisine || ''} food`,
+        `${recipe.title} food`,
+        recipe.title.split(' ')[0] + ' food'
+      ];
       
-      const data = await response.json();
-      if (data.hits && data.hits.length > 0) {
-        // Use the first image result
-        return data.hits[0].webformatURL;
+      for (const query of searchQueries) {
+        const searchQuery = encodeURIComponent(query);
+        const pixabayApiKey = process.env.REACT_APP_PIXABAY_API_KEY;
+        const response = await fetch(
+          `${process.env.REACT_APP_PIXABAY_API_URL}/?key=${pixabayApiKey}&q=${searchQuery}&image_type=photo&per_page=3&category=food&orientation=horizontal&min_width=500`
+        );
+        
+        const data = await response.json();
+        if (data.hits && data.hits.length > 0) {
+          return data.hits[0].webformatURL;
+        }
       }
+    } catch (error) {
+      console.error('Error fetching recipe image:', error);
     }
-    
-    // If all searches failed, use a food-themed placeholder
-    return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/800x400/1a2235/ffffff?text=${encodeURIComponent(recipe.title)}`;
-  } catch (error) {
-    console.error('Error fetching recipe image:', error);
-    // Fallback to a food placeholder
-    return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/800x400/1a2235/ffffff?text=${encodeURIComponent(recipe.title)}`;
-  }
-};
+  };
 
   useEffect(() => {
     const fetchRecipe = async () => {
       try {
-        // First try to get from API
         const userId = localStorage.getItem('userId');
         if (userId) {
           try {
@@ -66,15 +51,12 @@ const getRecipeImage = async (recipe) => {
             
             if (response.ok) {
               const data = await response.json();
-              
-              // Get an image for the recipe
               const imageUrl = data.imageUrl || await getRecipeImage({
                 title: data.recipeName,
                 cuisine: data.cuisine,
                 course: data.course
               });
               
-              // Transform API data to match expected format
               setRecipe({
                 id: data.id,
                 title: data.recipeName,
@@ -87,7 +69,7 @@ const getRecipeImage = async (recipe) => {
                 course: data.course,
                 cuisine: data.cuisine,
                 savedAt: data.savedTimeDate,
-                image: imageUrl // Add the image URL
+                image: imageUrl 
               });
               setLoading(false);
               return;
@@ -97,29 +79,23 @@ const getRecipeImage = async (recipe) => {
           }
         }
         
-        // Fallback to localStorage
         const savedRecipes = JSON.parse(localStorage.getItem('savedRecipes') || '[]');
         const found = savedRecipes.find(r => r.id.toString() === id.toString());
         
         if (found) {
-          // If recipe has no image, fetch one
           if (!found.image) {
             found.image = await getRecipeImage(found);
             
-            // Update localStorage with the new image URL
             localStorage.setItem('savedRecipes', JSON.stringify(
               savedRecipes.map(r => r.id.toString() === id.toString() ? {...r, image: found.image} : r)
             ));
           }
           
-          // Adapt the found recipe to match expected structure
           const adaptedRecipe = {
             ...found,
-            // If the recipe has ingredients as string, convert to array
             ingredients: Array.isArray(found.ingredients) 
               ? found.ingredients 
               : found.ingredients.split('\n').filter(item => item.trim()),
-            // If the recipe has steps as string, convert to array
             steps: Array.isArray(found.steps) 
               ? found.steps 
               : found.steps.split('\n').filter(item => item.trim()),
@@ -139,23 +115,17 @@ const getRecipeImage = async (recipe) => {
     fetchRecipe();
   }, [id]);
 
-  // Update the useEffect to properly handle async operations
   useEffect(() => {
     const loadViewingRecipe = async () => {
-      // Check if we're viewing a temporary recipe
       const viewingRecipeJson = sessionStorage.getItem('viewingRecipe');
       
       if (viewingRecipeJson) {
         try {
-          // Parse the recipe from sessionStorage
           const viewingRecipe = JSON.parse(viewingRecipeJson);
           
-          // Check if this is the recipe we want to view
           if (viewingRecipe.id.toString() === id.toString()) {
-            // Extract content
             const { content } = viewingRecipe;
             
-            // Get the image URL
             let imageUrl = content.image;
             if (!imageUrl) {
               imageUrl = await getRecipeImage({
@@ -165,29 +135,22 @@ const getRecipeImage = async (recipe) => {
               });
             }
             
-            // Format the recipe for display
             setRecipe({
               id: viewingRecipe.id,
               title: viewingRecipe.title,
-              // Extract arrays from content for direct access in the UI
               ingredients: content.ingredients,
               steps: content.steps,
-              // Also include the original text format
               text: formatRecipeAsMarkdown(viewingRecipe),
-              // Include all metadata
               calories: content.calories,
               diet: content.diet,
               origin: content.origin,
               course: content.course,
               cuisine: content.cuisine,
               savedAt: new Date().toISOString(),
-              // Use the image URL we got above
               image: imageUrl
             });
             
             setLoading(false);
-            
-            // Clear the viewing recipe from sessionStorage after use
             sessionStorage.removeItem('viewingRecipe');
             return;
           }
@@ -195,43 +158,35 @@ const getRecipeImage = async (recipe) => {
           console.error('Error parsing viewing recipe:', error);
         }
       }
-      
-      // If we're not viewing a temporary recipe, proceed with normal loading
     };
     
     loadViewingRecipe();
   }, [id]);
 
-  // Helper function to format the recipe as markdown
   const formatRecipeAsMarkdown = (recipe) => {
     const { content } = recipe;
-    
-    // Format ingredients as bullet points
     const ingredientsList = content.ingredients.map(i => `- ${i}`).join('\n');
     
-    // Format steps as numbered list
     const stepsList = content.steps.map((step, index) => `${index + 1}. ${step}`).join('\n');
     
-    // Create the complete markdown text
     return `# ${recipe.title}
 
-**Nutritional & Recipe Information:**
-- Calories: ${content.calories}
-- Diet: ${content.diet}
-- Origin: ${content.origin}
-- Course: ${content.course}
-- Cuisine: ${content.cuisine}
-- Prep Time: ${content.prepTime} minutes
-- Cook Time: ${content.cookTime} minutes
+    **Nutritional & Recipe Information:**
+    - Calories: ${content.calories}
+    - Diet: ${content.diet}
+    - Origin: ${content.origin}
+    - Course: ${content.course}
+    - Cuisine: ${content.cuisine}
+    - Prep Time: ${content.prepTime} minutes
+    - Cook Time: ${content.cookTime} minutes
 
-## Ingredients
-${ingredientsList}
+    ## Ingredients
+    ${ingredientsList}
 
-## Instructions
-${stepsList}`;
-};
+    ## Instructions
+    ${stepsList}`;
+  };
 
-  // Update the loading condition to use the loading state
   if (!recipe || loading) {
     return (
       <div className="recipe-detail-loading">
@@ -242,16 +197,23 @@ ${stepsList}`;
     );
   }
 
-  // Get ingredients and steps directly from recipe
   const ingredientsList = recipe.ingredients || [];
   const stepsList = recipe.steps || [];
 
   const adjustedIngredients = ingredientsList.map(ingredient => {
-    // Extract quantity if present and adjust based on servings
     const match = ingredient.match(/^([\d./]+)\s+(.+)/);
     if (match) {
       try {
-        const quantity = parseFloat(eval(match[1]));
+        const parseFraction = (str) => {
+          if (str.includes('/')) {
+            const parts = str.split('/');
+            if (parts.length === 2) {
+              return parseFloat(parts[0]) / parseFloat(parts[1]);
+            }
+          }
+          return parseFloat(str);
+        };
+        const quantity = parseFraction(match[1]);
         const adjustedQuantity = (quantity * servings / 4).toFixed(1).replace(/\.0$/, '');
         return `${adjustedQuantity} ${match[2]}`;
       } catch (e) {
@@ -266,13 +228,11 @@ ${stepsList}`;
       <header className="recipe-detail-header">
         <h1>{recipe.title || "Recipe"}</h1>
         
-        {/* Add component */}
         <HamburgerMenu 
           isLoggedIn={true}
         />
       </header>
 
-      {/* New Recipe Metadata Section */}
       <div className="recipe-metadata">
         {recipe.calories && (
           <div className="metadata-item">
@@ -325,10 +285,8 @@ ${stepsList}`;
         )}
       </div>
 
-      {/* Add this before the recipe-content div */}
       <div className="recipe-detail-image">
         <img src={recipe.image} alt={recipe.title} />
-        {/* Remove the course badge from here - it's already in the metadata section */}
       </div>
 
       <div className="recipe-content">
@@ -366,7 +324,6 @@ ${stepsList}`;
               <ol>
                 {stepsList.map((step, idx) => (
                   <li key={idx}>
-                    {/* Remove leading numbers and periods from the step text */}
                     {step.replace(/^\d+\.\s*/, '')}
                   </li>
                 ))}
@@ -404,7 +361,6 @@ ${stepsList}`;
         )}
       </div>
 
-      {/* Add the image disclaimer at the bottom of the page */}
       <div className="image-disclaimer">
         <p>
           <span className="disclaimer-icon">ℹ️</span> 
