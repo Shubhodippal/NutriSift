@@ -13,7 +13,7 @@ function AboutSection() {
         <div className="feature-card" id="contact">
           <span className="feature-icon">📧</span>
           <h3>Contact</h3>
-          <p>Email: <a href="mailto:info@smartrecipegen.com">info@smartrecipegen.com</a></p>
+          <p>Email: <a href="mailto:shubhodippal01@gmail.com">shubhodippal01@gmail.com</a></p>
           <p>Follow us:
             <a href="https://smartrecipegen.com" target="_blank" rel="noopener noreferrer" style={{marginLeft: '8px'}}>🌐</a>
             <a href="https://twitter.com/" target="_blank" rel="noopener noreferrer" style={{marginLeft: '8px'}}>🐦</a>

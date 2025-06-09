@@ -15,7 +15,7 @@ function PricingSection() {
           <span className="feature-icon">🍽️</span>
           <h3>Restaurant</h3>
           <p>Advanced features for restaurants and cafes.</p>
-          <p><strong>$19/month</strong></p>
+          <p><strong>$9/month</strong></p>
         </div>
         <div className="feature-card">
           <span className="feature-icon">🏢</span>
