@@ -16,7 +16,6 @@ function GroceryListPage() {
   const [editQuantity, setEditQuantity] = useState('');
   const [editCategory, setEditCategory] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
-  
   const [isSaving, setIsSaving] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [syncStatus, setSyncStatus] = useState('synced'); 
@@ -344,10 +343,10 @@ function GroceryListPage() {
     }
   };
 
-  const handleUpdateItem = (e) => {
+  /*const handleUpdateItem = (e) => {
     e.preventDefault();
     handleEditSave();
-  };
+  };*/
 
   const handlePrintList = () => {
     const printWindow = window.open('', '_blank');

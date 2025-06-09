@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './RecipeChatPage.css';
 import { useNavigate } from 'react-router-dom';
-import ReactMarkdown, { rehypePlugins } from 'react-markdown';
+import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import HamburgerMenu from '../components/HamburgerMenu';
 
@@ -59,7 +59,7 @@ const [messages, setMessages] = useState(() => {
     const saved = localStorage.getItem('savedRecipes');
     return saved ? JSON.parse(saved) : [];
   });
-  const [menuOpen, setMenuOpen] = useState(false);
+  //const [menuOpen, setMenuOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [savingRecipe, setSavingRecipe] = useState(false);

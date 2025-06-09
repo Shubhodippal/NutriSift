@@ -21,7 +21,7 @@ function DiscoverRecipePage() {
   const [searchQuery, setSearchQuery] = useState('');
   
   const [showShareDialog, setShowShareDialog] = useState(false);
-  const [selectedRecipe, setSelectedRecipe] = useState(null);
+  const [selectedRecipe/*, setSelectedRecipe*/] = useState(null);
   
   // Options for filter dropdowns
   const calorieRanges = [

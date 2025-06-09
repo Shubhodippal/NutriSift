@@ -95,7 +95,7 @@ function LoginSignup({ onLogin }) {
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
     const hasDigit = /\d/.test(password);
-    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+    const hasSpecial = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password);
     
     return {
       valid: minLength && hasUpperCase && hasLowerCase && hasDigit && hasSpecial,
