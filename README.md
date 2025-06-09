@@ -739,7 +739,10 @@ NutriSift is now **complete and fully functional**. The application has been tho
 
 ## 📜 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This software is licensed under a **Non-Commercial License**.  
+You are free to use, copy, and modify it for personal, educational, and research purposes.  
+**Commercial use is strictly prohibited.**  
+See the [LICENSE](./LICENSE) file for full terms.
 
 ## 👥 Contributing
 
