@@ -5,7 +5,7 @@ Here's the fully updated README.md file with the new Database Setup section incl
 markdown
 # NutriSift - AI-Powered Recipe Management Platform
 
-![NutriSift Logo](https://chatgpt.com/s/m_68471b792ef88191bd4eb359a172bbab)
+![NutriSift Logo](https://github.com/Shubhodippal/NutriSift.git/logo.png)
 
 ## 📋 Overview
 
