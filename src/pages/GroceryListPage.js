@@ -517,15 +517,6 @@ function GroceryListPage() {
     }
   };
 
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
-
-  const handleNavigation = (path) => {
-    setMenuOpen(false);
-    navigate(path);
-  };
-
   const fetchGroceryListFromAPI = async () => {
     const userId = localStorage.getItem('userId');
     

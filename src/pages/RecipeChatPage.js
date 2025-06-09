@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './RecipeChatPage.css';
 import { useNavigate } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown, { rehypePlugins } from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 import HamburgerMenu from '../components/HamburgerMenu';
 
 const BOT_AVATAR = "👩‍🍳";
@@ -137,13 +138,13 @@ const generateRecipe = async (ingredients) => {
       });
       
       const metadataSection = `
-      **Nutritional & Recipe Information:**
-      - Calories: ${data.calories || 'Not available'}
-      - Diet: ${data.diet || 'Not specified'}
-      - Origin: ${data.origin || 'Not specified'}
-      - Course: ${data.course || 'Not specified'}
-      - Cuisine: ${data.cuisine || 'Not specified'}
-      `;
+**Nutritional & Recipe Information**
+- **Calories:** ${data.calories || 'Not available'}
+- **Diet:** ${data.diet || 'Not specified'}
+- **Origin:** ${data.origin || 'Not specified'} 
+- **Course:** ${data.course || 'Not specified'}
+- **Cuisine:** ${data.cuisine || 'Not specified'}
+`;
       
       setMessages(msgs => [
         ...msgs,
@@ -198,74 +199,7 @@ const generateRecipe = async (ingredients) => {
   }
 };
 
-  const parseRecipeFromText = (text, originalIngredients) => {
-    let title = "Recipe with " + originalIngredients.split(',')[0];
-    let ingredients = [];
-    let steps = [];
-    
-    try {
-      const titleMatch = text.match(/^(.*?)(?:\n|$)/);
-      if (titleMatch && titleMatch[1].trim().length > 0) {
-        title = titleMatch[1].trim();
-      }
-      
-      let ingredientsSection = '';
-      if (text.includes('Ingredients:') || text.includes('INGREDIENTS')) {
-        ingredientsSection = text.split(/Ingredients:|INGREDIENTS/)[1].split(/Instructions:|INSTRUCTIONS|Directions:|DIRECTIONS|Steps:|STEPS/)[0];
-      }
-      
-      if (ingredientsSection) {
-        ingredients = ingredientsSection
-          .split('\n')
-          .filter(line => line.trim().length > 0)
-          .map(line => line.replace(/^[-•*]\s*/, '').trim());
-      } else {
-        ingredients = originalIngredients.split(',').map(i => i.trim());
-        ingredients.push('Salt and pepper to taste');
-      }
-      
-      let instructionsSection = '';
-      if (text.includes('Instructions:') || text.includes('INSTRUCTIONS') || 
-          text.includes('Directions:') || text.includes('DIRECTIONS') ||
-          text.includes('Steps:') || text.includes('STEPS')) {
-        const sections = text.split(/Instructions:|INSTRUCTIONS|Directions:|DIRECTIONS|Steps:|STEPS/);
-        instructionsSection = sections.length > 1 ? sections[1] : '';
-      }
-      
-      if (instructionsSection) {
-        steps = instructionsSection
-          .split('\n')
-          .filter(line => line.trim().length > 0)
-          .map(line => line.replace(/^\d+\.\s*/, '').trim());
-      } else {
-        steps = [
-          `Cook with ${ingredients.slice(0, 3).join(', ')}.`,
-          'Season to taste.',
-          'Serve and enjoy!'
-        ];
-      }
-      
-      if (ingredients.length === 0) {
-        ingredients = originalIngredients.split(',').map(i => i.trim());
-      }
-      
-      if (steps.length === 0) {
-        steps = [`Cook with ${ingredients.join(', ')} until done.`];
-      }
-      
-    } catch (parseError) {
-      console.error('Error parsing recipe:', parseError);
-      return generateMockRecipe(originalIngredients);
-    }
-    
-    return {
-      title,
-      ingredients,
-      steps
-    };
-  };
-
-  const generateMockRecipe = (ingredients) => {
+const generateMockRecipe = (ingredients) => {
     const ingredientList = ingredients.split(/,\s*/).filter(i => i.trim().length > 0);
     
     const mainIngredient = ingredientList[0] || 'Mixed';
@@ -471,19 +405,14 @@ const generateRecipe = async (ingredients) => {
     }
   };
 
-  // Update handlePrintRecipe to include the image in the printed PDF
   const handlePrintRecipe = (message) => {
-    // Create a new window for printing
     const printWindow = window.open('', '_blank');
     
-    // Extract title for a cleaner print
     const titleMatch = message.text.match(/# (.*)\n/);
     const recipeTitle = titleMatch ? titleMatch[1] : "Recipe";
     
-    // Get image URL if available
     const imageUrl = message.recipeData?.image || '';
     
-    // Create a styled HTML document for printing
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
@@ -564,7 +493,6 @@ const generateRecipe = async (ingredients) => {
       </html>
     `);
     
-    // Trigger print dialog
     printWindow.document.close();
     printWindow.focus();
     setTimeout(() => {
@@ -573,11 +501,9 @@ const generateRecipe = async (ingredients) => {
   };
 
   const handleShareRecipe = async (message) => {
-    // Extract recipe title
     const titleMatch = message.text.match(/# (.*)\n/);
     const recipeTitle = titleMatch ? titleMatch[1] : "Recipe";
     
-    // Format text for sharing
     const plainText = message.text
       .replace(/# (.*)\n/, '$1\n\n')
       .replace(/## Ingredients\n/, 'INGREDIENTS:\n')
@@ -585,10 +511,8 @@ const generateRecipe = async (ingredients) => {
       .replace(/- /g, '• ')
       .replace(/(\d+)\. /g, '$1. ');
     
-    // Add disclaimer about recipe images
     const shareText = `${plainText}\n\nNote: Recipe images are provided for reference only and may not exactly match the actual dish.\n\nShared via NutriSift Recipe Assistant`;
     
-    // Try to use the Web Share API if available
     if (navigator.share) {
       try {
         await navigator.share({
@@ -596,48 +520,35 @@ const generateRecipe = async (ingredients) => {
           text: shareText
         });
         
-        // Show success message
         setSuccessMessage('Recipe shared successfully!');
         setTimeout(() => setSuccessMessage(''), 3000);
       } catch (error) {
         console.error('Error sharing:', error);
-        
-        // If user cancelled sharing, don't show an error
         if (error.name !== 'AbortError') {
-          // Fallback to clipboard
           fallbackToClipboard(recipeTitle, shareText);
         }
       }
     } else {
-      // Fallback for browsers that don't support Web Share API
       fallbackToClipboard(recipeTitle, shareText);
     }
   };
 
-  // Add a helper function for clipboard fallback
   const fallbackToClipboard = async (title, text) => {
     try {
       await navigator.clipboard.writeText(text);
-      
-      // Show success message
       setSuccessMessage('Recipe copied to clipboard!');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (error) {
       console.error('Failed to copy:', error);
-      
-      // Show error message
       setErrorMessage('Could not copy recipe. Please try again.');
       setTimeout(() => setErrorMessage(''), 3000);
     }
   };
 
-  // Add to grocery list
   const handleAddToGroceryList = async (message) => {
-    // Extract recipe title for reference
     const titleMatch = message.text.match(/# (.*)\n/);
     const recipeTitle = titleMatch ? titleMatch[1] : "Untitled Recipe";
     
-    // Get ingredients from the recipe data or parse from text
     let ingredients = [];
     if (message.recipeData && message.recipeData.ingredients) {
       ingredients = message.recipeData.ingredients;
@@ -669,7 +580,6 @@ const generateRecipe = async (ingredients) => {
         return;
       }
       
-      // Get current grocery list
       let currentList = [];
       
       try {
@@ -689,7 +599,6 @@ const generateRecipe = async (ingredients) => {
         currentList = JSON.parse(localStorage.getItem('groceryItems') || '[]');
       }
       
-      // Prepare ingredients for batch categorization
       const ingredientData = [];
       const ingredientNames = [];
       
@@ -702,10 +611,8 @@ const generateRecipe = async (ingredients) => {
         ingredientNames.push(name);
       });
       
-      // Batch categorize all ingredients
       const categories = "Other";
       
-      // Create grocery items with categories
       const groceryItems = ingredientData.map(({ name, quantity }) => {
         return {
           name: name,
@@ -717,7 +624,6 @@ const generateRecipe = async (ingredients) => {
         };
       });
       
-      // Merge new items with existing items
       const mergedItems = [...currentList];
       
       groceryItems.forEach(newItem => {
@@ -735,7 +641,6 @@ const generateRecipe = async (ingredients) => {
         }
       });
       
-      // Sort by category and name
       const sortedItems = mergedItems.sort((a, b) => {
         const categoryA = a.category || 'Other';
         const categoryB = b.category || 'Other';
@@ -745,10 +650,8 @@ const generateRecipe = async (ingredients) => {
         return categoryA.localeCompare(categoryB) || nameA.localeCompare(nameB);
       });
       
-      // Save to localStorage
       localStorage.setItem('groceryItems', JSON.stringify(sortedItems));
       
-      // Save to API
       try {
         const saveResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
           method: 'POST',
@@ -763,7 +666,6 @@ const generateRecipe = async (ingredients) => {
         console.error('Error saving grocery list to API:', saveError);
       }
       
-      // Show success toast
       setSuccessMessage(`${ingredients.length} ingredients added to grocery list!`);
       setTimeout(() => setSuccessMessage(''), 3000);
       
@@ -776,27 +678,14 @@ const generateRecipe = async (ingredients) => {
     }
   };
 
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
+  const handleClearChat = () => {
+    setMessages([{ 
+      sender: "bot", 
+      text: "Hi! Tell me what ingredients you have, and I'll suggest a recipe tailored just for you." 
+    }]);
+    setInput("");
+    setTimeout(() => inputRef.current?.focus(), 100);
   };
-
-  const handleNavigation = (path) => {
-    setMenuOpen(false);
-    navigate(path);
-  };
-
-  // Add a function to clear chat history
-const handleClearChat = () => {
-  // Reset to initial message
-  setMessages([{ 
-    sender: "bot", 
-    text: "Hi! Tell me what ingredients you have, and I'll suggest a recipe tailored just for you." 
-  }]);
-  // Clear input
-  setInput("");
-  // Focus on input after clearing
-  setTimeout(() => inputRef.current?.focus(), 100);
-};
 
   return (
     <div className="chat-page">
@@ -812,7 +701,6 @@ const handleClearChat = () => {
           <span className="brand-name">NutriSift</span>
         </div>
         
-        {/* Replace the hamburger menu with the component */}
         <HamburgerMenu 
           additionalItems={{
             showNewChat: true,
@@ -865,7 +753,7 @@ const handleClearChat = () => {
                             </div>
                           </div>
                         )}
-                        <ReactMarkdown>{msg.text}</ReactMarkdown>
+                        <ReactMarkdown rehypePlugins={[rehypeRaw]}>{msg.text}</ReactMarkdown>
                       </>
                     ) : (
                       msg.text
@@ -973,7 +861,6 @@ const handleClearChat = () => {
         <p>Made with ❤️ by NutriSift • <a href="#privacy">Privacy Policy</a> • <a href="#terms">Terms</a></p>
       </div>
       
-      {/* Success and error toast messages */}
       {successMessage && (
         <div className="success-toast">
           <span className="toast-icon">✅</span>

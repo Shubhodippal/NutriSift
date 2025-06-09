@@ -225,7 +225,6 @@
   gap: 2rem;
 }
 
-/* Recipe Metadata Section */
 .recipe-metadata {
   background-color: #1a2235;
   border-radius: 12px;
@@ -255,37 +254,35 @@
 }
 
 .metadata-value {
-  color: #ffffff; /* Brighter white for better contrast */
-  font-weight: 600; /* Make it bolder */
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4); /* Add subtle shadow for better readability */
+  color: #ffffff; 
+  font-weight: 600; 
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4); 
 }
 
-/* Add different colors for different types of data values */
 .metadata-item:nth-child(1) .metadata-value {
-  color: #ff7e7e; /* Reddish for calories */
+  color: #ff7e7e; 
 }
 
 .metadata-item:nth-child(2) .metadata-value {
-  color: #7effb2; /* Greenish for diet */
+  color: #7effb2;
 }
 
 .metadata-item:nth-child(3) .metadata-value {
-  color: #ffde7e; /* Yellowish for origin */
+  color: #ffde7e;
 }
 
 .metadata-item:nth-child(4) .metadata-value {
-  color: #c27eff; /* Purple for course */
+  color: #c27eff; 
 }
 
 .metadata-item:nth-child(5) .metadata-value {
-  color: #7ebaff; /* Blue for cuisine */
+  color: #7ebaff; 
 }
 
 .metadata-item:nth-child(6) .metadata-value {
-  color: #ffa77e; /* Orange for saved date */
+  color: #ffa77e; 
 }
 
-/* Responsive adjustments for mobile */
 @media (max-width: 768px) {
   .recipe-metadata {
     grid-template-columns: 1fr;
@@ -322,7 +319,6 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Image disclaimer styling */
 .image-disclaimer {
   background-color: #1a2235;
   border: 1px solid #2d3748;

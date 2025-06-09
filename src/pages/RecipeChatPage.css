@@ -1,4 +1,3 @@
-/* Base styles and variables - Dark Theme */
 :root {
   --primary: #4f8cff;
   --primary-dark: #3a78e7;
@@ -24,7 +23,6 @@
   --line-height-default: 1.6;
 }
 
-/* Page layout */
 .chat-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #121826 0%, #0c111b 100%);
@@ -36,7 +34,6 @@
   color: var(--text);
 }
 
-/* Gradient background elements */
 .gradient-background {
   position: fixed;
   top: 0;
@@ -88,7 +85,6 @@
   100% { transform: translate(0, 0) rotate(0deg); }
 }
 
-/* Navigation bar */
 .chat-navbar {
   display: flex;
   justify-content: space-between;
@@ -163,10 +159,9 @@
   font-size: 1.1rem;
 }
 
-/* Chat container */
 .chat-container {
-  max-width: 1400px; /* Increased from 1100px */
-  width: 96%; /* Increased from 92% */
+  max-width: 1400px; 
+  width: 96%; 
   margin: 1.5rem auto;
   display: flex;
   flex-direction: column;
@@ -222,7 +217,6 @@
   margin: 0 0.5rem;
 }
 
-/* Messages area */
 .messages-container {
   flex-grow: 1;
   overflow-y: auto;
@@ -244,7 +238,6 @@
   display: flex;
   gap: 1rem;
   max-width: 85%;
-  /* Remove animation property */
   width: fit-content;
 }
 
@@ -439,7 +432,6 @@
   font-size: 1rem;
 }
 
-/* Typing indicator */
 .typing-indicator .typing {
   display: flex;
   align-items: center;
@@ -468,7 +460,6 @@
   animation-delay: 0.4s;
 }
 
-/* Suggestion chips */
 .suggestion-chips {
   padding: 1.5rem 2rem;
   border-top: 1px solid var(--border);
@@ -508,7 +499,6 @@
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
 }
 
-/* Input area */
 .input-form {
   padding: 1.5rem 2rem;
   border-top: 1px solid var(--border);
@@ -600,7 +590,6 @@
   color: var(--accent);
 }
 
-/* Footer */
 .chat-footer {
   text-align: center;
   padding: 1.5rem;
@@ -618,7 +607,6 @@
   text-decoration: underline;
 }
 
-/* Custom scrollbar */
 .messages-container::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -640,13 +628,11 @@
   background: rgba(79, 140, 255, 0.5);
 }
 
-/* Firefox scrollbar styling */
 .messages-container {
   scrollbar-width: thin;
   scrollbar-color: rgba(79, 140, 255, 0.3) rgba(18, 24, 38, 0.6);
 }
 
-/* Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -675,7 +661,6 @@
   animation: none;
 }
 
-/* Responsive design */
 @media (max-width: 1200px) {
   .chat-container {
     width: 98%;
@@ -688,7 +673,7 @@
     width: 100%;
     margin: 0;
     border-radius: 0;
-    height: calc(100vh - 70px); /* Account for navbar height */
+    height: calc(100vh - 70px); 
   }
   
   .chat-navbar {
@@ -719,7 +704,7 @@
   
   .message-content {
     padding: 1rem;
-    max-width: calc(100% - 40px); /* Fix content width for small screens */
+    max-width: calc(100% - 40px); 
   }
   
   .message-text {
@@ -748,7 +733,7 @@
   }
   
   .input-icon {
-    display: none; /* Hide icon on very small screens to save space */
+    display: none;
   }
   
   .message-input {
@@ -757,11 +742,10 @@
   }
   
   .chat-decoration {
-    display: none; /* Hide decoration on small screens */
+    display: none; 
   }
 }
 
-/* Ensure message content properly wraps on all screen sizes */
 .message-text {
   overflow-wrap: break-word;
   word-wrap: break-word;
@@ -770,7 +754,6 @@
   max-width: 100%;
 }
 
-/* Ensure message container takes appropriate space */
 .messages-container {
   flex: 1;
   display: flex;
@@ -779,14 +762,12 @@
   overflow-x: hidden;
 }
 
-/* Fix for chat layout on very tall screens */
 @media (min-height: 1000px) {
   .chat-container {
     max-height: 85vh;
   }
 }
 
-/* Responsive code blocks */
 .message-text pre, 
 .message-text code {
   white-space: pre-wrap;
@@ -797,7 +778,6 @@
   border-radius: 4px;
 }
 
-/* Success and error toast messages */
 .success-toast, .error-toast {
   position: fixed;
   bottom: 20px;
@@ -825,7 +805,6 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
-/* Add this to your RecipeChatPage.css file */
 .saved-button {
   display: flex;
   align-items: center;
@@ -868,12 +847,10 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-/* Style for action button feedback */
 .action-button:active {
   transform: scale(0.95);
 }
 
-/* Add a tooltip for saved confirmation */
 .tooltip {
   position: absolute;
   background: var(--primary-dark);
@@ -906,7 +883,6 @@
   opacity: 1;
 }
 
-/* Add print-specific styles */
 @media print {
   body * {
     visibility: hidden;
@@ -924,7 +900,6 @@
   }
 }
 
-/* Add this to your RecipeChatPage.css file */
 .share-success, .share-error {
   position: fixed;
   bottom: 30px;
@@ -969,7 +944,6 @@
   }
 }
 
-/* Add to RecipeChatPage.css */
 .share-dialog {
   position: fixed;
   top: 0;
@@ -1094,7 +1068,6 @@
   color: var(--primary-light);
 }
 
-/* Recipe metadata styling */
 .recipe-metadata {
   margin: 15px 0;
   padding: 15px;
@@ -1127,7 +1100,6 @@
   color: #374151;
 }
 
-/* Make the recipe ingredients and steps more readable */
 .recipe-ingredients, .recipe-instructions {
   margin-top: 15px;
 }
@@ -1171,7 +1143,6 @@
   }
 }
 
-/* Add this to your RecipeChatPage.css file */
 .recipe-image-container {
   margin-bottom: 1rem;
   border-radius: 12px;
@@ -1199,4 +1170,39 @@
 
 .disclaimer-icon {
   font-size: 1rem;
+}
+
+/* Add styling for nutritional information */
+.nutritional-info {
+  background-color: rgba(79, 140, 255, 0.1);
+  border-left: 3px solid #4f8cff;
+  padding: 12px 16px;
+  margin: 16px 0;
+  border-radius: 0 8px 8px 0;
+}
+
+.nutritional-info h4 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  color: #4f8cff;
+  font-weight: 600;
+}
+
+.nutritional-info ul {
+  list-style-type: none;
+  padding-left: 0;
+  margin-bottom: 0;
+}
+
+.nutritional-info li {
+  display: flex;
+  margin-bottom: 4px;
+  align-items: center;
+}
+
+.nutritional-info li:before {
+  content: "•";
+  color: #4f8cff;
+  font-weight: bold;
+  margin-right: 8px;
 }
