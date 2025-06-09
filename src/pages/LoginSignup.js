@@ -261,7 +261,7 @@ function LoginSignup({ onLogin }) {
     }
   };
 
-  // Handle signup separately 
+  // Update your handleSignup function
   const handleSignup = async (e) => {
     e.preventDefault();
     
@@ -286,10 +286,10 @@ function LoginSignup({ onLogin }) {
         name: formData.name,
         phone: formData.phone,
         securityQuestion: formData.securityQuestion,
-        answer: formData.answer
+        securityAnswer: formData.answer // Rename to match server expectation
       });
       
-      const response = await fetch('https://backend.shubhodip.in/users', {
+      const response = await fetch('https://backend.shubhodip.in/users/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -298,7 +298,7 @@ function LoginSignup({ onLogin }) {
           name: formData.name,
           phone: formData.phone,
           securityQuestion: formData.securityQuestion,
-          answer: formData.answer
+          securityAnswer: formData.answer // Change field name to match API expectation
         })
       });
 
