@@ -1,8 +1,3 @@
-# Complete Updated README.md File
-
-Here's the fully updated README.md file with the new Database Setup section included:
-
-markdown
 # NutriSift - AI-Powered Recipe Management Platform
 
 ![NutriSift Logo](./logo.png)
@@ -194,13 +189,28 @@ NutriSift is a comprehensive AI-powered recipe management application designed t
    cd nutri-sift/Backend/demo
    ```
 
-2. **Configure application properties**:
-   Update `src/main/resources/application.properties` with your database connection details:
+2. **Create the application properties file**:
+   `src/main/resources/application.properties` :
    ```
-   spring.datasource.url=jdbc:mysql://localhost:3306/nutrisift
-   spring.datasource.username=your_username
-   spring.datasource.password=your_password
-   spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+    spring.application.name=Nutrisift
+    spring.datasource.url=jdbc:mariadb://<DB_HOST>:<DB_PORT>/<DB_NAME>
+    spring.datasource.username=<DB_USERNAME>
+    spring.datasource.password=<DB_PASSWORD>
+    spring.datasource.driver-class-name=org.mariadb.jdbc.Driver
+    spring.jpa.show-sql=true
+    
+    spring.jpa.hibernate.ddl-auto=none
+    spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MariaDBDialect
+    
+    # JWT Configuration
+    jwt.secret=<YOUR_JWT_SECRET>
+    jwt.expiration=86400000
+    
+    # Allow connections from external devices
+    server.address=0.0.0.0
+    
+    # Cohere API Key
+    cohere.api.key=<YOUR_COHERE_API_KEY>
    ```
 
 3. **Build the application**:
@@ -729,7 +739,10 @@ NutriSift is now **complete and fully functional**. The application has been tho
 
 ## 📜 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This software is licensed under a **Non-Commercial License**.  
+You are free to use, copy, and modify it for personal, educational, and research purposes.  
+**Commercial use is strictly prohibited.**  
+See the [LICENSE](./LICENSE) file for full terms.
 
 ## 👥 Contributing
 
