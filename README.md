@@ -1,11 +1,11 @@
-# Updated README with Accurate Backend Information
+# Complete Updated README.md File
 
-After carefully reviewing your codebase, I noticed your README file is missing detailed information about the Spring Boot backend implementation. Here's an updated README that accurately reflects your complete project structure and technology stack:
+Here's the fully updated README.md file with the new Database Setup section included:
 
 ```markdown
 # NutriSift - AI-Powered Recipe Management Platform
 
-![NutriSift Logo](https://via.placeholder.com/200x200/1a2235/ffffff?text=NutriSift)
+![NutriSift Logo](https://chatgpt.com/s/m_68471b792ef88191bd4eb359a172bbab)
 
 ## 📋 Overview
 
@@ -217,6 +217,163 @@ NutriSift is a comprehensive AI-powered recipe management application designed t
    ```bash
    java -jar target/demo-0.0.1-SNAPSHOT.jar
    ```
+
+### Database Setup
+
+1. **Install and Configure MariaDB/MySQL**:
+   ```bash
+   # For Ubuntu/Debian
+   sudo apt update
+   sudo apt install mariadb-server
+   
+   # For CentOS/RHEL
+   sudo yum install mariadb-server
+   sudo systemctl start mariadb
+   
+   # For Windows
+   # Download and install from https://mariadb.org/download/
+   ```
+
+2. **Secure your installation**:
+   ```bash
+   sudo mysql_secure_installation
+   ```
+
+3. **Create the database and user**:
+   ```sql
+   CREATE DATABASE NUTRISIFT;
+   CREATE USER 'nutrisift_user'@'localhost' IDENTIFIED BY 'your_strong_password';
+   GRANT ALL PRIVILEGES ON NUTRISIFT.* TO 'nutrisift_user'@'localhost';
+   FLUSH PRIVILEGES;
+   ```
+
+4. **Create the required tables**:
+   ```sql
+   USE NUTRISIFT;
+   
+   CREATE TABLE users (
+     id int(11) NOT NULL AUTO_INCREMENT,
+     time timestamp DEFAULT current_timestamp(),
+     date date DEFAULT NULL,
+     userid varchar(100) NOT NULL,
+     name varchar(255) NOT NULL,
+     email varchar(255) NOT NULL,
+     phone varchar(20) DEFAULT NULL,
+     password varchar(255) NOT NULL,
+     security_question varchar(255) DEFAULT NULL,
+     answer varchar(255) DEFAULT NULL,
+     last_login datetime DEFAULT NULL,
+     PRIMARY KEY (id),
+     UNIQUE KEY userid (userid),
+     UNIQUE KEY email (email)
+   );
+   
+   CREATE TABLE saved_recipe (
+     id int(11) NOT NULL AUTO_INCREMENT,
+     uid varchar(36) NOT NULL,
+     mail varchar(255) NOT NULL,
+     prompt text DEFAULT NULL,
+     recipe_name varchar(255) NOT NULL,
+     ingredients text DEFAULT NULL,
+     steps text DEFAULT NULL,
+     calories varchar(50) DEFAULT NULL,
+     diet varchar(100) DEFAULT NULL,
+     origin varchar(100) DEFAULT NULL,
+     course varchar(100) DEFAULT NULL,
+     cuisine varchar(100) DEFAULT NULL,
+     saved_time_date datetime DEFAULT current_timestamp(),
+     PRIMARY KEY (id),
+     KEY uid (uid),
+     KEY mail (mail)
+   );
+   
+   CREATE TABLE grocery_list (
+     id int(11) NOT NULL AUTO_INCREMENT,
+     uid varchar(100) NOT NULL,
+     mail varchar(255) NOT NULL,
+     state varchar(50) DEFAULT NULL,
+     item_name varchar(255) NOT NULL,
+     quantity varchar(50) DEFAULT NULL,
+     category varchar(100) DEFAULT NULL,
+     creation_time timestamp DEFAULT current_timestamp(),
+     PRIMARY KEY (id),
+     KEY uid (uid),
+     KEY mail (mail)
+   );
+   ```
+
+5. **Update your application.properties**:
+   ```
+   # Database Configuration for MariaDB
+   spring.datasource.url=jdbc:mariadb://localhost:3306/NUTRISIFT
+   spring.datasource.username=nutrisift_user
+   spring.datasource.password=your_strong_password
+   spring.datasource.driver-class-name=org.mariadb.jdbc.Driver
+   ```
+
+### Database Schema
+
+#### Users Table
+Stores user authentication and profile information:
+
+```
++-------------------+--------------+------+-----+---------------------+----------------+
+| Field             | Type         | Null | Key | Default             | Extra          |
++-------------------+--------------+------+-----+---------------------+----------------+
+| id                | int(11)      | NO   | PRI | NULL                | auto_increment |
+| time              | timestamp    | YES  |     | current_timestamp() |                |
+| date              | date         | YES  |     | NULL                |                |
+| userid            | varchar(100) | NO   | UNI | NULL                |                |
+| name              | varchar(255) | NO   |     | NULL                |                |
+| email             | varchar(255) | NO   | UNI | NULL                |                |
+| phone             | varchar(20)  | YES  |     | NULL                |                |
+| password          | varchar(255) | NO   |     | NULL                |                |
+| security_question | varchar(255) | YES  |     | NULL                |                |
+| answer            | varchar(255) | YES  |     | NULL                |                |
+| last_login        | datetime     | YES  |     | NULL                |                |
++-------------------+--------------+------+-----+---------------------+----------------+
+```
+
+#### Saved Recipe Table
+Stores recipes saved by users:
+
+```
++-----------------+--------------+------+-----+---------------------+----------------+
+| Field           | Type         | Null | Key | Default             | Extra          |
++-----------------+--------------+------+-----+---------------------+----------------+
+| id              | int(11)      | NO   | PRI | NULL                | auto_increment |
+| uid             | varchar(36)  | NO   | MUL | NULL                |                |
+| mail            | varchar(255) | NO   | MUL | NULL                |                |
+| prompt          | text         | YES  |     | NULL                |                |
+| recipe_name     | varchar(255) | NO   |     | NULL                |                |
+| ingredients     | text         | YES  |     | NULL                |                |
+| steps           | text         | YES  |     | NULL                |                |
+| calories        | varchar(50)  | YES  |     | NULL                |                |
+| diet            | varchar(100) | YES  |     | NULL                |                |
+| origin          | varchar(100) | YES  |     | NULL                |                |
+| course          | varchar(100) | YES  |     | NULL                |                |
+| cuisine         | varchar(100) | YES  |     | NULL                |                |
+| saved_time_date | datetime     | YES  |     | current_timestamp() |                |
++-----------------+--------------+------+-----+---------------------+----------------+
+```
+
+#### Grocery List Table
+Stores grocery items for users:
+
+```
++---------------+--------------+------+-----+---------------------+----------------+
+| Field         | Type         | Null | Key | Default             | Extra          |
++---------------+--------------+------+-----+---------------------+----------------+
+| id            | int(11)      | NO   | PRI | NULL                | auto_increment |
+| uid           | varchar(100) | NO   | MUL | NULL                |                |
+| mail          | varchar(255) | NO   | MUL | NULL                |                |
+| state         | varchar(50)  | YES  |     | NULL                |                |
+| item_name     | varchar(255) | NO   |     | NULL                |                |
+| quantity      | varchar(50)  | YES  |     | NULL                |                |
+| category      | varchar(100) | YES  |     | NULL                |                |
+| creation_time | timestamp    | YES  |     | current_timestamp() |                |
++---------------+--------------+------+-----+---------------------+----------------+
+```
 
 ## 📡 API Documentation
 
