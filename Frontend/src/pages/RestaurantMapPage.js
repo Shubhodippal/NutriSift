@@ -807,37 +807,6 @@ function RestaurantMapPage() {
         )}
       </div>
       
-      {showManualEntry && (
-        <div className="manual-location-entry">
-          <h2>Enter Location Manually</h2>
-          <form onSubmit={handleManualLocation}>
-            <input 
-              type="text" 
-              value={manualLocation} 
-              onChange={(e) => setManualLocation(e.target.value)}
-              placeholder="Enter a city, address, or landmark"
-              required
-            />
-            <button type="submit" className="submit-location-button">
-              <span>📍</span> Find Location
-            </button>
-            <button 
-              type="button" 
-              className="cancel-location-button"
-              onClick={() => setShowManualEntry(false)}
-            >
-              <span>❌</span> Cancel
-            </button>
-          </form>
-          
-          {locationError && (
-            <div className="location-error-message">
-              {locationError}
-            </div>
-          )}
-        </div>
-      )}
-
       <div className="image-disclaimer">
         <p>
           <span className="disclaimer-icon">ℹ️</span> 
