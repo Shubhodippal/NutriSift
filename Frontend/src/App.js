@@ -18,6 +18,12 @@ import RestaurantMapPage from './pages/RestaurantMapPage';
 import HamburgerMenu from './components/HamburgerMenu';
 import DiscoverRecipePage from './pages/DiscoverRecipePage'; 
 
+// Protected route component
+const ProtectedRoute = ({ element }) => {
+  const isAuthenticated = !!localStorage.getItem('userId');
+  return isAuthenticated ? element : <Navigate to="/login" replace />;
+};
+
 function HomePage() {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -264,13 +270,16 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginSignup />} />
-        <Route path="/chat" element={<RecipeChatPage />} />
-        <Route path="/saved-recipes" element={<SavedRecipesPage />} />
-        <Route path="/recipe/:id" element={<RecipeDetailPage />} />
-        <Route path="/recipe/view/:id" element={<RecipeDetailPage />} /> 
-        <Route path="/grocery-list" element={<GroceryListPage />} />
-        <Route path="/nearby-restaurants" element={<RestaurantMapPage />} />
-        <Route path="/discover-recipes" element={<DiscoverRecipePage />} /> 
+        
+        {/* Protected routes */}
+        <Route path="/chat" element={<ProtectedRoute element={<RecipeChatPage />} />} />
+        <Route path="/saved-recipes" element={<ProtectedRoute element={<SavedRecipesPage />} />} />
+        <Route path="/recipe/:id" element={<ProtectedRoute element={<RecipeDetailPage />} />} />
+        <Route path="/recipe/view/:id" element={<ProtectedRoute element={<RecipeDetailPage />} />} /> 
+        <Route path="/grocery-list" element={<ProtectedRoute element={<GroceryListPage />} />} />
+        <Route path="/nearby-restaurants" element={<ProtectedRoute element={<RestaurantMapPage />} />} />
+        <Route path="/discover-recipes" element={<ProtectedRoute element={<DiscoverRecipePage />} />} /> 
+        
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
