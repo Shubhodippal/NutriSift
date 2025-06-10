@@ -192,6 +192,47 @@ function LoginSignup({ onLogin }) {
     }
   };
 
+  const handleResetPassword = async () => {
+    if (!passwordValid) {
+      setFormError('Please ensure your password meets all requirements.');
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          answer: formData.answer,
+          newPassword: formData.newPassword
+        })
+      });
+      
+      if (response.ok) {
+        setFormSuccess('Password reset successful! You can now login with your new password.');
+        setTimeout(() => {
+          setFormMode('login');
+          setFormData(prev => ({ 
+            ...prev, 
+            password: '', 
+            newPassword: '', 
+            answer: '',
+            securityQuestion: '',
+            securityQuestionFetched: false,
+            answerVerified: false
+          }));
+        }, 2000);
+      } else {
+        const errorText = await response.text();
+        setFormError(errorText || 'Failed to reset password. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setFormError('Error connecting to the server. Please try again.');
+    }
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     
@@ -322,6 +363,8 @@ function LoginSignup({ onLogin }) {
       handleLogin(e);
     } else if (formMode === 'signup') {
       handleSignup(e);
+    } else if (formMode === 'forgotPassword' && formData.answerVerified) {
+      handleResetPassword();
     }
   };
   

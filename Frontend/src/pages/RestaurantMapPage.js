@@ -62,6 +62,7 @@ function RestaurantMapPage() {
   const [highAccuracyAttempt, setHighAccuracyAttempt] = useState(false);
   const [accuracyCircleVisible, setAccuracyCircleVisible] = useState(true);
   const watchPositionRef = useRef(null);
+  const [showLocationWarning, setShowLocationWarning] = useState(true);
   
   useEffect(() => {
     setIsLoading(true);
@@ -76,15 +77,13 @@ function RestaurantMapPage() {
           const { latitude, longitude, accuracy } = position.coords;
           console.log(`🎯 High-accuracy location: ${latitude},${longitude} (accuracy: ${accuracy}m)`);
           
-          if (!locationAccuracy || accuracy < locationAccuracy) {
-            setUserLocation([latitude, longitude]);
-            setLocationAccuracy(accuracy);
-            
-            if (accuracy < 100) {
-              setLocationError(null);
-            } else {
-              setLocationError(`Location accuracy: ${Math.round(accuracy)}m. Not precise enough for exact positioning.`);
-            }
+          setUserLocation([latitude, longitude]);
+          setLocationAccuracy(accuracy);
+          
+          if (accuracy < 100) {
+            setLocationError(null);
+          } else {
+            setLocationError(`Location accuracy: ${Math.round(accuracy)}m. For better results, ensure GPS is enabled.`);
           }
           
           setMapReady(true);
@@ -92,7 +91,10 @@ function RestaurantMapPage() {
         },
         (error) => {
           console.error("High-accuracy geolocation error:", error);
-          setLocationError("Couldn't get precise location. Using approximate location instead.");
+          setLocationError("Couldn't get precise location. Please enter your location manually below.");
+          setShowManualEntry(true);
+          setMapReady(true);
+          setIsLoading(false);
         },
         { 
           enableHighAccuracy: true,
@@ -131,72 +133,17 @@ function RestaurantMapPage() {
         }
       );
     };
-    
-    const getQuickLocation = async () => {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude, accuracy } = position.coords;
-          console.log(`🔍 Quick location: ${latitude},${longitude} (accuracy: ${accuracy}m)`);
-          
-          setUserLocation([latitude, longitude]);
-          setLocationAccuracy(accuracy);
-          setLocationError("Got approximate location. Improving accuracy...");
-          setMapReady(true);
-          
-          getHighAccuracyLocation();
-        },
-        async (error) => {
-          console.error("Quick geolocation error:", error);
-          
-          const gotIPLocation = await getLocationByIP();
-          
-          if (!gotIPLocation) {
-            setUserLocation([22.5726, 88.3639]); 
-            setLocationError("Could not detect your location. Using default location.");
-            setMapReady(true);
-            setIsLoading(false);
-          } else {
-            getHighAccuracyLocation();
-          }
-        },
-        { 
-          enableHighAccuracy: false,
-          timeout: 10000,            
-          maximumAge: 60000          
-        }
-      );
-    };
-    
-    const getLocationByIP = async () => {
-      try {
-        const response = await fetch('https://ipapi.co/json/');
-        const data = await response.json();
-        
-        if (data.latitude && data.longitude) {
-          console.log("Using IP-based location:", data);
-          setUserLocation([data.latitude, data.longitude]);
-          setLocationAccuracy(5000); 
-          setLocationError("Using approximate location based on your IP address. For better accuracy, click 'Get Precise Location'.");
-          setMapReady(true);
-          setIsLoading(false);
-          return true;
-        }
-        return false;
-      } catch (err) {
-        console.error("IP geolocation failed:", err);
-        return false;
-      }
-    };
 
     if (navigator.geolocation) {
-      getQuickLocation();
+      // Try to get location directly with high accuracy
+      getHighAccuracyLocation();
     } else {
-        getLocationByIP().catch(() => {
-        setUserLocation([22.5726, 88.3639]); 
-        setLocationError("Geolocation is not supported by your browser.");
-        setMapReady(true);
-        setIsLoading(false);
-      });
+      // Browser doesn't support geolocation
+      setLocationError("Your browser doesn't support location services. Please enter your location manually.");
+      setShowManualEntry(true);
+      setUserLocation([22.5726, 88.3639]); // Default location
+      setMapReady(true);
+      setIsLoading(false);
     }
     
     return () => {
@@ -496,12 +443,21 @@ function RestaurantMapPage() {
     if (locationError) {
       timer = setTimeout(() => {
         setLocationError(null);
-      }, 5000);
+      }, 15000); // Increase to 15 seconds or remove timeout entirely
     }
     return () => {
       if (timer) clearTimeout(timer);
     };
   }, [locationError]);
+  
+  useEffect(() => {
+    // Auto-show manual entry when accuracy is poor
+    if (locationAccuracy && locationAccuracy > 10000) {
+      setShowManualEntry(true);
+      setLocationError("Your location appears to be very imprecise. For better results, please enter your location manually.");
+      setShowLocationWarning(true); // Reset warning visibility when accuracy changes significantly
+    }
+  }, [locationAccuracy]);
   
   return (
     <div className="restaurant-map-page">
@@ -515,6 +471,7 @@ function RestaurantMapPage() {
       <div className="map-controls">
         <div className="category-filters">
           {[
+
             { id: 'all', name: 'All Restaurants', icon: '🍽️' },
             { id: 'restaurant', name: 'General', icon: '🍴' },
             { id: 'fast_food', name: 'Fast Food', icon: '🍔' },
@@ -524,6 +481,7 @@ function RestaurantMapPage() {
             <button
               key={category.id}
               className={`category-filter ${selectedCategory === category.id ? 'active' : ''}`}
+
               onClick={() => handleCategoryChange(category.id)}
             >
               <span className="category-icon">{category.icon}</span>
@@ -534,6 +492,7 @@ function RestaurantMapPage() {
           <button 
             className="scroll-to-results-button"
             onClick={() => document.querySelector('.restaurant-list').scrollIntoView({ behavior: 'smooth' })}
+
           >
             <span className="results-icon">📋</span>
             <span className="results-count">{restaurants.length}</span>
@@ -569,6 +528,7 @@ function RestaurantMapPage() {
               <span>Accuracy: {locationAccuracy < 1000 ? 
                 `${Math.round(locationAccuracy)} meters` : 
                 `${(locationAccuracy / 1000).toFixed(1)} km`}
+
               </span>
             </div>
           )}
@@ -619,6 +579,28 @@ function RestaurantMapPage() {
           </label>
         </div>
       </div>
+      
+      
+      {/* Location warning - now above the map */}
+      {locationAccuracy && locationAccuracy > 1000 && showLocationWarning && (
+        <>
+          <div className="warning-backdrop" onClick={() => setShowLocationWarning(false)}></div>
+          <div className="location-warning-popup">
+            <button 
+              className="close-warning-button" 
+              onClick={() => setShowLocationWarning(false)}
+              aria-label="Close warning"
+            >✕</button>
+            <p><strong>⚠️ Location accuracy issues detected</strong></p>
+            <p>Your location appears to be approximately {Math.round(locationAccuracy/1000)}km from your actual position.</p>
+            <p>For better results, try:</p>
+            <ul>
+              <li>Check that precise location is enabled in your browser settings</li>
+              <li>Disable any VPN services you might be using</li>
+            </ul>
+          </div>
+        </>
+      )}
       
       <div className="map-container">
         {error && (
