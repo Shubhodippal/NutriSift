@@ -4,20 +4,27 @@
   padding: 2rem;
   color: #e2e8f0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .saved-recipes-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.5rem;
+  width: 100%;
+  padding: 1rem;
   margin-bottom: 1.5rem;
+  box-sizing: border-box;
 }
 
 .saved-recipes-header h1 {
-  font-size: 2.2rem;
-  font-weight: 800;
   margin: 0;
+  font-size: 2rem;
   background: linear-gradient(135deg, #4f8cff 0%, #6a5af9 100%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -68,6 +75,14 @@
   gap: 2rem;
   row-gap: 3rem; 
   margin-bottom: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto 2rem;
+  justify-content: center;
+  padding: 0 1rem;
+  box-sizing: border-box;
 }
 
 .recipe-card {
@@ -298,29 +313,40 @@
   }
   
   .saved-recipes-header {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    justify-content: space-between;
     padding: 15px;
+    margin-bottom: 1rem;
   }
   
   .saved-recipes-header h1 {
-    font-size: 22px;
-    margin-bottom: 10px;
+    font-size: 1.4rem;
+    margin-right: 10px;
   }
   
   .search-container {
     padding: 5px 15px 15px;
+    width: 100%;
+    max-width: 360px;
+    margin: 1rem auto;
+    padding: 0 1rem;
+    box-sizing: border-box;
   }
   
   /* Ensure grid layout adjusts for mobile */
   .recipe-grid {
-    grid-template-columns: 1fr;
-    padding: 10px;
+    grid-template-columns: minmax(280px, 1fr);
+    padding: 0 1rem;
+    max-width: 100%;
+    justify-items: center;
   }
   
   /* Make recipe cards more compact on mobile */
   .recipe-card {
     margin-bottom: 15px;
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
   }
   
   .recipe-actions {
@@ -333,20 +359,25 @@
     flex: 1 0 auto;
     min-width: calc(33% - 10px);
   }
+  
+  .image-disclaimer {
+    width: 100%;
+    max-width: 360px;
+    margin: 1rem auto;
+    padding: 0.75rem 1rem;
+    box-sizing: border-box;
+  }
 }
 
 /* For very small screens */
 @media (max-width: 375px) {
   .saved-recipes-header h1 {
-    font-size: 20px;
+    font-size: 1.2rem;
   }
   
-  .recipe-metadata {
-    flex-wrap: wrap;
-  }
-  
-  .recipe-metadata span {
-    margin: 2px;
+  .hamburger-button {
+    width: 36px;
+    height: 36px;
   }
 }
 
@@ -382,6 +413,7 @@
 
 .hamburger-menu-container {
   position: relative;
+  margin-left: auto;
 }
 
 .hamburger-button {
@@ -646,68 +678,6 @@
 .pdf-container {
   position: absolute;
   left: -9999px;
-}
-
-@media (max-width: 768px) {
-  .recipe-card-actions {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .view-recipe-button {
-    grid-column: span 2;
-  }
-  
-  .saved-recipes-header {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 15px;
-  }
-  
-  .saved-recipes-header h1 {
-    font-size: 22px;
-    margin-bottom: 10px;
-  }
-  
-  .search-container {
-    padding: 5px 15px 15px;
-  }
-  
-  /* Ensure grid layout adjusts for mobile */
-  .recipe-grid {
-    grid-template-columns: 1fr;
-    padding: 10px;
-  }
-  
-  /* Make recipe cards more compact on mobile */
-  .recipe-card {
-    margin-bottom: 15px;
-  }
-  
-  .recipe-actions {
-    flex-wrap: wrap;
-    justify-content: space-between;
-  }
-  
-  .recipe-actions button {
-    margin: 5px 0;
-    flex: 1 0 auto;
-    min-width: calc(33% - 10px);
-  }
-}
-
-/* For very small screens */
-@media (max-width: 375px) {
-  .saved-recipes-header h1 {
-    font-size: 20px;
-  }
-  
-  .recipe-metadata {
-    flex-wrap: wrap;
-  }
-  
-  .recipe-metadata span {
-    margin: 2px;
-  }
 }
 
 .share-recipe-preview {
