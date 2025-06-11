@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import ImageCarousel from './components/ImageCarousel';
 
 const recipeExamples = [
   { 
@@ -56,6 +55,13 @@ function RecipeGallery() {
   const featuresRef = useRef(null);
   const autoScrollInterval = useRef(null);
   const lastSection = useRef(''); 
+  
+  // Add these new state variables for touch handling
+  const [isMobile, setIsMobile] = useState(false);
+  const [touchStartX, setTouchStartX] = useState(null);
+  const [touchEndX, setTouchEndX] = useState(null);
+  const [isSwiping, setIsSwiping] = useState(false);
+  const [swipeTranslate, setSwipeTranslate] = useState(0);
   
   useEffect(() => {
     howItWorksRef.current = document.getElementById('how');
@@ -247,15 +253,84 @@ function RecipeGallery() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isInView, currentIndex]);
   
+  // Detect mobile devices
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    handleResize(); // Initial check
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+  // Touch event handlers
+  const handleTouchStart = (e) => {
+    if (!isMobile) return;
+    setTouchStartX(e.touches[0].clientX);
+    setIsSwiping(true);
+  };
+  
+  const handleTouchMove = (e) => {
+    if (!isMobile || !isSwiping || touchStartX === null) return;
+    
+    const currentX = e.touches[0].clientX;
+    const diff = currentX - touchStartX;
+    
+    // Add resistance at edges
+    if ((currentIndex === 0 && diff > 0) || 
+        (currentIndex === recipeExamples.length - 1 && diff < 0)) {
+      setSwipeTranslate(diff / 3); // Reduced movement at edges
+    } else {
+      setSwipeTranslate(diff);
+    }
+  };
+  
+  const handleTouchEnd = (e) => {
+    if (!isMobile || !isSwiping) return;
+    
+    setIsSwiping(false);
+    const endX = e.changedTouches[0].clientX;
+    setTouchEndX(endX);
+    
+    const slideWidth = galleryRef.current?.clientWidth || 0;
+    const swipeDistance = endX - touchStartX;
+    
+    // Determine if the swipe was significant enough to change slides
+    if (Math.abs(swipeDistance) > slideWidth * 0.25) {
+      if (swipeDistance > 0 && currentIndex > 0) {
+        // Swipe right -> previous image
+        setCurrentIndex(currentIndex - 1);
+      } else if (swipeDistance < 0 && currentIndex < recipeExamples.length - 1) {
+        // Swipe left -> next image
+        setCurrentIndex(currentIndex + 1);
+      }
+    }
+    
+    // Reset translate position
+    setSwipeTranslate(0);
+    setTouchStartX(null);
+    setTouchEndX(null);
+  };
+  
+  // Handle recipe card click - only for non-mobile
+  const handleCardClick = (recipeId) => {
+    if (!isMobile) {
+      setActiveRecipe(activeRecipe === recipeId ? null : recipeId);
+    }
+  };
+  
+  // Update the gallery position with swipe translate for smoother movement
   useEffect(() => {
     if (galleryRef.current) {
       const slideWidth = galleryRef.current.clientWidth;
-      galleryRef.current.style.transition = isReverseScrolling 
-        ? "transform 0.8s ease-out" 
-        : "transform 0.5s ease-out";
-      galleryRef.current.style.transform = `translateX(-${currentIndex * slideWidth}px)`;
+      galleryRef.current.style.transition = isSwiping 
+        ? "none" // No transition during active swipe for responsiveness
+        : (isReverseScrolling ? "transform 0.8s ease-out" : "transform 0.5s ease-out");
+        
+      galleryRef.current.style.transform = `translateX(${-currentIndex * slideWidth + swipeTranslate}px)`;
     }
-  }, [currentIndex, isReverseScrolling]);
+  }, [currentIndex, isReverseScrolling, isSwiping, swipeTranslate]);
   
   useEffect(() => {
     const handleResize = () => {
@@ -276,31 +351,35 @@ function RecipeGallery() {
     return () => window.removeEventListener('resize', handleResize);
   }, [currentIndex]);
   
-  const recipeImages = [
-    "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80",
-    "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&q=80",
-    "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=600&q=80",
-    // Add more recipe images
-  ];
-
   return (
     <div className="gallery-section" ref={containerRef}>
       <h3 className="gallery-title">Explore Our Recipes</h3>
       
-      <div className="gallery-wrapper">
+      <div 
+        className="gallery-wrapper"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         <div className="gallery-track" ref={galleryRef}>
           {recipeExamples.map((recipe) => (
             <div 
               key={recipe.id}
-              className={`gallery-slide ${activeRecipe === recipe.id ? 'expanded' : ''}`}
-              onClick={() => setActiveRecipe(activeRecipe === recipe.id ? null : recipe.id)}
+              className={`gallery-slide ${activeRecipe === recipe.id ? 'expanded' : ''} ${isMobile ? 'mobile' : ''}`}
+              onClick={() => handleCardClick(recipe.id)}
             >
               <div className="gallery-card">
                 <img src={recipe.image} alt={recipe.title} className="gallery-image" />
                 <div className="gallery-content">
                   <h4>{recipe.title}</h4>
-                  {activeRecipe === recipe.id && (
+                  {activeRecipe === recipe.id && !isMobile && (
                     <p className="recipe-ingredients">{recipe.ingredients}</p>
+                  )}
+                  {isMobile && (
+                    <p className="recipe-ingredients-preview">
+                      {recipe.ingredients.split(',').slice(0, 3).join(',')}
+                      {recipe.ingredients.split(',').length > 3 ? '...' : ''}
+                    </p>
                   )}
                 </div>
               </div>
@@ -319,37 +398,31 @@ function RecipeGallery() {
         ))}
       </div>
       
-      <div className="gallery-controls">
-        <button 
-          className="gallery-button prev" 
-          onClick={() => currentIndex > 0 && setCurrentIndex(currentIndex - 1)}
-          disabled={currentIndex === 0}
-        >
-          ←
-        </button>
-        <button 
-          className="gallery-button next" 
-          onClick={() => {
-            if (currentIndex < recipeExamples.length - 1) {
-              setCurrentIndex(currentIndex + 1);
-            } else {
-              setHasViewedAllImages(true);
-            }
-          }}
-          disabled={currentIndex === recipeExamples.length - 1}
-        >
-          →
-        </button>
-      </div>
-
-      <div className="recipe-gallery">
-        <h3>Popular Recipes</h3>
-        <ImageCarousel 
-          images={recipeImages} 
-          altText="Recipe" 
-        />
-        {/* Rest of your gallery content */}
-      </div>
+      {/* Only show control buttons on non-mobile devices */}
+      {!isMobile && (
+        <div className="gallery-controls">
+          <button 
+            className="gallery-button prev" 
+            onClick={() => currentIndex > 0 && setCurrentIndex(currentIndex - 1)}
+            disabled={currentIndex === 0}
+          >
+            ←
+          </button>
+          <button 
+            className="gallery-button next" 
+            onClick={() => {
+              if (currentIndex < recipeExamples.length - 1) {
+                setCurrentIndex(currentIndex + 1);
+              } else {
+                setHasViewedAllImages(true);
+              }
+            }}
+            disabled={currentIndex === recipeExamples.length - 1}
+          >
+            →
+          </button>
+        </div>
+      )}
     </div>
   );
 }

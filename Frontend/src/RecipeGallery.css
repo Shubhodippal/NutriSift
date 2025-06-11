@@ -1,0 +1,44 @@
+/* Mobile gallery optimizations */
+@media (max-width: 768px) {
+  .gallery-wrapper {
+    overflow-x: hidden;
+    touch-action: pan-y; /* Allow vertical scrolling but handle horizontal ourselves */
+    cursor: grab;
+  }
+  
+  .gallery-slide.mobile {
+    pointer-events: none; /* Disable click events */
+  }
+  
+  .gallery-controls {
+    display: none; /* Hide buttons on mobile */
+  }
+  
+  .gallery-card {
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .gallery-image {
+    height: 200px;
+    object-fit: cover;
+  }
+  
+  .recipe-ingredients-preview {
+    font-size: 0.85rem;
+    margin-top: 6px;
+    color: #64748b;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .gallery-indicator {
+    margin-top: 15px;
+  }
+  
+  .indicator-dot {
+    width: 8px;
+    height: 8px;
+  }
+}
