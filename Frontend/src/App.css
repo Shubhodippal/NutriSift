@@ -227,7 +227,6 @@ body {
 .navbar-pro__nav-button:hover {
   color: var(--primary);
   background: rgba(79, 140, 255, 0.1);
-  transform: translateY(-2px);
 }
 
 /* Add this to your App.css */
@@ -941,6 +940,71 @@ body {
   }
   .pro-section__card {
     padding: 1rem 0.5rem;
+  }
+}
+
+/* Fixed Hamburger Menu for Mobile */
+@media (max-width: 768px) {
+  .navbar-pro__mobile-controls {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 8px;
+    border-radius: 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .navbar-pro {
+    padding-right: 70px; /* Make space for the fixed controls */
+  }
+  
+  /* Ensure the hamburger menu button is appropriately sized */
+  .hamburger-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  /* When the menu is open, add some visual indication */
+  .hamburger-button.active {
+    background-color: #f0f0f0;
+  }
+  
+  /* Style for the logout button when it appears next to hamburger */
+  .navbar-pro__logout--mobile {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+/* Additional adjustment for very small screens */
+@media (max-width: 360px) {
+  .navbar-pro__mobile-controls {
+    top: 10px;
+    right: 10px;
+  }
+  
+  .hamburger-button, 
+  .navbar-pro__logout--mobile {
+    width: 36px;
+    height: 36px;
   }
 }
 

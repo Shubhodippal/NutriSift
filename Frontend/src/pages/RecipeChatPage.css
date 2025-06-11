@@ -664,6 +664,88 @@
   animation: none;
 }
 
+/* Mobile responsiveness adjustments */
+@media (max-width: 768px) {
+  /* Hide the footer on mobile */
+  .chat-footer {
+    display: none;
+  }
+  
+  /* Hide the header text on mobile */
+  .chat-header h1,
+  .chat-header p,
+  .chat-header .chat-decoration {
+    display: none;
+  }
+  
+  /* Add minimal padding to the header to maintain spacing */
+  .chat-header {
+    padding: 10px 0;
+    min-height: 10px;
+  }
+  
+  /* Adjust the chat container to use more screen space */
+  .chat-container {
+    height: calc(100vh - 60px);
+    padding-top: 0;
+  }
+  
+  /* Give more space to the messages container */
+  .messages-container {
+    height: calc(100% - 70px);
+  }
+  
+  /* Increase the size of the input field and send button for easier typing */
+  .input-container {
+    padding: 8px;
+  }
+  
+  .message-input {
+    font-size: 16px; /* Prevents iOS zoom on input focus */
+    min-height: 44px; /* Better touch target */
+  }
+  
+  .send-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  /* Make messages more compact on mobile */
+  .message {
+    padding: 10px;
+    margin: 8px 0;
+  }
+  
+  /* Improve recipe image display on small screens */
+  .recipe-image {
+    max-height: 200px;
+  }
+  
+  /* Make action buttons stack vertically for better mobile experience */
+  .message-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  
+  .action-button {
+    width: 100%;
+    padding: 10px;
+    justify-content: center;
+  }
+}
+
+/* For very small screens, further optimize space */
+@media (max-width: 480px) {
+  .chat-header {
+    padding: 5px 0;
+  }
+  
+  .chat-container {
+    padding: 0 10px;
+  }
+}
+
 @media (max-width: 1200px) {
   .chat-container {
     width: 98%;

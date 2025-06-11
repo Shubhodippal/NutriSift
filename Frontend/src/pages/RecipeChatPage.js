@@ -37,7 +37,7 @@ const getRecipeImage = async (recipe) => {
   }
 };
 
-function RecipeChatPage() {
+const RecipeChatPage = () => {
 const [messages, setMessages] = useState(() => {
   const savedMessages = localStorage.getItem('chatHistory');
   if (savedMessages) {
@@ -62,6 +62,7 @@ const [messages, setMessages] = useState(() => {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [savingRecipe, setSavingRecipe] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
   const messagesContainerRef = useRef(null);
@@ -100,6 +101,15 @@ const [messages, setMessages] = useState(() => {
   useEffect(() => {
     localStorage.setItem('chatHistory', JSON.stringify(messages));
   }, [messages]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -710,17 +720,19 @@ const generateMockRecipe = (ingredients) => {
       </nav>
       
       <div className="chat-container">
-        <div className="chat-header">
-          <h1>Recipe Assistant</h1>
-          <p>Transform your ingredients into chef-level recipes</p>
-          <div className="chat-decoration">
-            <span className="decoration-icon">🍴</span>
-            <span className="decoration-line"></span>
-            <span className="decoration-icon">🥦</span>
-            <span className="decoration-line"></span>
-            <span className="decoration-icon">🍲</span>
+        {!isMobile && (
+          <div className="chat-header">
+            <h1>Recipe Assistant</h1>
+            <p>Transform your ingredients into chef-level recipes</p>
+            <div className="chat-decoration">
+              <span className="decoration-icon">🍴</span>
+              <span className="decoration-line"></span>
+              <span className="decoration-icon">🥦</span>
+              <span className="decoration-line"></span>
+              <span className="decoration-icon">🍲</span>
+            </div>
           </div>
-        </div>
+        )}
         
         <div className="messages-container" ref={messagesContainerRef}>
           <div className="messages-wrapper">
@@ -811,7 +823,7 @@ const generateMockRecipe = (ingredients) => {
           </div>
         </div>
         
-        {showSuggestions && messages.length === 1 && (
+        {showSuggestions && messages.length === 1 && !isMobile && (
           <div className="suggestion-chips">
             <p className="suggestion-title">Try these ingredient combinations:</p>
             <div className="chips-container">
@@ -856,9 +868,11 @@ const generateMockRecipe = (ingredients) => {
         </form>
       </div>
       
-      <div className="chat-footer">
-        <p>Made with ❤️ by NutriSift • <a href="#privacy">Privacy Policy</a> • <a href="#terms">Terms</a></p>
-      </div>
+      {!isMobile && (
+        <div className="chat-footer">
+          <p>Made with ❤️ by NutriSift • <a href="#privacy">Privacy Policy</a> • <a href="#terms">Terms</a></p>
+        </div>
+      )}
       
       {successMessage && (
         <div className="success-toast">

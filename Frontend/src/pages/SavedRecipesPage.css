@@ -46,16 +46,20 @@
 
 .search-container {
   margin-bottom: 2rem;
+  width: 100%;
+  max-width: 100%;
+  padding: 10px 15px;
+  box-sizing: border-box;
+  position: relative;
 }
 
 .search-container input {
   width: 100%;
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
-  border: 1px solid #2d3748;
-  background: #1a2235;
-  color: #e2e8f0;
-  font-size: 1rem;
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-size: 16px; /* Prevents zoom on iOS */
+  box-sizing: border-box;
 }
 
 .recipe-grid {
@@ -291,6 +295,58 @@
   
   .view-recipe-button {
     grid-column: span 2;
+  }
+  
+  .saved-recipes-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 15px;
+  }
+  
+  .saved-recipes-header h1 {
+    font-size: 22px;
+    margin-bottom: 10px;
+  }
+  
+  .search-container {
+    padding: 5px 15px 15px;
+  }
+  
+  /* Ensure grid layout adjusts for mobile */
+  .recipe-grid {
+    grid-template-columns: 1fr;
+    padding: 10px;
+  }
+  
+  /* Make recipe cards more compact on mobile */
+  .recipe-card {
+    margin-bottom: 15px;
+  }
+  
+  .recipe-actions {
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  
+  .recipe-actions button {
+    margin: 5px 0;
+    flex: 1 0 auto;
+    min-width: calc(33% - 10px);
+  }
+}
+
+/* For very small screens */
+@media (max-width: 375px) {
+  .saved-recipes-header h1 {
+    font-size: 20px;
+  }
+  
+  .recipe-metadata {
+    flex-wrap: wrap;
+  }
+  
+  .recipe-metadata span {
+    margin: 2px;
   }
 }
 
@@ -599,6 +655,58 @@
   
   .view-recipe-button {
     grid-column: span 2;
+  }
+  
+  .saved-recipes-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 15px;
+  }
+  
+  .saved-recipes-header h1 {
+    font-size: 22px;
+    margin-bottom: 10px;
+  }
+  
+  .search-container {
+    padding: 5px 15px 15px;
+  }
+  
+  /* Ensure grid layout adjusts for mobile */
+  .recipe-grid {
+    grid-template-columns: 1fr;
+    padding: 10px;
+  }
+  
+  /* Make recipe cards more compact on mobile */
+  .recipe-card {
+    margin-bottom: 15px;
+  }
+  
+  .recipe-actions {
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  
+  .recipe-actions button {
+    margin: 5px 0;
+    flex: 1 0 auto;
+    min-width: calc(33% - 10px);
+  }
+}
+
+/* For very small screens */
+@media (max-width: 375px) {
+  .saved-recipes-header h1 {
+    font-size: 20px;
+  }
+  
+  .recipe-metadata {
+    flex-wrap: wrap;
+  }
+  
+  .recipe-metadata span {
+    margin: 2px;
   }
 }
 
