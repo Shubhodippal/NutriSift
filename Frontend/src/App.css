@@ -153,9 +153,8 @@ body {
 .navbar-pro__logo {
   display: flex;
   align-items: center;
-  font-weight: 700;
-  font-size: 1.4rem;
-  letter-spacing: 1px;
+  gap: 8px;
+  min-width: max-content;
 }
 
 .navbar-pro__logo-icon {
@@ -170,7 +169,7 @@ body {
 .navbar-pro__links {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 24px;
 }
 
 .navbar-pro__links a {
@@ -1728,4 +1727,95 @@ body {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* Responsive Navbar Styles */
+.navbar-pro {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition: all 0.3s ease;
+}
+
+.navbar-pro__logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: max-content;
+}
+
+.navbar-pro__links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.navbar-pro__mobile-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navbar-pro__cta--mobile,
+.navbar-pro__logout--mobile {
+  display: none;
+}
+
+/* Media queries for responsive behavior */
+@media (max-width: 1024px) {
+  .navbar-pro__links {
+    gap: 16px;
+  }
+  
+  .navbar-link {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-pro__links {
+    display: none; /* Hide links on mobile, they'll be in hamburger menu */
+  }
+  
+  .navbar-pro__cta--desktop,
+  .navbar-pro__logout--desktop {
+    display: none;
+  }
+  
+  .navbar-pro__cta--mobile,
+  .navbar-pro__logout--mobile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    font-size: 14px;
+  }
+  
+  .navbar-pro__logout--mobile {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+  }
+  
+  .navbar-pro__logout--mobile .logout-text {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-pro {
+    padding: 0 12px;
+  }
+  
+  .navbar-pro__brand {
+    font-size: 18px;
+  }
+  
+  .navbar-pro__logo-icon {
+    font-size: 20px;
+  }
 }

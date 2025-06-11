@@ -93,6 +93,17 @@ function HomePage() {
           <span className="navbar-pro__logo-icon">👩‍🍳</span>
           <span className="navbar-pro__brand">NutriSift</span>
         </div>
+        
+        {/* Mobile CTA - visible only on small screens */}
+        {!isLoggedIn && (
+          <button
+            className="navbar-pro__cta navbar-pro__cta--mobile"
+            onClick={() => navigate('/login')}
+          >
+            Try Now
+          </button>
+        )}
+        
         <div className="navbar-pro__links">
           <Link 
             to="features" 
@@ -140,27 +151,40 @@ function HomePage() {
             About
           </Link>
           
-          <HamburgerMenu 
-            isLoggedIn={isLoggedIn}
-            onLogout={handleLogout}
-          />
-          
-          {isLoggedIn ? (
+          {isLoggedIn && (
             <button
-              className="navbar-pro__cta navbar-pro__logout"
+              className="navbar-pro__cta navbar-pro__logout navbar-pro__logout--desktop"
               onClick={handleLogout}
             >
               <span className="logout-icon">🔓</span>
               <span className="logout-text">Logout</span>
             </button>
-          ) : (
+          )}
+
+          {!isLoggedIn && (
             <button
-              className="navbar-pro__cta"
+              className="navbar-pro__cta navbar-pro__cta--desktop"
               onClick={() => navigate('/login')}
             >
               Try Now
             </button>
           )}
+        </div>
+        
+        <div className="navbar-pro__mobile-controls">
+          {isLoggedIn && (
+            <button
+              className="navbar-pro__cta navbar-pro__logout navbar-pro__logout--mobile"
+              onClick={handleLogout}
+            >
+              <span className="logout-icon">🔓</span>
+            </button>
+          )}
+          
+          <HamburgerMenu 
+            isLoggedIn={isLoggedIn}
+            onLogout={handleLogout}
+          />
         </div>
       </nav>
 
