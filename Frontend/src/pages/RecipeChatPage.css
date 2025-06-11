@@ -463,45 +463,6 @@
   animation-delay: 0.4s;
 }
 
-.suggestion-chips {
-  padding: 1.5rem 2rem;
-  border-top: 1px solid var(--border);
-  background: var(--card-bg);
-}
-
-.suggestion-title {
-  margin: 0 0 1rem 0;
-  font-size: 0.95rem;
-  color: var(--text-light);
-  font-weight: 500;
-}
-
-.chips-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.8rem;
-}
-
-.suggestion-chip {
-  background: var(--primary-ultra-light);
-  color: var(--primary-light);
-  border: 1px solid rgba(79, 140, 255, 0.3);
-  border-radius: 50px;
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.suggestion-chip:hover {
-  background: rgba(79, 140, 255, 0.2);
-  color: var(--primary);
-  border-color: var(--primary);
-  transform: translateY(-2px);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
-}
-
 .input-form {
   padding: 1.5rem 2rem;
   border-top: 1px solid var(--border);
@@ -1132,27 +1093,6 @@
   margin-bottom: 0.4rem;
 }
 
-.whatsapp-btn {
-  grid-column: span 2;
-  background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
-  color: white;
-  border: none;
-}
-
-.whatsapp-btn:hover {
-  background: linear-gradient(135deg, #2DD973 0%, #139D8D 100%);
-}
-
-.pdf-btn {
-  background: var(--primary-ultra-light);
-  color: var(--primary-light);
-}
-
-.copy-btn {
-  background: var(--primary-ultra-light);
-  color: var(--primary-light);
-}
-
 .recipe-metadata {
   margin: 15px 0;
   padding: 15px;
@@ -1290,4 +1230,45 @@
   color: #4f8cff;
   font-weight: bold;
   margin-right: 8px;
+}
+
+/* Mobile scrolling fixes */
+@media (max-width: 768px) {
+  .chat-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 60px - 100px); /* Subtract header and input height */
+    overflow: hidden;
+  }
+
+  .messages-container {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling for iOS */
+    position: relative;
+    height: 100%;
+    padding-bottom: 16px;
+  }
+
+  .messages-wrapper {
+    height: auto;
+    min-height: 100%;
+    padding-bottom: 8px;
+  }
+
+  /* Prevent content from being hidden behind the input form */
+  .input-form {
+    position: relative;
+    z-index: 10;
+    background: var(--bg-color);
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+  }
 }

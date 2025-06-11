@@ -80,35 +80,47 @@ const [messages, setMessages] = useState(() => {
   }, [savedRecipes]);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
+    const scrollToBottom = () => {
+      if (chatEndRef.current) {
+        // Try direct scrollIntoView first
+        chatEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+        
+        // Fallback for mobile browsers that might have issues with scrollIntoView
+        setTimeout(() => {
+          if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+          }
+        }, 100);
+      }
+    };
+    
+    scrollToBottom();
+    
+    // Additional timeout for when images or complex content is loading
+    const timer = setTimeout(scrollToBottom, 300);
+    
     return () => clearTimeout(timer);
-  }, [messages]);
-
-  useEffect(() => {
-    if (input.trim().length > 0) {
-      setShowSuggestions(false);
-    } else {
-      setShowSuggestions(true);
-    }
-  }, [input]);
-
-  useEffect(() => {
-    localStorage.setItem('chatHistory', JSON.stringify(messages));
-  }, [messages]);
+  }, [messages, loading]);
 
   useEffect(() => {
     const handleResize = () => {
+      // Force scroll reset when orientation changes or keyboard appears/disappears
+      if (messagesContainerRef.current) {
+        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+      }
       setIsMobile(window.innerWidth <= 768);
     };
     
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+    
+    // Initial scroll
+    handleResize();
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+    };
   }, []);
 
   const handleSend = async (e) => {
@@ -822,23 +834,6 @@ const generateMockRecipe = (ingredients) => {
             <div ref={chatEndRef} />
           </div>
         </div>
-        
-        {showSuggestions && messages.length === 1 && !isMobile && (
-          <div className="suggestion-chips">
-            <p className="suggestion-title">Try these ingredient combinations:</p>
-            <div className="chips-container">
-              {ingredientSuggestions.map((suggestion, index) => (
-                <button 
-                  key={index} 
-                  className="suggestion-chip"
-                  onClick={() => handleSuggestionClick(suggestion)}
-                >
-                  {suggestion}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
         
         <form className="input-form" onSubmit={handleSend}>
           <div className="input-container">

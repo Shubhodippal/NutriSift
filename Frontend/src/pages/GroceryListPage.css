@@ -436,6 +436,107 @@
     padding: 0.7rem 0.5rem;
     font-size: 0.9rem;
   }
+
+  /* Category dropdown in Add Item form */
+  .form-group select,
+  .form-field select {
+    width: 100%;
+    height: 46px;
+    font-size: 16px; /* Prevents iOS zoom on focus */
+    padding: 10px 32px 10px 10px;
+    background-position: right 8px center;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23444%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-size: 12px;
+    background-repeat: no-repeat;
+  }
+
+  /* Category groups in the list display */
+  .category-groups {
+    margin: 0 -10px; /* Negative margin to counter parent padding */
+    width: calc(100% + 20px);
+  }
+
+  .category-group {
+    margin-bottom: 15px;
+    border-radius: 12px;
+    background: #1a2235;
+    border: 1px solid #2d3748;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+  }
+
+  .category-group h2 {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(90deg, #1e293b 0%, #141c2b 100%);
+    color: #4f8cff;
+    padding: 12px 15px;
+    margin: 0;
+    font-size: 18px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  .category-group h2::before {
+    content: "";
+    font-size: 1.2em;
+    margin-right: 8px;
+    text-shadow: none;
+  }
+
+  .category-group h2[data-category="Pantry"]::before { content: "🥫"; }
+  .category-group h2[data-category="Dairy"]::before { content: "🥛"; }
+  .category-group h2[data-category="Meat"]::before { content: "🥩"; }
+  .category-group h2[data-category="Fruits"]::before { content: "🍎"; }
+  .category-group h2[data-category="Vegetables"]::before { content: "🥦"; }
+  .category-group h2[data-category="Other"]::before { content: "📦"; }
+
+  /* Edit modal improvements */
+  .edit-item-modal .modal-content {
+    width: 90%;
+    max-width: 340px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 15px;
+  }
+
+  .form-field {
+    margin-bottom: 15px;
+  }
+
+  .form-field select,
+  .form-field input {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #cbd5e0;
+  }
+
+  /* Form layout */
+  .add-item-form .form-row {
+    flex-direction: column;
+  }
+
+  .add-item-form .form-group {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+
+  .add-button {
+    width: 100%;
+    margin-top: 10px;
+    height: 46px;
+  }
+
+  /* Fix for the edit form modal on mobile */
+  .modal-form-container {
+    display: flex;
+    flex-direction: column;
+  }
 }
 
 .hamburger-menu-container {
@@ -810,7 +911,7 @@ li.editing {
   padding: 10px 12px;
   border: 1px solid #ced4da;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 16px;
   transition: border-color 0.2s;
 }
 
@@ -1063,64 +1164,106 @@ li.editing {
   }
 }
 
-.item-edit-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  width: 100%;
-}
+/* Mobile-specific fixes for category inputs and display */
+@media (max-width: 768px) {
+  /* Category dropdown in Add Item form */
+  .form-group select,
+  .form-field select {
+    width: 100%;
+    height: 46px;
+    font-size: 16px; /* Prevents iOS zoom on focus */
+    padding: 10px 32px 10px 10px;
+    background-position: right 8px center;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23444%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-size: 12px;
+    background-repeat: no-repeat;
+  }
 
-.edit-form-group {
-  flex: 1 1 200px;
-}
+  /* Category groups in the list display */
+  .category-groups {
+    margin: 0 -10px; /* Negative margin to counter parent padding */
+    width: calc(100% + 20px);
+  }
 
-.edit-form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-  color: #555;
-}
+  .category-group {
+    margin-bottom: 15px;
+    border-radius: 12px;
+    background: #1a2235;
+    border: 1px solid #2d3748;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+  }
 
-.edit-input {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-}
+  .category-group h2 {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(90deg, #1e293b 0%, #141c2b 100%);
+    color: #4f8cff;
+    padding: 12px 15px;
+    margin: 0;
+    font-size: 18px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
 
-.edit-actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  flex: 1 1 100%;
-}
+  .category-group h2::before {
+    content: "";
+    font-size: 1.2em;
+    margin-right: 8px;
+    text-shadow: none;
+  }
 
-.edit-save-button, .edit-cancel-button {
-  flex: 1;
-  padding: 8px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-}
+  .category-group h2[data-category="Pantry"]::before { content: "🥫"; }
+  .category-group h2[data-category="Dairy"]::before { content: "🥛"; }
+  .category-group h2[data-category="Meat"]::before { content: "🥩"; }
+  .category-group h2[data-category="Fruits"]::before { content: "🍎"; }
+  .category-group h2[data-category="Vegetables"]::before { content: "🥦"; }
+  .category-group h2[data-category="Other"]::before { content: "📦"; }
 
-.edit-save-button {
-  background-color: #4a90e2;
-  color: white;
-}
+  /* Edit modal improvements */
+  .edit-item-modal .modal-content {
+    width: 90%;
+    max-width: 340px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 15px;
+  }
 
-.edit-cancel-button {
-  background-color: #f0f0f0;
-  color: #333;
-}
+  .form-field {
+    margin-bottom: 15px;
+  }
 
-.grocery-list li.checked .item-name,
-.grocery-list li.checked .item-quantity {
-  text-decoration: line-through;
-  color: #999;
-}
+  .form-field select,
+  .form-field input {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #cbd5e0;
+  }
 
-.grocery-list li.checked .item-checkbox {
-  background-color: #2ecc71;
-  border-color: #2ecc71;
-  color: white;
+  /* Form layout */
+  .add-item-form .form-row {
+    flex-direction: column;
+  }
+
+  .add-item-form .form-group {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+
+  .add-button {
+    width: 100%;
+    margin-top: 10px;
+    height: 46px;
+  }
+
+  /* Fix for the edit form modal on mobile */
+  .modal-form-container {
+    display: flex;
+    flex-direction: column;
+  }
 }

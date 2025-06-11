@@ -2208,3 +2208,45 @@ body {
     padding: 5px 8px;
   }
 }
+
+/* Fix hamburger menu clickability on mobile */
+@media (max-width: 768px) {
+  /* Ensure the hamburger button itself is clickable */
+  .hamburger-button {
+    pointer-events: auto !important;
+    position: relative;
+    z-index: 1001;
+  }
+  
+  /* Make sure the dropdown menu receives click events */
+  .menu-dropdown {
+    pointer-events: auto !important;
+    position: absolute;
+    top: 45px;
+    right: 0;
+    z-index: 2000; /* Higher z-index to ensure it's above other elements */
+    width: 220px;
+  }
+  
+  /* Make individual menu items clickable */
+  .menu-item {
+    pointer-events: auto !important;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    position: relative; /* Create stacking context */
+    z-index: 2001; /* Even higher z-index */
+  }
+  
+  /* Fix for the mobile controls container */
+  .navbar-pro__mobile-controls {
+    pointer-events: none; /* Allow clicks to pass through the container */
+  }
+  
+  /* But make the hamburger menu container receive clicks */
+  .navbar-pro__mobile-controls .hamburger-menu-container {
+    pointer-events: auto !important;
+    position: relative;
+    z-index: 1001;
+  }
+}
