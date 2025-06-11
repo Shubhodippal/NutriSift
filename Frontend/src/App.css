@@ -1883,3 +1883,137 @@ body {
     font-size: 20px;
   }
 }
+
+/* Mobile-specific styles for section tiles */
+@media (max-width: 768px) {
+  /* Section container styles */
+  .pro-section.mobile-fixed {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  /* General styles for any tiles or cards inside sections */
+  .pro-section.mobile-fixed .feature-card,
+  .pro-section.mobile-fixed .how-card,
+  .pro-section.mobile-fixed .pricing-card,
+  .pro-section.mobile-fixed .testimonial-card,
+  .pro-section.mobile-fixed .about-card,
+  .pro-section.mobile-fixed .card,
+  .pro-section.mobile-fixed .tile,
+  .pro-section.mobile-fixed [class*="card"],
+  .pro-section.mobile-fixed [class*="tile"] {
+    /* Reset any animations */
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+    
+    /* Fix position */
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    
+    /* Ensure proper margins */
+    margin-bottom: 15px !important;
+    
+    /* Prevent floating or bouncing */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  /* Force grid layout to be more stable on mobile */
+  .pro-section.mobile-fixed .grid,
+  .pro-section.mobile-fixed .cards-container,
+  .pro-section.mobile-fixed [class*="-grid"],
+  .pro-section.mobile-fixed [class*="-container"] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 15px !important;
+  }
+  
+  /* Ensure all section content is immediately visible */
+  .pro-section.mobile-fixed * {
+    opacity: 1 !important;
+  }
+  
+  /* Fixed position for any floating elements */
+  .pro-section.mobile-fixed .floating,
+  .pro-section.mobile-fixed .animated,
+  .pro-section.mobile-fixed [class*="float"],
+  .pro-section.mobile-fixed [class*="animate"] {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* Add horizontal gaps between tiles */
+.pro-section__card {
+  /* This ensures proper spacing inside each section card container */
+  padding: 15px;
+}
+
+/* Target common tile elements */
+.feature-tile,
+.how-tile,
+.pricing-tile,
+.testimonial-tile,
+.about-tile,
+.card-item,
+.tile,
+[class*="-tile"],
+[class*="-card"]:not(.pro-section__card) {
+  /* Add margin for horizontal spacing */
+  margin: 0 10px 20px;
+  /* Ensure proper box sizing */
+  box-sizing: border-box;
+}
+
+/* Specific styling for different layouts */
+.grid-container,
+.cards-grid,
+.tiles-container,
+.flex-container,
+[class*="-grid"],
+[class*="-container"]:not(.pro-section__card) {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  padding: 10px 5px;
+}
+
+/* Mobile specific adjustments */
+@media (max-width: 768px) {
+  .pro-section.mobile-fixed .feature-tile,
+  .pro-section.mobile-fixed .how-tile,
+  .pro-section.mobile-fixed .pricing-tile,
+  .pro-section.mobile-fixed .testimonial-tile,
+  .pro-section.mobile-fixed .about-tile,
+  .pro-section.mobile-fixed .card-item,
+  .pro-section.mobile-fixed .tile,
+  .pro-section.mobile-fixed [class*="-tile"],
+  .pro-section.mobile-fixed [class*="-card"]:not(.pro-section__card) {
+    /* Slightly smaller margin on mobile but still maintain spacing */
+    margin: 0 8px 15px;
+    /* Add specific styling for tiles on mobile */
+    width: calc(100% - 16px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Ensure proper spacing in grid layouts on mobile */
+  .pro-section.mobile-fixed .grid-container,
+  .pro-section.mobile-fixed .cards-grid,
+  .pro-section.mobile-fixed .tiles-container,
+  .pro-section.mobile-fixed .flex-container,
+  .pro-section.mobile-fixed [class*="-grid"],
+  .pro-section.mobile-fixed [class*="-container"]:not(.pro-section__card) {
+    gap: 15px;
+    padding: 5px;
+  }
+  
+  /* Force proper spacing with horizontal gap even in column layout */
+  .pro-section.mobile-fixed .pro-section__card {
+    padding: 10px;
+  }
+}

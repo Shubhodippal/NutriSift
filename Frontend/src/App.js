@@ -66,22 +66,51 @@ function HomePage() {
   
   useEffect(() => {
     const handleScroll = () => {
+      // Check if we're on a mobile device
+      const isMobile = window.innerWidth <= 768;
+      
       const sections = document.querySelectorAll('.pro-section');
       
       sections.forEach(section => {
-        const sectionTop = section.getBoundingClientRect().top;
-        const triggerPoint = window.innerHeight * 0.8;
-        
-        if (sectionTop < triggerPoint) {
+        // For mobile devices, immediately make all sections appear without animation
+        if (isMobile) {
           section.classList.add('appear');
+          // Also add a special class for mobile-specific styling
+          section.classList.add('mobile-fixed');
+        } else {
+          // Regular animation behavior for desktop
+          section.classList.remove('mobile-fixed');
+          const sectionTop = section.getBoundingClientRect().top;
+          const triggerPoint = window.innerHeight * 0.8;
+          
+          if (sectionTop < triggerPoint) {
+            section.classList.add('appear');
+          }
         }
       });
     };
     
     window.addEventListener('scroll', handleScroll);
+    // Run once on mount to set initial state
     handleScroll();
     
-    return () => window.removeEventListener('scroll', handleScroll);
+    // Also add resize listener to handle orientation changes
+    window.addEventListener('resize', handleScroll);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, []);
+  
+  // Add this effect right after your existing effects
+  useEffect(() => {
+    // Apply fixed styling on component mount for mobile
+    if (window.innerWidth <= 768) {
+      document.querySelectorAll('.pro-section').forEach(section => {
+        section.classList.add('appear', 'mobile-fixed');
+      });
+    }
   }, []);
   
   return (
