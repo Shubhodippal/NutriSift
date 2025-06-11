@@ -123,16 +123,6 @@ function HomePage() {
           <span className="navbar-pro__brand">NutriSift</span>
         </div>
         
-        {/* Mobile CTA - visible only on small screens */}
-        {!isLoggedIn && (
-          <button
-            className="navbar-pro__cta navbar-pro__cta--mobile"
-            onClick={() => navigate('/login')}
-          >
-            Try Now
-          </button>
-        )}
-        
         <div className="navbar-pro__links">
           <Link 
             to="features" 

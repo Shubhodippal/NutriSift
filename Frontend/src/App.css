@@ -463,6 +463,11 @@ body {
   display: flex;
   align-items: center;
   gap: 0.7rem;
+  justify-content: flex-start; /* Already left-aligned */
+  margin-left: 6%; /* Reduced from auto to push further left */
+  margin-right: auto;
+  width: 70%; /* Reduced width */
+  padding-left: 0%;   /* This creates the right-shift effect */
 }
 
 .hero-pro__trusted-logos span {
@@ -994,33 +999,51 @@ body {
   }
 }
 
-/* Modified Mobile Navbar - Corner hamburger positioning */
+/* Mobile navbar positioning - Try Now button on left, hamburger on right */
 @media (max-width: 768px) {
   /* Position navbar for absolute child positioning */
   .navbar-pro {
     position: relative;
     padding: 0 15px;
-    height: 48px; /* Slightly increased for better touch target */
+    height: 48px;
   }
   
-  /* Position mobile controls in absolute top right corner */
+  /* Position mobile controls to span full width */
   .navbar-pro__mobile-controls {
     position: absolute;
-    top: 50%;
-    right: 15px;
-    transform: translateY(-50%);
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 8px;
     background-color: transparent;
     box-shadow: none;
-    margin: 0;
-    padding: 0;
-    z-index: 10;
+    padding: 0 15px;
+    z-index: 5;
+    pointer-events: none; /* Allow clicks to pass through to navbar elements */
   }
   
-  /* More compact hamburger button */
+  /* Make buttons clickable */
+  .navbar-pro__cta--mobile,
   .hamburger-button {
+    pointer-events: auto;
+  }
+  
+  /* Position Try Now button on the left */
+  .navbar-pro__cta--mobile {
+    margin-right: auto;
+    padding: 4px 10px;
+    font-size: 12px;
+    height: 28px;
+    position: relative;
+    left: 0;
+  }
+  
+  /* Position hamburger on the right */
+  .hamburger-button {
+    margin-left: auto;
     width: 32px;
     height: 32px;
     border-radius: 4px;
@@ -1029,53 +1052,36 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-  }
-  
-  /* Adjust hamburger icon for visibility */
-  .hamburger-icon, 
-  .hamburger-icon:before, 
-  .hamburger-icon:after {
-    width: 18px;
-  }
-  
-  /* Adjust mobile CTA button when it appears next to hamburger */
-  .navbar-pro__cta--mobile {
-    padding: 4px 8px;
-    font-size: 12px;
-    height: 28px;
-  }
-  
-  /* Dropdown positioning relative to the corner hamburger */
-  .menu-dropdown {
-    top: 45px;
+    position: relative;
     right: 0;
   }
   
-  /* Prevent logo from being covered */
+  /* Center the logo */
   .navbar-pro__logo {
-    max-width: 70%;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+  }
+  
+  /* Adjust dropdown position */
+  .menu-dropdown {
+    top: 45px;
+    right: 15px;
+    left: auto;
   }
 }
 
-/* Even smaller devices */
+/* Extra small devices */
 @media (max-width: 360px) {
-  .navbar-pro {
+  .navbar-pro__mobile-controls {
     padding: 0 10px;
   }
   
-  .navbar-pro__mobile-controls {
-    right: 10px;
-  }
-  
-  .hamburger-button {
-    width: 30px;
-    height: 30px;
-  }
-  
-  .hamburger-icon, 
-  .hamburger-icon:before, 
-  .hamburger-icon:after {
-    width: 16px;
+  .navbar-pro__cta--mobile {
+    font-size: 11px;
+    padding: 4px 8px;
   }
 }
 
@@ -2150,6 +2156,12 @@ body {
   .navbar-pro__logo {
     max-width: 70%;
   }
+
+  .hero-pro__trusted {
+    justify-content: center;
+    margin-left: auto; /* Reset to auto for mobile */
+    width: 100%;
+  }
 }
 
 /* Even smaller devices */
@@ -2171,5 +2183,28 @@ body {
   .hamburger-icon:before, 
   .hamburger-icon:after {
     width: 16px;
+  }
+}
+
+/* Mobile footer optimization */
+@media (max-width: 768px) {
+  .footer-pro {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px 15px;
+    gap: 15px;
+  }
+  
+  .footer-pro__links {
+    display: flex;
+    flex-direction: row; /* Changed from column to row */
+    justify-content: center; /* Center the links horizontally */
+    align-items: center;
+    gap: 150px; /* Increased horizontal gap between links */
+  }
+  
+  .footer-pro__links a {
+    margin: 0;
+    padding: 5px 8px;
   }
 }

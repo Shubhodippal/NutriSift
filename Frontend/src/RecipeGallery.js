@@ -135,6 +135,9 @@ function RecipeGallery() {
       autoScrollInterval.current = null;
     }
     
+    // Skip auto-scrolling on mobile devices
+    if (isMobile) return;
+    
     const isComingFromBelow = ['how', 'pricing', 'testimonials', 'about'].includes(lastSection.current);
     
     if (isInView && isScrollingUp && isComingFromBelow && !isReverseScrolling) {
@@ -167,7 +170,7 @@ function RecipeGallery() {
         autoScrollInterval.current = null;
       }
     };
-  }, [isInView, isScrollingUp, isReverseScrolling]);
+  }, [isInView, isScrollingUp, isReverseScrolling, isMobile]);
   
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -196,7 +199,8 @@ function RecipeGallery() {
   
   useEffect(() => {
     const handleWheel = (e) => {
-      if (!isInView || isReverseScrolling) return;
+      // Skip this functionality entirely on mobile devices
+      if (!isInView || isReverseScrolling || isMobile) return;
       
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
       
@@ -230,7 +234,7 @@ function RecipeGallery() {
         containerRef.current.removeEventListener('wheel', handleWheel);
       }
     };
-  }, [isInView, currentIndex, isInitialLoad, isReverseScrolling]);
+  }, [isInView, currentIndex, isInitialLoad, isReverseScrolling, isMobile]);
   
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -374,12 +378,6 @@ function RecipeGallery() {
                   <h4>{recipe.title}</h4>
                   {activeRecipe === recipe.id && !isMobile && (
                     <p className="recipe-ingredients">{recipe.ingredients}</p>
-                  )}
-                  {isMobile && (
-                    <p className="recipe-ingredients-preview">
-                      {recipe.ingredients.split(',').slice(0, 3).join(',')}
-                      {recipe.ingredients.split(',').length > 3 ? '...' : ''}
-                    </p>
                   )}
                 </div>
               </div>
