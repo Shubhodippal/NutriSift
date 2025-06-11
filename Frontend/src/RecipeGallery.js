@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ImageCarousel from './components/ImageCarousel';
 
 const recipeExamples = [
   { 
@@ -275,6 +276,13 @@ function RecipeGallery() {
     return () => window.removeEventListener('resize', handleResize);
   }, [currentIndex]);
   
+  const recipeImages = [
+    "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=600&q=80",
+    // Add more recipe images
+  ];
+
   return (
     <div className="gallery-section" ref={containerRef}>
       <h3 className="gallery-title">Explore Our Recipes</h3>
@@ -332,6 +340,15 @@ function RecipeGallery() {
         >
           →
         </button>
+      </div>
+
+      <div className="recipe-gallery">
+        <h3>Popular Recipes</h3>
+        <ImageCarousel 
+          images={recipeImages} 
+          altText="Recipe" 
+        />
+        {/* Rest of your gallery content */}
       </div>
     </div>
   );

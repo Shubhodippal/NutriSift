@@ -1,23 +1,22 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-function Particles({ count = 1000 }) {
+function Particles({ count = 1000, isMobile = false }) {
   const mesh = useRef();
   const light = useRef();
   
-  // Colors
-  const particleColor = useMemo(() => new THREE.Color('#7eafff'), []); 
-  const highlightColor = useMemo(() => new THREE.Color('#ffcb75'), []);
+  // Colors - lighter and more transparent for mobile
+  const particleColor = useMemo(() => new THREE.Color(isMobile ? '#a0c2ff' : '#7eafff'), [isMobile]);
+  const highlightColor = useMemo(() => new THREE.Color(isMobile ? '#ffd899' : '#ffcb75'), [isMobile]);
   
-  // Generate particles
+  // Generate particles - this shouldn't change after initial creation
   const particles = useMemo(() => {
     const temp = [];
     for (let i = 0; i < count; i++) {
       const time = Math.random() * 100;
       const factor = 20 + Math.random() * 100;
-      // Reduce speed by 3x for slower animation
-      const speed = (0.01 + Math.random() / 200) / 3;
+      const speed = (0.01 + Math.random() / 200) / (isMobile ? 2.5 : 3);
       const x = Math.random() * 2000 - 1000;
       const y = Math.random() * 2000 - 1000;
       const z = Math.random() * 2000 - 1000;
@@ -25,10 +24,10 @@ function Particles({ count = 1000 }) {
       temp.push({ time, factor, speed, x, y, z });
     }
     return temp;
-  }, [count]);
+  }, [count]); // Only depends on count, NOT isMobile to prevent recreation
   
-  // Create positions and colors for particles
-  const [positions, colors] = useMemo(() => {
+  // Create buffers - keep these stable
+  const buffers = useMemo(() => {
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
     
@@ -46,18 +45,27 @@ function Particles({ count = 1000 }) {
       colors[i3 + 2] = color.b;
     }
     
-    return [positions, colors];
+    return { positions, colors };
   }, [count, particles, particleColor, highlightColor]);
   
-  // Animation - SLOWER movement
+  // Animation - store local positions array to avoid buffer resizing issues
+  const positionArray = useRef(new Float32Array(buffers.positions));
+  const frameCount = useRef(0);
+  
   useFrame(() => {
-    const positions = mesh.current.geometry.attributes.position.array;
+    if (!mesh.current) return;
+    
+    // For mobile, update less frequently but never stop completely
+    if (isMobile && frameCount.current++ % 3 !== 0) return;
+    
+    // Work with local copy of positions
+    const positions = positionArray.current;
     
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;
       const { time, factor, speed, x, y, z } = particles[i];
       
-      // Slow down oscillation factors
+      // Gentle movement even on mobile
       const a = Math.cos(time) + Math.sin(time * 0.4) / 10; 
       const b = Math.sin(time) + Math.cos(time * 0.7) / 10; 
       
@@ -68,41 +76,50 @@ function Particles({ count = 1000 }) {
       particles[i].time += speed;
     }
     
+    // Copy local positions to actual buffer
+    mesh.current.geometry.attributes.position.array.set(positions);
     mesh.current.geometry.attributes.position.needsUpdate = true;
     
-    // Slow down light movement
-    light.current.position.set(
-      Math.sin(Date.now() / 25000) * 500, 
-      Math.cos(Date.now() / 25000) * 500, 
-      Math.sin(Date.now() / 20000) * 500  
-    );
+    // Slower light movement on mobile but still moving
+    if (light.current) {
+      light.current.position.set(
+        Math.sin(Date.now() / (isMobile ? 28000 : 25000)) * 500, 
+        Math.cos(Date.now() / (isMobile ? 28000 : 25000)) * 500, 
+        Math.sin(Date.now() / (isMobile ? 23000 : 20000)) * 500  
+      );
+    }
   });
   
   return (
     <>
-      <pointLight ref={light} distance={1000} intensity={3} color="#7eafff" />
+      <pointLight 
+        ref={light} 
+        distance={1000} 
+        intensity={isMobile ? 1.8 : 3} 
+        color={isMobile ? "#a0c2ff" : "#7eafff"} 
+      />
       <points ref={mesh}>
         <bufferGeometry>
           <bufferAttribute
             attach="attributes-position"
-            count={positions.length / 3}
-            array={positions}
+            count={buffers.positions.length / 3}
+            array={buffers.positions}
             itemSize={3}
           />
           <bufferAttribute
             attach="attributes-color"
-            count={colors.length / 3}
-            array={colors}
+            count={buffers.colors.length / 3}
+            array={buffers.colors}
             itemSize={3}
           />
         </bufferGeometry>
         <pointsMaterial
-          size={4.5}
+          size={isMobile ? 3.5 : 4.5}
           sizeAttenuation={true}
           depthWrite={false}
           vertexColors
           transparent
-          opacity={0.7}
+          opacity={isMobile ? 0.5 : 0.7}
           blending={THREE.AdditiveBlending}
         />
       </points>
@@ -111,6 +128,24 @@ function Particles({ count = 1000 }) {
 }
 
 function AnimatedBackground() {
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Detect mobile devices once at component mount
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  // Use a fixed count that doesn't change after mount to prevent buffer issues
+  const particleCount = useMemo(() => {
+    return window.innerWidth <= 768 ? 600 : 1800;
+  }, []);
+  
   return (
     <div className="threejs-background">
       <Canvas
@@ -124,9 +159,13 @@ function AnimatedBackground() {
           pointerEvents: 'none',
           zIndex: 0,
         }}
+        frameloop="always"
       >
         <color attach="background" args={['#111827']} />
-        <Particles count={1800} /> {/* Reduced particle count */}
+        <Particles 
+          count={particleCount}
+          isMobile={isMobile} 
+        />
       </Canvas>
     </div>
   );

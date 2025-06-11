@@ -994,17 +994,88 @@ body {
   }
 }
 
-/* Additional adjustment for very small screens */
-@media (max-width: 360px) {
+/* Modified Mobile Navbar - Corner hamburger positioning */
+@media (max-width: 768px) {
+  /* Position navbar for absolute child positioning */
+  .navbar-pro {
+    position: relative;
+    padding: 0 15px;
+    height: 48px; /* Slightly increased for better touch target */
+  }
+  
+  /* Position mobile controls in absolute top right corner */
   .navbar-pro__mobile-controls {
-    top: 10px;
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: transparent;
+    box-shadow: none;
+    margin: 0;
+    padding: 0;
+    z-index: 10;
+  }
+  
+  /* More compact hamburger button */
+  .hamburger-button {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    background-color: rgba(26, 32, 53, 0.8);
+    border: 1px solid rgba(79, 140, 255, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* Adjust hamburger icon for visibility */
+  .hamburger-icon, 
+  .hamburger-icon:before, 
+  .hamburger-icon:after {
+    width: 18px;
+  }
+  
+  /* Adjust mobile CTA button when it appears next to hamburger */
+  .navbar-pro__cta--mobile {
+    padding: 4px 8px;
+    font-size: 12px;
+    height: 28px;
+  }
+  
+  /* Dropdown positioning relative to the corner hamburger */
+  .menu-dropdown {
+    top: 45px;
+    right: 0;
+  }
+  
+  /* Prevent logo from being covered */
+  .navbar-pro__logo {
+    max-width: 70%;
+  }
+}
+
+/* Even smaller devices */
+@media (max-width: 360px) {
+  .navbar-pro {
+    padding: 0 10px;
+  }
+  
+  .navbar-pro__mobile-controls {
     right: 10px;
   }
   
-  .hamburger-button, 
-  .navbar-pro__logout--mobile {
-    width: 36px;
-    height: 36px;
+  .hamburger-button {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .hamburger-icon, 
+  .hamburger-icon:before, 
+  .hamburger-icon:after {
+    width: 16px;
   }
 }
 
@@ -2015,5 +2086,90 @@ body {
   /* Force proper spacing with horizontal gap even in column layout */
   .pro-section.mobile-fixed .pro-section__card {
     padding: 10px;
+  }
+}
+
+/* Modified Mobile Navbar - Corner hamburger positioning */
+@media (max-width: 768px) {
+  /* Position navbar for absolute child positioning */
+  .navbar-pro {
+    position: relative;
+    padding: 0 15px;
+    height: 48px; /* Slightly increased for better touch target */
+  }
+  
+  /* Position mobile controls in absolute top right corner */
+  .navbar-pro__mobile-controls {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: transparent;
+    box-shadow: none;
+    margin: 0;
+    padding: 0;
+    z-index: 10;
+  }
+  
+  /* More compact hamburger button */
+  .hamburger-button {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    background-color: rgba(26, 32, 53, 0.8);
+    border: 1px solid rgba(79, 140, 255, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* Adjust hamburger icon for visibility */
+  .hamburger-icon, 
+  .hamburger-icon:before, 
+  .hamburger-icon:after {
+    width: 18px;
+  }
+  
+  /* Adjust mobile CTA button when it appears next to hamburger */
+  .navbar-pro__cta--mobile {
+    padding: 4px 8px;
+    font-size: 12px;
+    height: 28px;
+  }
+  
+  /* Dropdown positioning relative to the corner hamburger */
+  .menu-dropdown {
+    top: 45px;
+    right: 0;
+  }
+  
+  /* Prevent logo from being covered */
+  .navbar-pro__logo {
+    max-width: 70%;
+  }
+}
+
+/* Even smaller devices */
+@media (max-width: 360px) {
+  .navbar-pro {
+    padding: 0 10px;
+  }
+  
+  .navbar-pro__mobile-controls {
+    right: 10px;
+  }
+  
+  .hamburger-button {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .hamburger-icon, 
+  .hamburger-icon:before, 
+  .hamburger-icon:after {
+    width: 16px;
   }
 }

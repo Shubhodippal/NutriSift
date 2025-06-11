@@ -201,15 +201,17 @@ function HomePage() {
         </div>
         
         <div className="navbar-pro__mobile-controls">
-          {isLoggedIn && (
+          {/* Only show Try Now button for non-logged in users on mobile */}
+          {!isLoggedIn && (
             <button
-              className="navbar-pro__cta navbar-pro__logout navbar-pro__logout--mobile"
-              onClick={handleLogout}
+              className="navbar-pro__cta navbar-pro__cta--mobile"
+              onClick={() => navigate('/login')}
             >
-              <span className="logout-icon">🔓</span>
+              Try Now
             </button>
           )}
           
+          {/* Hamburger menu (now the only place for logout on mobile) */}
           <HamburgerMenu 
             isLoggedIn={isLoggedIn}
             onLogout={handleLogout}
