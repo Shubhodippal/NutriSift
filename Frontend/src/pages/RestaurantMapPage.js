@@ -63,7 +63,37 @@ function RestaurantMapPage() {
   const [accuracyCircleVisible, setAccuracyCircleVisible] = useState(true);
   const watchPositionRef = useRef(null);
   const [showLocationWarning, setShowLocationWarning] = useState(true);
+  const [usingFallbackLocation, setUsingFallbackLocation] = useState(false);
   
+  const getLocationFromIP = async () => {
+    try {
+      setLocationError("Geolocation failed. Getting approximate location from IP address...");
+      
+      // Using free IP geolocation API
+      const response = await fetch("https://ipapi.co/json/");
+      const data = await response.json();
+      
+      if (data.latitude && data.longitude) {
+        console.log(`📍 IP-based location: ${data.latitude},${data.longitude}`);
+        setUserLocation([data.latitude, data.longitude]);
+        setLocationAccuracy(10000); // IP geolocation is typically accurate to around 10km
+        setUsingFallbackLocation(true);
+        setLocationError("Using approximate location based on your IP address. For better accuracy, enable location services.");
+      } else {
+        throw new Error("Could not determine location from IP");
+      }
+      
+      setMapReady(true);
+      setTimeout(() => setIsLoading(false), 500);
+    } catch (error) {
+      console.error("IP geolocation error:", error);
+      setLocationError("Could not determine your location. Please enter it manually.");
+      setShowManualEntry(true);
+      setMapReady(true);
+      setTimeout(() => setIsLoading(false), 500);
+    }
+  };
+
   useEffect(() => {
     setIsLoading(true);
     setLocationError("Getting your precise location...");
@@ -91,10 +121,10 @@ function RestaurantMapPage() {
         },
         (error) => {
           console.error("High-accuracy geolocation error:", error);
-          setLocationError("Couldn't get precise location. Please enter your location manually below.");
-          setShowManualEntry(true);
-          setMapReady(true);
-          setIsLoading(false);
+          setLocationError("Couldn't get precise location. Trying IP-based location...");
+          
+          // Fall back to IP-based geolocation
+          getLocationFromIP();
         },
         { 
           enableHighAccuracy: true,
@@ -138,12 +168,9 @@ function RestaurantMapPage() {
       // Try to get location directly with high accuracy
       getHighAccuracyLocation();
     } else {
-      // Browser doesn't support geolocation
-      setLocationError("Your browser doesn't support location services. Please enter your location manually.");
-      setShowManualEntry(true);
-      setUserLocation([22.5726, 88.3639]); // Default location
-      setMapReady(true);
-      setIsLoading(false);
+      // Browser doesn't support geolocation, fall back to IP
+      setLocationError("Your browser doesn't support location services. Trying IP-based location...");
+      getLocationFromIP();
     }
     
     return () => {
@@ -286,6 +313,7 @@ function RestaurantMapPage() {
   const refreshLocation = () => {
     setIsLoading(true);
     setLocationError("Obtaining precise location...");
+    setUsingFallbackLocation(false);
     
     if (navigator.geolocation) {
       const watchId = navigator.geolocation.watchPosition(
@@ -340,21 +368,22 @@ function RestaurantMapPage() {
           let errorMessage;
           switch(error.code) {
             case error.PERMISSION_DENIED:
-              errorMessage = "Location access denied. Please check browser settings.";
+              errorMessage = "Location access denied. Falling back to IP-based location.";
               break;
             case error.POSITION_UNAVAILABLE:
-              errorMessage = "Your location is currently unavailable.";
+              errorMessage = "Your location is currently unavailable. Using IP-based location.";
               break;
             case error.TIMEOUT:
-              errorMessage = "Location request timed out. Using previous location.";
+              errorMessage = "Location request timed out. Using IP-based location.";
               break;
             default:
-              errorMessage = `Error getting location: ${error.message}`;
+              errorMessage = `Error getting location: ${error.message}. Using IP-based location.`;
           }
           
           setLocationError(errorMessage);
-          setMapReady(true);
-          setTimeout(() => setIsLoading(false), 500);
+          
+          // Fall back to IP-based geolocation
+          getLocationFromIP();
         },
         { 
           enableHighAccuracy: true, 
@@ -365,9 +394,8 @@ function RestaurantMapPage() {
       
       locationWatchId.current = watchId;
     } else {
-      setLocationError("Geolocation is not supported by your browser.");
-      setMapReady(true);
-      setTimeout(() => setIsLoading(false), 500);
+      setLocationError("Geolocation is not supported by your browser. Using IP-based location.");
+      getLocationFromIP();
     }
   };
   
@@ -525,10 +553,11 @@ function RestaurantMapPage() {
           {locationAccuracy && (
             <div className="location-accuracy">
               <span className="accuracy-icon">📍</span>
-              <span>Accuracy: {locationAccuracy < 1000 ? 
-                `${Math.round(locationAccuracy)} meters` : 
-                `${(locationAccuracy / 1000).toFixed(1)} km`}
-
+              <span>
+                {usingFallbackLocation ? "Using approximate IP location" : "Accuracy"}: 
+                {locationAccuracy < 1000 ? 
+                  ` ${Math.round(locationAccuracy)} meters` : 
+                  ` ${(locationAccuracy / 1000).toFixed(1)} km`}
               </span>
             </div>
           )}

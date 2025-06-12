@@ -1,0 +1,166 @@
+.legal-page-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+  line-height: 1.6;
+  background-color: #ffffff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  margin-top: 20px;
+  margin-bottom: 40px;
+  position: relative; /* Add this to contain the absolute positioned button */
+}
+
+.legal-page-header {
+  text-align: center;
+  margin-bottom: 40px;
+  border-bottom: 1px solid #eaeaea;
+  padding-bottom: 20px;
+}
+
+.legal-page-header h1 {
+  font-size: 32px;
+  margin-bottom: 10px;
+  color: #1a73e8; /* Brighter blue color */
+}
+
+.legal-effective-date {
+  font-size: 14px;
+  color: #555; /* Darker than before for better readability */
+  margin-bottom: 20px;
+}
+
+.back-button {
+  background-color: #1a73e8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: absolute; /* Position absolutely */
+  top: 15px; /* Distance from top */
+  right: 20px; /* Distance from right */
+  z-index: 10; /* Ensure it's above other content */
+}
+
+.back-button:hover {
+  background-color: #1557b0;
+}
+
+.legal-content {
+  font-size: 16px;
+}
+
+.legal-content section {
+  margin-bottom: 30px;
+  background-color: #f9f9f9;
+  padding: 15px 20px;
+  border-radius: 6px;
+}
+
+.legal-content h2 {
+  font-size: 24px;
+  margin-bottom: 15px;
+  color: #1a73e8;
+  border-bottom: 1px solid #eaeaea;
+  padding-bottom: 10px;
+}
+
+.legal-content h3 {
+  font-size: 20px;
+  margin-bottom: 10px;
+  color: #2c5aa0;
+}
+
+.legal-content p {
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.legal-content ul {
+  margin-bottom: 15px;
+  padding-left: 25px;
+}
+
+.legal-content li {
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.open-source-notice {
+  margin-bottom: 30px;
+  background-color: #e8f4fd;
+  padding: 20px 25px;
+  border-radius: 8px;
+  border-left: 4px solid #1a73e8;
+}
+
+.open-source-notice h2 {
+  color: #1a73e8;
+  margin-bottom: 15px;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.open-source-notice p {
+  margin-bottom: 15px;
+}
+
+.open-source-notice a {
+  color: #1a73e8;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.open-source-notice a:hover {
+  text-decoration: underline;
+}
+
+.github-link {
+  margin-top: 15px;
+  font-size: 16px;
+  background-color: #f0f6ff;
+  padding: 10px 15px;
+  border-radius: 5px;
+  border-left: 3px solid #1a73e8;
+}
+
+.github-link a {
+  color: #1a73e8;
+  font-weight: 500;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.github-link a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .legal-page-container {
+    padding: 20px 15px;
+    margin-top: 10px;
+  }
+  
+  .legal-page-header h1 {
+    font-size: 28px;
+  }
+  
+  .legal-content h2 {
+    font-size: 22px;
+  }
+  
+  .legal-content h3 {
+    font-size: 18px;
+  }
+}
+
+/* Add body background in case it's affecting overall appearance */
+body {
+  background-color: #f5f5f5;
+}

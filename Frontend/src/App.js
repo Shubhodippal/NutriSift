@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
-import { Link } from 'react-scroll'; 
+import { HashRouter as Router, Routes, Route, useNavigate, Navigate, Link as RouterLink } from 'react-router-dom';
+import { Link as ScrollLink } from 'react-scroll'; 
 import './App.css';
 import FeaturesSection from './FeaturesSection';
 import HowItWorksSection from './HowItWorksSection';
@@ -17,6 +17,8 @@ import RecipeGallery from './RecipeGallery';
 import RestaurantMapPage from './pages/RestaurantMapPage'; 
 import HamburgerMenu from './components/HamburgerMenu';
 import DiscoverRecipePage from './pages/DiscoverRecipePage'; 
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsAndConditionsPage from './pages/TermsAndConditionsPage';
 
 // Protected route component
 const ProtectedRoute = ({ element }) => {
@@ -124,7 +126,7 @@ function HomePage() {
         </div>
         
         <div className="navbar-pro__links">
-          <Link 
+          <ScrollLink 
             to="features" 
             smooth={true} 
             duration={500} 
@@ -132,8 +134,8 @@ function HomePage() {
             className="navbar-link"
           >
             Features
-          </Link>
-          <Link 
+          </ScrollLink>
+          <ScrollLink 
             to="how" 
             smooth={true} 
             duration={500} 
@@ -141,8 +143,8 @@ function HomePage() {
             className="navbar-link"
           >
             How It Works
-          </Link>
-          <Link 
+          </ScrollLink>
+          <ScrollLink 
             to="pricing" 
             smooth={true} 
             duration={500} 
@@ -150,8 +152,8 @@ function HomePage() {
             className="navbar-link"
           >
             Pricing
-          </Link>
-          <Link 
+          </ScrollLink>
+          <ScrollLink 
             to="testimonials" 
             smooth={true} 
             duration={500} 
@@ -159,8 +161,8 @@ function HomePage() {
             className="navbar-link"
           >
             Testimonials
-          </Link>
-          <Link 
+          </ScrollLink>
+          <ScrollLink 
             to="about" 
             smooth={true} 
             duration={500} 
@@ -168,7 +170,7 @@ function HomePage() {
             className="navbar-link"
           >
             About
-          </Link>
+          </ScrollLink>
           
           {isLoggedIn && (
             <button
@@ -301,8 +303,8 @@ function HomePage() {
           &copy; {new Date().getFullYear()} NutriSift &mdash; Empowering Smart Kitchens
         </div>
         <div className="footer-pro__links">
-          <a href="#privacy">Privacy Policy</a>
-          <a href="#terms">Terms</a>
+          <RouterLink to="/privacy-policy">Privacy Policy</RouterLink>
+          <RouterLink to="/terms-and-conditions">Terms</RouterLink>
         </div>
       </footer>
     </div>
@@ -315,6 +317,10 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginSignup />} />
+        
+        {/* Legal pages */}
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
         
         {/* Protected routes */}
         <Route path="/chat" element={<ProtectedRoute element={<RecipeChatPage />} />} />

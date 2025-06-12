@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import './LoginSignup.css';
 import successSound from '../assets/success.mp3'; 
 import AnimatedBackground from '../components/AnimatedBackground'; 
@@ -25,6 +25,7 @@ function LoginSignup({ onLogin }) {
   const [showPasswordPolicy, setShowPasswordPolicy] = useState(false);
   const [formMode, setFormMode] = useState('login'); 
   const [formSuccess, setFormSuccess] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const navigate = useNavigate();
   
   const securityQuestions = [
@@ -284,6 +285,11 @@ function LoginSignup({ onLogin }) {
 
   const handleSignup = async (e) => {
     e.preventDefault();
+    
+    if (!termsAccepted) {
+      setFormError("You must accept the Terms and Conditions to sign up.");
+      return;
+    }
     
     const validation = validatePassword(formData.password);
     if (!validation.valid) {
@@ -658,6 +664,22 @@ function LoginSignup({ onLogin }) {
               </>
             )}
             
+            {formMode === 'signup' && (
+              <div className="terms-container">
+                <label className="terms-label">
+                  <input
+                    type="checkbox"
+                    checked={termsAccepted}
+                    onChange={() => setTermsAccepted(!termsAccepted)}
+                    className="terms-checkbox"
+                  />
+                  <span className="terms-text">
+                    I accept the <Link to="/terms-and-conditions" target="_blank" className="terms-link">Terms and Conditions</Link>
+                  </span>
+                </label>
+              </div>
+            )}
+
             {formSuccess && (
               <div className="form-success">
                 <span className="success-icon">✅</span>
@@ -736,7 +758,7 @@ function LoginSignup({ onLogin }) {
               <button 
                 type="submit" 
                 className="submit-button"
-                disabled={formMode === 'signup' && !passwordValid}
+                disabled={(formMode === 'signup' && (!passwordValid || !termsAccepted))}
               >
                 {formMode === 'login' ? 'Login' : 'Sign Up'}
               </button>

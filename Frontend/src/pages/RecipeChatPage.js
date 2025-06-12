@@ -54,7 +54,7 @@ const [messages, setMessages] = useState(() => {
 });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(true);
+  //const [showSuggestions, setShowSuggestions] = useState(true);
   const [savedRecipes, setSavedRecipes] = useState(() => {
     const saved = localStorage.getItem('savedRecipes');
     return saved ? JSON.parse(saved) : [];
@@ -67,13 +67,6 @@ const [messages, setMessages] = useState(() => {
   const inputRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const navigate = useNavigate();
-
-  const ingredientSuggestions = [
-    "chicken, garlic, lemon, potatoes",
-    "pasta, tomatoes, basil, olive oil",
-    "rice, beans, corn, avocado",
-    "tofu, broccoli, ginger, soy sauce"
-  ];
 
   useEffect(() => {
     localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
@@ -277,152 +270,92 @@ const generateMockRecipe = (ingredients) => {
     }
   };
 
-  const handleSuggestionClick = (suggestion) => {
-    setInput(suggestion);
-    setShowSuggestions(false);
-    inputRef.current?.focus();
-  };
-
-  const saveRecipeToDatabase = async (recipe) => {
+  const handleSaveRecipe = async (recipe) => {
     try {
       const userId = localStorage.getItem('userId');
       const userEmail = localStorage.getItem('userEmail');
       
       if (!userId) {
-        throw new Error('User not logged in');
+        setErrorMessage('You must be logged in to save recipes');
+        setTimeout(() => setErrorMessage(''), 5000);
+        return false;
       }
       
-      const ingredientsMatch = recipe.text.match(/## Ingredients\n([\s\S]*?)(?=## Instructions)/);
-      const stepsMatch = recipe.text.match(/## Instructions\n([\s\S]*?)(?=##|$)/);
-      
-      const ingredients = ingredientsMatch 
-        ? ingredientsMatch[1].trim() 
-        : '';
-      const steps = stepsMatch 
-        ? stepsMatch[1].trim() 
-        : '';
-      
-      let recipeName = 'Untitled Recipe';
-      
-      const titleMatch = recipe.text.match(/# (.*?)(?:\n|$)/);
-      if (titleMatch && titleMatch[1] && titleMatch[1].trim()) {
-        recipeName = titleMatch[1].trim();
-      } 
-      else if (recipe.title && typeof recipe.title === 'string' && recipe.title.trim()) {
-        recipeName = recipe.title.trim();
-      }
-      else if (recipe.recipeData && recipe.recipeData.title) {
-        recipeName = recipe.recipeData.title.trim();
+      if (recipe.sender === "bot" && recipe.recipeData) {
+        recipe = recipe.recipeData;
       }
       
-      let calories, diet, origin, course, cuisine;
+      const ingredients = Array.isArray(recipe.ingredients) 
+        ? recipe.ingredients.join('\n') 
+        : (recipe.ingredients || 'No ingredients specified');
+        
+      const steps = Array.isArray(recipe.steps) 
+        ? recipe.steps.join('\n') 
+        : (recipe.steps || 'No steps specified');
       
-      if (recipe.recipeData) {
-        calories = recipe.recipeData.calories;
-        diet = recipe.recipeData.diet;
-        origin = recipe.recipeData.origin;
-        course = recipe.recipeData.course;
-        cuisine = recipe.recipeData.cuisine;
-      }
-      
-      if (!calories) {
-        const caloriesMatch = recipe.text.match(/Calories: ([^\n]*)/);
-        calories = caloriesMatch ? caloriesMatch[1].trim() : '';
-      }
-      
-      if (!diet) {
-        const dietMatch = recipe.text.match(/Diet: ([^\n]*)/);
-        diet = dietMatch ? dietMatch[1].trim() : '';
-      }
-      
-      if (!origin) {
-        const originMatch = recipe.text.match(/Origin: ([^\n]*)/);
-        origin = originMatch ? originMatch[1].trim() : '';
-      }
-      
-      if (!course) {
-        const courseMatch = recipe.text.match(/Course: ([^\n]*)/);
-        course = courseMatch ? courseMatch[1].trim() : '';
-      }
-      
-      if (!cuisine) {
-        const cuisineMatch = recipe.text.match(/Cuisine: ([^\n]*)/);
-        cuisine = cuisineMatch ? cuisineMatch[1].trim() : '';
-      }
-      
-      console.log('Saving recipe with name:', recipeName);
+      const title = recipe.title || 'Untitled Recipe';
+      const calories = recipe.calories ? recipe.calories.toString() : '';
+      const diet = recipe.diet || '';
+      const origin = recipe.origin || '';
+      const course = recipe.course || '';
+      const cuisine = recipe.cuisine || '';
       
       const recipeData = {
         uid: userId,
-        mail: userEmail , 
-        prompt: recipe.userInput || input || '', 
-        recipeName: recipeName,
-        ingredients: ingredients || 'No ingredients specified',
-        steps: steps || 'No steps specified',
-        calories: calories || '',
-        diet: diet || '',
-        origin: origin || '',
-        course: course || '',
-        cuisine: cuisine || ''
+        mail: userEmail || '',
+        recipeName: title,
+        ingredients: ingredients,
+        steps: steps,
+        calories: calories,
+        diet: diet,
+        origin: origin,
+        course: course,
+        cuisine: cuisine,
+        prompt: recipe.userInput || input || 'Chef Assistant Recipe'
       };
+      
+      console.log('Saving recipe data:', recipeData);
       
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/recipes/save`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(recipeData)
       });
       
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server error:', errorText);
-        throw new Error(`Failed to save recipe: ${response.status} ${errorText}`);
+        throw new Error(`Failed to save recipe: ${response.status}`);
       }
       
-      const contentType = response.headers.get("content-type");
-      let result;
+      const savedRecipes = JSON.parse(localStorage.getItem('savedRecipes') || '[]');
       
-      if (contentType && contentType.includes("application/json")) {
-        result = await response.json();
+      if (savedRecipes.some(r => r.id === recipe.id)) {
+        setSuccessMessage('Recipe already saved');
       } else {
-        const text = await response.text();
-        result = { message: text, success: true };
+        const stepsMarkdown = Array.isArray(recipe.steps)
+          ? recipe.steps.map((step, index) => `${index + 1}. ${step}`).join('\n')
+          : typeof recipe.steps === 'string'
+            ? recipe.steps.split('\n').map((step, index) => `${index + 1}. ${step.trim()}`).join('\n')
+            : 'No instructions available';
+        
+        savedRecipes.push({
+          id: recipe.id,
+          title: recipe.title,
+          text: `# ${recipe.title}\n\n**Nutritional & Recipe Information:**\n- Calories: ${recipe.calories}\n- Diet: ${recipe.diet}\n- Origin: ${recipe.origin}\n- Course: ${recipe.course}\n- Cuisine: ${recipe.cuisine}\n\n## Ingredients\n${recipe.ingredients.map(i => `- ${i}`).join('\n')}\n\n## Instructions\n${stepsMarkdown}`,
+          savedAt: new Date().toISOString()
+        });
+        localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
+        
+        setSuccessMessage('Recipe saved successfully!');
       }
       
-      console.log('Save successful:', result);
-      return result;
-    } catch (err) {
-      console.error('Error saving recipe to database:', err);
-      throw err;
-    }
-  };
-
-  const handleSaveRecipe = async (message) => {
-    try {
-      setSavingRecipe(true);
+      setTimeout(() => setSuccessMessage(''), 5000);
       
-      const recipe = {
-        id: Date.now().toString(),
-        text: message.text,
-        userInput: messages.find(m => m.sender === "user")?.text || '',
-        savedAt: new Date().toISOString()
-      };
-      
-      const savedRecipe = await saveRecipeToDatabase(recipe);
-      
-      if (savedRecipe && savedRecipe.id) {
-        recipe.id = savedRecipe.id;
-      }
-      
-      setSavedRecipes(prev => [...prev, recipe]);
-      
-      setSuccessMessage(savedRecipe.message || 'Recipe saved successfully!');
-      setTimeout(() => setSuccessMessage(''), 3000);
+      return true;
     } catch (error) {
       console.error('Error saving recipe:', error);
-      setErrorMessage('Failed to save recipe. Please try again.');
-      setTimeout(() => setErrorMessage(''), 5000);
-    } finally {
-      setSavingRecipe(false);
+      return false;
     }
   };
 
