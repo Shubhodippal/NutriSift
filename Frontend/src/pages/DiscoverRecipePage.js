@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './DiscoverRecipePage.css';
 import HamburgerMenu from '../components/HamburgerMenu';
@@ -77,6 +77,17 @@ function DiscoverRecipePage() {
     { value: 'comfort', label: 'Comfort Food' },
     { value: 'healthy', label: 'Healthy' }
   ];
+
+  const decodeJWT = (token) => {
+    try {
+      const [headerEncoded, payloadEncoded] = token.split('.');
+      const payload = JSON.parse(atob(payloadEncoded));
+      return payload;
+    } catch (err) {
+      console.error("Invalid JWT token:", err);
+      return null;
+    }
+  };
   
   const fetchRecipes = async () => {
     setLoading(true);
@@ -84,13 +95,24 @@ function DiscoverRecipePage() {
     setHasSearched(true);
     
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('You must be logged in to search for recipes');
+        setTimeout(() => setError(null), 5000);
+        setLoading(false);
+        return;
+      }
+      const decoded = decodeJWT(token);
+
       const params = {
         query: searchQuery.trim(),  
         calorieRange,
         diet: diet === 'any' ? null : diet,
         origin: origin === 'any' ? null : origin,
         course: course === 'any' ? null : course,
-        cuisine: cuisine === 'any' ? null : cuisine
+        cuisine: cuisine === 'any' ? null : cuisine,
+        uid: decoded.userId || null,
+        mail: decoded.email || null
       };
       
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}${process.env.REACT_APP_RECIPE_SEARCH_ENDPOINT}`, {
@@ -135,6 +157,21 @@ function DiscoverRecipePage() {
       }));
       
       setRecipes(formattedRecipes);
+      
+      // Save recipes to local storage with search parameters
+      localStorage.setItem('cachedRecipes', JSON.stringify({
+        recipes: formattedRecipes,
+        searchParams: {
+          query: searchQuery.trim(),
+          calorieRange,
+          diet,
+          origin,
+          course,
+          cuisine
+        },
+        timestamp: new Date().toISOString()
+      }));
+      
     } catch (error) {
       console.error('Error fetching recipes:', error);
       const errorMessage = error.response?.data?.message 
@@ -149,9 +186,12 @@ function DiscoverRecipePage() {
   
   const handleSaveRecipe = async (recipe) => {
     try {
-      const userId = localStorage.getItem('userId');
-      const userEmail = localStorage.getItem('userEmail');
+      const token = localStorage.getItem('token');
+      const decoded = decodeJWT(token);
       
+      const userId = decoded.userId;
+      const userEmail = decoded.email;
+
       if (!userId) {
         setError('You must be logged in to save recipes');
         setTimeout(() => setError(null), 5000); 
@@ -176,7 +216,7 @@ function DiscoverRecipePage() {
         prompt: "Discovered via recipe search"
       };
       
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/recipes/save`, {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/recipe/save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -370,8 +410,13 @@ function DiscoverRecipePage() {
     setLoading(true);
     
     try {
-      const userId = localStorage.getItem('userId');
-      const userEmail = localStorage.getItem('userEmail');
+      const token = localStorage.getItem('token');
+      const decoded = decodeJWT(token);
+      
+      const userId = decoded.userId;
+      const userEmail = decoded.email;
+
+      //const userEmail = localStorage.getItem('userEmail');
       
       if (!userId || !userEmail) {
         setError('You must be logged in to add items to your grocery list');
@@ -618,11 +663,47 @@ const extractSteps = (recipe) => {
   return [];
 };
   
+  // Load cached recipes on component mount
+  useEffect(() => {
+    const cachedData = localStorage.getItem('cachedRecipes');
+    if (cachedData) {
+      try {
+        const parsed = JSON.parse(cachedData);
+        setRecipes(parsed.recipes);
+        
+        // Optionally restore search parameters
+        if (parsed.searchParams) {
+          setSearchQuery(parsed.searchParams.query || '');
+          setCalorieRange(parsed.searchParams.calorieRange || 'any');
+          setDiet(parsed.searchParams.diet || 'any');
+          setOrigin(parsed.searchParams.origin || 'any');
+          setCourse(parsed.searchParams.course || 'any');
+          setCuisine(parsed.searchParams.cuisine || 'any');
+        }
+        
+        setHasSearched(true);
+        setSuccessMessage('Loaded recipes from cache');
+        setTimeout(() => setSuccessMessage(''), 3000);
+      } catch (err) {
+        console.error('Error parsing cached recipes:', err);
+      }
+    }
+  }, []);
+  
+  const clearRecipeCache = () => {
+    localStorage.removeItem('cachedRecipes');
+    setRecipes([]);
+    setHasSearched(false);
+    resetFilters();
+    setSuccessMessage('Recipe cache cleared successfully!');
+    setTimeout(() => setSuccessMessage(''), 3000);
+  };
+  
   return (
     <div className="discover-recipe-page">
       <header className="discover-header">
         <h1>🔍 Discover Recipes</h1>
-        <HamburgerMenu isLoggedIn={true} />
+        <HamburgerMenu isLoggedIn={true} onClearCache={clearRecipeCache} />
       </header>
       
       <div className="filters-section">

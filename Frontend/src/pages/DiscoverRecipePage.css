@@ -309,17 +309,30 @@
   padding: 0.9rem 1rem;
   border: 1px solid #2d3748;
   border-radius: 8px;
-  background-color: #232b3d;
+  background-color: #1a2235; /* Darker background color to match theme */
   color: #e2e8f0;
   font-size: 1rem;
   box-sizing: border-box;
   transition: all 0.2s ease;
 }
 
-.search-input-wrapper input:focus {
-  outline: none;
-  border-color: #4f8cff;
-  box-shadow: 0 0 0 2px rgba(79, 140, 255, 0.2);
+/* Fix for white background in search input */
+.search-input-wrapper input,
+input[placeholder*="Enter keywords"],
+.filters-section input[type="text"],
+.discover-recipe-page input[type="text"] {
+  background-color: #1a2235 !important;
+  color: #e2e8f0 !important;
+  border: 1px solid #2d3748;
+  border-radius: 8px;
+}
+
+/* Also ensure any other inputs in the filters follow the dark theme */
+.filters-section input,
+.filters-section select,
+.filters-section textarea {
+  background-color: #1a2235 !important;
+  color: #e2e8f0 !important;
 }
 
 .search-buttons {

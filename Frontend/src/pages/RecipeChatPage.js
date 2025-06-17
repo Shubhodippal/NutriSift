@@ -39,14 +39,17 @@ const getRecipeImage = async (recipe) => {
 
 const RecipeChatPage = () => {
 const [messages, setMessages] = useState(() => {
-  const savedMessages = localStorage.getItem('chatHistory');
-  if (savedMessages) {
-    try {
-      return JSON.parse(savedMessages);
-    } catch (e) {
-      console.error('Error loading saved chat history:', e);
+  try {
+    const savedMessages = localStorage.getItem('chatHistory');
+    if (savedMessages) {
+      const parsedMessages = JSON.parse(savedMessages);
+      console.log('Chat history loaded from localStorage:', parsedMessages.length, 'messages');
+      return parsedMessages;
     }
+  } catch (e) {
+    console.error('Error loading saved chat history:', e);
   }
+  
   return [{ 
     sender: "bot", 
     text: "Hi! Tell me what ingredients you have, and I'll suggest a recipe tailored just for you." 
@@ -129,14 +132,36 @@ const [messages, setMessages] = useState(() => {
     setLoading(false);
     inputRef.current?.focus();
   };
+  
+  const decodeJWT = (token) => {
+    try {
+      const [headerEncoded, payloadEncoded] = token.split('.');
+      const payload = JSON.parse(atob(payloadEncoded));
+      return payload;
+    } catch (err) {
+      console.error("Invalid JWT token:", err);
+      return null;
+    }
+  };
 
 const generateRecipe = async (ingredients) => {
+  
+  const token = localStorage.getItem('token');
+  const decoded = decodeJWT(token);
+      
+  const userId = decoded.userId;
+  let userEmail = decoded.email;
+
   try {
     try {
       const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/recipe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ingredients })
+        body: JSON.stringify({ 
+          ingredients, 
+          mail: userEmail,
+          uid: userId
+        })
       });
       
       if (!res.ok) {
@@ -272,8 +297,11 @@ const generateMockRecipe = (ingredients) => {
 
   const handleSaveRecipe = async (recipe) => {
     try {
-      const userId = localStorage.getItem('userId');
-      const userEmail = localStorage.getItem('userEmail');
+      const token = localStorage.getItem('token');
+      const decoded = decodeJWT(token);
+
+      const userId = decoded.userId;
+      const userEmail = decoded.email;
       
       if (!userId) {
         setErrorMessage('You must be logged in to save recipes');
@@ -316,7 +344,7 @@ const generateMockRecipe = (ingredients) => {
       
       console.log('Saving recipe data:', recipeData);
       
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/recipes/save`, {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/recipe/save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -525,7 +553,10 @@ const generateMockRecipe = (ingredients) => {
     setLoading(true);
     
     try {
-      const userId = localStorage.getItem('userId');
+      const token = localStorage.getItem('token');
+      const decoded = decodeJWT(token);
+      
+      const userId = decoded.userId;
       
       if (!userId) {
         setErrorMessage('You must be logged in to add items to your grocery list');
@@ -637,9 +668,45 @@ const generateMockRecipe = (ingredients) => {
       sender: "bot", 
       text: "Hi! Tell me what ingredients you have, and I'll suggest a recipe tailored just for you." 
     }]);
+    localStorage.removeItem('chatHistory'); // Clear from localStorage
     setInput("");
     setTimeout(() => inputRef.current?.focus(), 100);
   };
+
+  useEffect(() => {
+    try {
+      // Only save if we have messages
+      if (messages && messages.length > 0) {
+        localStorage.setItem('chatHistory', JSON.stringify(messages));
+        console.log('Chat history saved to localStorage');
+      }
+    } catch (error) {
+      console.error('Error saving chat history to localStorage:', error);
+      
+      // If we encounter a quota error, try to save without images
+      if (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+        try {
+          // Create a copy with smaller recipeData (remove large image URLs)
+          const messagesForStorage = messages.map(msg => {
+            if (msg.recipeData && msg.recipeData.image) {
+              return {
+                ...msg,
+                recipeData: {
+                  ...msg.recipeData,
+                  image: null // Remove image URL to save space
+                }
+              };
+            }
+            return msg;
+          });
+          localStorage.setItem('chatHistory', JSON.stringify(messagesForStorage));
+          console.log('Chat history saved without images');
+        } catch (innerError) {
+          console.error('Failed to save even without images:', innerError);
+        }
+      }
+    }
+  }, [messages]);
 
   return (
     <div className="chat-page">
@@ -770,16 +837,26 @@ const generateMockRecipe = (ingredients) => {
         
         <form className="input-form" onSubmit={handleSend}>
           <div className="input-container">
-            <div className="input-icon">🥗</div>
-            <input
+            <div className="input-icon"></div>
+            <textarea
               ref={inputRef}
               className="message-input"
-              type="text"
               placeholder="Enter ingredients (e.g., chicken, rice, broccoli)..."
               value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
+              onChange={(e) => {
+                setInput(e.target.value);
+                // Auto-adjust height
+                e.target.style.height = 'auto';
+                e.target.style.height = e.target.scrollHeight + 'px';
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend(e);
+                }
+              }}
               disabled={loading}
+              rows="1"
               autoFocus
             />
             <button 

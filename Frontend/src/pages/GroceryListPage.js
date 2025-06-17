@@ -94,9 +94,24 @@ function GroceryListPage() {
       a.category.localeCompare(b.category) || a.name.localeCompare(b.name)
     );
   };
-    
+  
+  const decodeJWT = (token) => {
+    try {
+      const [headerEncoded, payloadEncoded] = token.split('.');
+      const payload = JSON.parse(atob(payloadEncoded));
+      return payload;
+    } catch (err) {
+      console.error("Invalid JWT token:", err);
+      return null;
+    }
+  };
+
   const toggleItemCheck = async (index) => {
-    const userId = localStorage.getItem('userId');
+    
+    const token = localStorage.getItem('token');
+    const decoded = decodeJWT(token);
+
+    const userId = decoded.userId;
     const item = groceryItems[index];
     
     const updatedItems = groceryItems.map((i, idx) => 
@@ -143,7 +158,10 @@ function GroceryListPage() {
     
     if (!newItemName.trim()) return;
     
-    const userId = localStorage.getItem('userId');
+    const token = localStorage.getItem('token');
+    const decoded = decodeJWT(token);
+
+    const userId = decoded.userId;
     
     if (!userId) {
       setApiError('You must be logged in to add items');
@@ -221,7 +239,11 @@ function GroceryListPage() {
   };
 
   const handleDeleteItem = async (index) => {
-    const userId = localStorage.getItem('userId');
+    
+    const token = localStorage.getItem('token');
+    const decoded = decodeJWT(token);
+
+    const userId = decoded.userId;
     const item = groceryItems[index];
     
     const updatedItems = [...groceryItems];
@@ -281,7 +303,10 @@ function GroceryListPage() {
   const handleEditSave = async () => {
     if (!editName.trim()) return;
     
-    const userId = localStorage.getItem('userId');
+    const token = localStorage.getItem('token');
+    const decoded = decodeJWT(token);
+
+    const userId = decoded.userId;
     const item = groceryItems[editingIndex];
     
     const updatedItems = [...groceryItems];
@@ -512,7 +537,10 @@ function GroceryListPage() {
   };
 
   const fetchGroceryListFromAPI = async () => {
-    const userId = localStorage.getItem('userId');
+    const token = localStorage.getItem('token');
+    const decoded = decodeJWT(token);
+      
+    const userId = decoded.userId;
     
     if (!userId) {
       setApiError('User not logged in');
@@ -561,8 +589,12 @@ function GroceryListPage() {
   };
 
   const saveGroceryListToAPI = async (items) => {
-    const userId = localStorage.getItem('userId');
-    let userEmail = localStorage.getItem('userEmail');
+    
+    const token = localStorage.getItem('token');
+    const decoded = decodeJWT(token);
+      
+    const userId = decoded.userId;
+    let userEmail = decoded.email;
     
     if (!userId) {
       setApiError('User not logged in');

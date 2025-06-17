@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import './LoginSignup.css';
 import successSound from '../assets/success.mp3'; 
 import AnimatedBackground from '../components/AnimatedBackground'; 
+import bcrypt from 'bcryptjs';
 
 function LoginSignup({ onLogin }) {
   const audioRef = useRef(null);
@@ -15,7 +16,12 @@ function LoginSignup({ onLogin }) {
     answer: '',
     newPassword: '',
     securityQuestionFetched: false,
-    answerVerified: false
+    answerVerified: false,
+    otp: '',
+    otpSent: false,
+    otpVerified: false,
+    signupOtpSent: false,
+    signupOtpVerified: false
   });
   const [isVisible, setIsVisible] = useState(false);
   const [animateSuccess, setAnimateSuccess] = useState(false);
@@ -26,6 +32,9 @@ function LoginSignup({ onLogin }) {
   const [formMode, setFormMode] = useState('login'); 
   const [formSuccess, setFormSuccess] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [cooldownTime, setCooldownTime] = useState(0);
+  const [cooldownActive, setCooldownActive] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   
   const securityQuestions = [
@@ -39,6 +48,7 @@ function LoginSignup({ onLogin }) {
     "Who was your childhood hero?"
   ];
 
+  // Initial animation effect
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(true);
@@ -52,6 +62,7 @@ function LoginSignup({ onLogin }) {
     };
   }, []);
 
+  // Clean up audio when component unmounts
   useEffect(() => {
     return () => {
       if (audioRef.current) {
@@ -61,14 +72,11 @@ function LoginSignup({ onLogin }) {
     };
   }, []);
   
+  // Form mode toggle
   const handleToggle = () => {
-    if (formMode === 'login') {
-      setFormMode('signup');
-    } else {
-      setFormMode('login');
-    }
-    
+    setFormMode(prevMode => prevMode === 'login' ? 'signup' : 'login');
     setFormError('');
+    setFormSuccess('');
     setFormData({ 
       email: '', 
       password: '', 
@@ -76,21 +84,59 @@ function LoginSignup({ onLogin }) {
       phone: '', 
       securityQuestion: '', 
       answer: '',
-      newPassword: ''
+      newPassword: '',
+      otp: '',
+      otpSent: false,
+      otpVerified: false,
+      signupOtpSent: false,
+      signupOtpVerified: false
     });
+    setPasswordValid(false);
+    setShowPasswordPolicy(false);
+    setTermsAccepted(false);
   };
 
+  // Switch to forgot password mode
   const handleForgotPassword = () => {
     setFormMode('forgotPassword');
     setFormError('');
-    setFormData(prev => ({ ...prev, password: '' }));
+    setFormSuccess('');
+    setFormData(prev => ({ 
+      ...prev, 
+      password: '',
+      otp: '',
+      otpSent: false,
+      otpVerified: false
+    }));
   };
 
+  // Return to login mode
   const handleBackToLogin = () => {
     setFormMode('login');
     setFormError('');
+    setFormSuccess('');
+    setFormData({ 
+      email: '', 
+      password: '', 
+      name: '', 
+      phone: '', 
+      securityQuestion: '', 
+      answer: '',
+      newPassword: '',
+      securityQuestionFetched: false,
+      answerVerified: false,
+      otp: '',
+      otpSent: false,
+      otpVerified: false,
+      signupOtpSent: false,
+      signupOtpVerified: false
+    });
+    setPasswordValid(false);
+    setShowPasswordPolicy(false);
+    setTermsAccepted(false);
   };
 
+  // Password validation helper
   const validatePassword = (password) => {
     const minLength = password.length >= 8;
     const hasUpperCase = /[A-Z]/.test(password);
@@ -108,6 +154,7 @@ function LoginSignup({ onLogin }) {
     };
   };
 
+  // Handle form input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -119,29 +166,180 @@ function LoginSignup({ onLogin }) {
     if (name === 'password' || name === 'newPassword') {
       const validation = validatePassword(value);
       
-      if (name === 'newPassword' && formMode === 'forgotPassword') {
+      if ((name === 'newPassword' && formMode === 'forgotPassword') ||
+          (name === 'password' && formMode === 'signup')) {
         setPasswordValid(validation.valid);
-        if (value.length > 0) {
-          setShowPasswordPolicy(true);
-        } else {
-          setShowPasswordPolicy(false);
-        }
-      } else if (name === 'password' && formMode === 'signup') {
-        setPasswordValid(validation.valid);
-        if (value.length > 0) {
-          setShowPasswordPolicy(true);
-        } else {
-          setShowPasswordPolicy(false);
-        }
+        setShowPasswordPolicy(value.length > 0);
       }
     }
   };
 
+  // JWT decode helper
+  const decodeJWT = (token) => {
+    try {
+      const [headerEncoded, payloadEncoded] = token.split('.');
+      const payload = JSON.parse(atob(payloadEncoded));
+      return payload;
+    } catch (err) {
+      console.error("Invalid JWT token:", err);
+      return null;
+    }
+  };
+
+  // Generic OTP sending function for both reset and signup flows
+  const sendOTP = async (type) => {
+    // Validate required fields for signup
+    if (type === 'signup') {
+      if (!formData.email || !formData.name || !formData.phone || 
+          !formData.securityQuestion || !formData.answer || !formData.password) {
+        setFormError('Please fill in all required fields');
+        return;
+      }
+      
+      const validation = validatePassword(formData.password);
+      if (!validation.valid) {
+        setShowPasswordPolicy(true);
+        setFormError('Please ensure your password meets all requirements.');
+        return;
+      }
+      
+      if (!termsAccepted) {
+        setFormError("You must accept the Terms and Conditions to sign up.");
+        return;
+      }
+    } else if (type === 'reset' && !formData.email) {
+      setFormError('Please enter your email address');
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users/otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email, type })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.otpToken && data.status === "success") {
+          localStorage.setItem('otpToken', data.otpToken);
+          
+          if (type === 'reset') {
+            setFormData(prev => ({ ...prev, otpSent: true }));
+          } else {
+            setFormData(prev => ({ ...prev, signupOtpSent: true }));
+          }
+          
+          setFormSuccess('OTP has been sent to your email address');
+          
+          // Start cooldown
+          setCooldownTime(60);
+          setCooldownActive(true);
+        } else {
+          setFormError('Invalid response from server. Please try again.');
+        }
+      } else {
+        if (response.status === 409) {
+          setFormError('An account with this email already exists. Please log in instead.');
+        } else {
+          const errorText = await response.text();
+          setFormError(errorText || `Failed to send OTP for ${type}. Please try again.`);
+        }
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setFormError('Error connecting to the server. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle sending OTP for password reset
+  const handleSendOTP = () => sendOTP('reset');
+  
+  // Handle sending OTP for signup
+  const handleSendSignupOTP = () => sendOTP('signup');
+
+  // Generic OTP verification function
+  const verifyOTP = async (type) => {
+    if (!formData.otp) {
+      setFormError('Please enter the OTP sent to your email');
+      return;
+    }
+    
+    const otpToken = localStorage.getItem('otpToken');
+    if (!otpToken) {
+      setFormError('OTP session expired. Please request a new OTP.');
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      const decodedToken = decodeJWT(otpToken);
+      
+      if (!decodedToken) {
+        setFormError('Invalid OTP token. Please request a new OTP.');
+        localStorage.removeItem('otpToken');
+        return;
+      }
+      
+      // Check if token has expired
+      const currentTime = Math.floor(Date.now() / 1000);
+      if (decodedToken.exp && decodedToken.exp < currentTime) {
+        setFormError('OTP has expired. Please request a new OTP.');
+        localStorage.removeItem('otpToken');
+        return;
+      }
+      
+      // Check if token has the required fields and correct type
+      if (!decodedToken.encodedOtp || decodedToken.type !== type || !decodedToken.email) {
+        setFormError('Invalid OTP token format. Please request a new OTP.');
+        localStorage.removeItem('otpToken');
+        return;
+      }
+      
+      // Use bcrypt to compare the user's OTP with the encoded OTP from the token
+      const isMatch = await bcrypt.compare(formData.otp, decodedToken.encodedOtp);
+      
+      if (isMatch) {
+        if (type === 'reset') {
+          setFormData(prev => ({ ...prev, otpVerified: true }));
+          handleFindAccount(); // Fetch security question for password reset
+        } else {
+          setFormData(prev => ({ ...prev, signupOtpVerified: true }));
+        }
+        
+        setFormSuccess('OTP verified successfully!');
+      } else {
+        setFormError('Invalid OTP. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setFormError('Error verifying OTP. Please try again.');
+      localStorage.removeItem('otpToken');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle verifying OTP for password reset
+  const handleVerifyOTP = () => verifyOTP('reset');
+  
+  // Handle verifying OTP for signup
+  const handleVerifySignupOTP = () => verifyOTP('signup');
+
+  // Handle finding account for security question
   const handleFindAccount = async () => {
     if (!formData.email) {
       setFormError('Please enter your email address');
       return;
     }
+    
+    setIsLoading(true);
     
     try {
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users/security-question?email=${encodeURIComponent(formData.email)}`, {
@@ -162,14 +360,19 @@ function LoginSignup({ onLogin }) {
     } catch (error) {
       console.error('Error:', error);
       setFormError('Error connecting to the server. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  // Handle verifying security answer
   const handleVerifyAnswer = async () => {
     if (!formData.answer) {
       setFormError('Please enter your answer');
       return;
     }
+    
+    setIsLoading(true);
     
     try {
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users/verify-answer`, {
@@ -184,20 +387,26 @@ function LoginSignup({ onLogin }) {
       if (response.ok) {
         setFormData(prev => ({ ...prev, answerVerified: true }));
         setShowPasswordPolicy(true);
+        setFormSuccess('Answer verified. Please set a new password.');
       } else {
         setFormError('The answer is incorrect. Please try again.');
       }
     } catch (error) {
       console.error('Error:', error);
       setFormError('Error connecting to the server. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  // Handle resetting password
   const handleResetPassword = async () => {
     if (!passwordValid) {
       setFormError('Please ensure your password meets all requirements.');
       return;
     }
+    
+    setIsLoading(true);
     
     try {
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users/reset-password`, {
@@ -211,18 +420,19 @@ function LoginSignup({ onLogin }) {
       });
       
       if (response.ok) {
+        // Play success sound
+        if (audioRef.current) {
+          try {
+            audioRef.current.volume = 1.0;
+            await audioRef.current.play();
+          } catch (err) {
+            console.log("Audio couldn't play:", err);
+          }
+        }
+        
         setFormSuccess('Password reset successful! You can now login with your new password.');
         setTimeout(() => {
-          setFormMode('login');
-          setFormData(prev => ({ 
-            ...prev, 
-            password: '', 
-            newPassword: '', 
-            answer: '',
-            securityQuestion: '',
-            securityQuestionFetched: false,
-            answerVerified: false
-          }));
+          handleBackToLogin();
         }, 2000);
       } else {
         const errorText = await response.text();
@@ -231,11 +441,21 @@ function LoginSignup({ onLogin }) {
     } catch (error) {
       console.error('Error:', error);
       setFormError('Error connecting to the server. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  // Handle login
   const handleLogin = async (e) => {
     e.preventDefault();
+
+    if (!formData.email || !formData.password) {
+      setFormError('Please enter both email and password');
+      return;
+    }
+
+    setIsLoading(true);
     
     try {
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users/login`, {
@@ -250,23 +470,41 @@ function LoginSignup({ onLogin }) {
       if (response.ok) {
         const contentType = response.headers.get("content-type");
         let data;
-        
+
         if (contentType && contentType.includes("application/json")) {
           data = await response.json();
         } else {
           data = await response.text();
+          setFormError('Unexpected response from server. Please try again.');
+          return;
         }
-        
-        const userId = extractUserId(data);
-        const userEmail = extractUserEmail(data);
-        
-        if (userId) {
-          localStorage.setItem('userId', userId);
-          localStorage.setItem('userEmail', userEmail || formData.email);
-          if (onLogin) onLogin(userId);
+
+        const token = data.token;
+        const decoded = decodeJWT(token);
+
+        const ref_token = data.refreshToken;
+
+        if (decoded?.userId) {
+          localStorage.setItem('token', token);
+          localStorage.setItem('refreshToken', ref_token);
+
+          if (onLogin) onLogin(decoded.userId);
+
+          // Play success sound
+          if (audioRef.current) {
+            try {
+              audioRef.current.volume = 1.0;
+              await audioRef.current.play();
+            } catch (err) {
+              console.log("Audio couldn't play:", err);
+            }
+          }
+          
+          // Animate and navigate
+          handleSuccess('/chat');
+        } else {
+          setFormError("Invalid token received. Please try again.");
         }
-        
-        handleSuccess('/chat');
       } else {
         if (response.status === 401 || response.status === 403) {
           setFormError('Invalid email or password. Please try again.');
@@ -280,40 +518,30 @@ function LoginSignup({ onLogin }) {
     } catch (error) {
       console.error('Error:', error);
       setFormError('Error connecting to the server.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleSignup = async (e) => {
+  // Handle signup flow
+  const handleSignup = (e) => {
     e.preventDefault();
     
-    if (!termsAccepted) {
-      setFormError("You must accept the Terms and Conditions to sign up.");
-      return;
+    if (formData.signupOtpVerified) {
+      completeSignup();
+    } else if (formData.signupOtpSent) {
+      handleVerifySignupOTP();
+    } else {
+      handleSendSignupOTP();
     }
-    
-    const validation = validatePassword(formData.password);
-    if (!validation.valid) {
-      setShowPasswordPolicy(true);
-      setFormError('Please ensure your password meets all requirements.');
-      return;
-    }
-    
-    if (!formData.securityQuestion || !formData.answer) {
-      setFormError('Please select a security question and provide an answer.');
-      return;
-    }
+  };
+
+  // Complete the signup process
+  const completeSignup = async () => {
+    setIsLoading(true);
     
     try {
-      console.log("Sending signup payload:", {
-        email: formData.email,
-        password: formData.password,
-        name: formData.name,
-        phone: formData.phone,
-        securityQuestion: formData.securityQuestion,
-        securityAnswer: formData.answer 
-      });
-      
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users`, {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -322,46 +550,53 @@ function LoginSignup({ onLogin }) {
           name: formData.name,
           phone: formData.phone,
           securityQuestion: formData.securityQuestion,
-          securityAnswer: formData.answer 
+          securityAnswer: formData.answer,
+          otpToken: localStorage.getItem('otpToken')
         })
       });
 
       if (response.ok) {
-        const contentType = response.headers.get("content-type");
-        let data;
+        // Backend returns plain text, not JSON
+        const responseText = await response.text();
+        console.log("Server response:", responseText);
         
-        if (contentType && contentType.includes("application/json")) {
-          data = await response.json();
-        } else {
-          data = await response.text();
+        // Play success sound
+        if (audioRef.current) {
+          try {
+            audioRef.current.volume = 1.0;
+            await audioRef.current.play();
+          } catch (err) {
+            console.log("Audio couldn't play:", err);
+          }
         }
         
-        const userId = extractUserId(data);
+        setFormSuccess("Account created successfully! You can now log in.");
+        setAnimateSuccess(true);
         
-        if (userId) {
-          localStorage.setItem('userId', userId);
-          localStorage.setItem('userEmail', formData.email);
-          if (onLogin) onLogin(userId);
-          
-          setAnimateSuccess(true);
-          handleSuccess('/chat');
-        } else {
-          handleSuccess('/');
-        }
+        setTimeout(() => {
+          setIsVisible(false);
+          setTimeout(() => {
+            handleBackToLogin();
+          }, 400);
+        }, 2000);
       } else {
         if (response.status === 409) {
-          setFormError('An account with this email already exists. Please log in instead.');
+          setFormError('An account with this email already exists.');
         } else {
           const errorText = await response.text();
-          setFormError(errorText || 'Something went wrong. Please try again.');
+          setFormError(errorText || 'Failed to create account. Please try again.');
         }
       }
     } catch (error) {
       console.error('Error:', error);
       setFormError('Error connecting to the server.');
+    } finally {
+      setIsLoading(false);
+      localStorage.removeItem('otpToken');
     }
   };
 
+  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
     
@@ -373,92 +608,99 @@ function LoginSignup({ onLogin }) {
       handleResetPassword();
     }
   };
-  
-  const extractUserId = (data) => {
-    if (typeof data === 'string' && data.includes('userid:')) {
-      const match = data.match(/userid: ([0-9a-f-]+)/i);
-      return match ? match[1] : null;
-    }
-    
-    if (data && data.userId) {
-      return data.userId;
-    }
-    
-    return null;
-  };
 
-  const extractUserEmail = (data) => {
-    if (typeof data === 'object' && data !== null) {
-      return data.email || data.userEmail || data.mail;
-    }
-    return null;
-  };
-
+  // Handle closing the modal
   const handleClose = () => {
     setIsVisible(false);
     setTimeout(() => navigate('/'), 300); 
   };
 
+  // Handle backdrop click
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
       handleClose();
     }
   };
 
+  // Handle successful login/signup
   const handleSuccess = (destination) => {
-    if (audioRef.current) {
-      audioRef.current.play().catch(err => {
-        console.log("Audio couldn't play:", err);
-      });
-    }
-    
     setAnimateSuccess(true);
     
     setTimeout(() => {
       setIsVisible(false);
-      
       setTimeout(() => navigate(destination), 400);
     }, 600);
   };
 
+  // Clear error message after 5 seconds
   useEffect(() => {
-    let errorTimer;
+    let timer;
     
     if (formError) {
-      errorTimer = setTimeout(() => {
+      timer = setTimeout(() => {
         setFormError('');
       }, 5000); 
     }
     
     return () => {
-      if (errorTimer) clearTimeout(errorTimer);
+      if (timer) clearTimeout(timer);
     };
   }, [formError]);
 
+  // Clear success message after 5 seconds
   useEffect(() => {
-    let successTimer;
+    let timer;
     
     if (formSuccess) {
-      successTimer = setTimeout(() => {
+      timer = setTimeout(() => {
         setFormSuccess('');
       }, 5000); 
     }
     
     return () => {
-      if (successTimer) clearTimeout(successTimer);
+      if (timer) clearTimeout(timer);
     };
   }, [formSuccess]);
 
+  // Handle cooldown timer for OTP resend
+  useEffect(() => {
+    let timer;
+    if (cooldownActive && cooldownTime > 0) {
+      timer = setInterval(() => {
+        setCooldownTime(prevTime => {
+          if (prevTime <= 1) {
+            setCooldownActive(false);
+            clearInterval(timer);
+            return 0;
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
+    }
+    
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [cooldownActive, cooldownTime]);
+
+  // Toggle password visibility
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
+
+  // Loading spinner component
+  const LoadingSpinner = () => (
+    <div className="spinner-container">
+      <div className="spinner"></div>
+    </div>
+  );
 
   return (
     <>
       <AnimatedBackground />
       
       <div className={`login-overlay ${isVisible ? 'visible' : ''}`} onClick={handleBackdropClick}>
-        <audio ref={audioRef} src={successSound} />
+        <audio ref={audioRef} src={successSound} preload="auto" />
         
         <div className={`login-modal ${animateSuccess ? 'success-animation' : ''}`}>
           <button className="close-button" onClick={handleClose}>×</button>
@@ -493,6 +735,7 @@ function LoginSignup({ onLogin }) {
                       onChange={handleChange} 
                       placeholder="Enter your name"
                       required 
+                      disabled={formData.signupOtpSent}
                     />
                   </div>
                 </div>
@@ -508,6 +751,7 @@ function LoginSignup({ onLogin }) {
                       onChange={handleChange} 
                       placeholder="Enter your phone number"
                       required 
+                      disabled={formData.signupOtpSent}
                     />
                   </div>
                 </div>
@@ -522,6 +766,7 @@ function LoginSignup({ onLogin }) {
                       onChange={handleChange}
                       required
                       className="security-dropdown"
+                      disabled={formData.signupOtpSent}
                     >
                       <option value="" disabled>Select a security question</option>
                       {securityQuestions.map((question, index) => (
@@ -544,12 +789,14 @@ function LoginSignup({ onLogin }) {
                       onChange={handleChange} 
                       placeholder="Answer to your security question"
                       required 
+                      disabled={formData.signupOtpSent}
                     />
                   </div>
                 </div>
               </>
             )}
             
+            {/* Email input (for login, signup, and before OTP is sent for forgot password) */}
             <div className="form-group">
               <label>Email</label>
               <div className="input-wrapper">
@@ -561,10 +808,13 @@ function LoginSignup({ onLogin }) {
                   onChange={handleChange} 
                   placeholder="Enter your email"
                   required 
+                  disabled={(formMode === 'forgotPassword' && formData.otpSent) || 
+                           (formMode === 'signup' && formData.signupOtpSent)}
                 />
               </div>
             </div>
             
+            {/* Password input (for login and signup) */}
             {formMode !== 'forgotPassword' && (
               <div className="form-group">
                 <label>Password</label>
@@ -577,6 +827,7 @@ function LoginSignup({ onLogin }) {
                     onChange={handleChange} 
                     placeholder="Enter your password"
                     required 
+                    disabled={formMode === 'signup' && formData.signupOtpSent}
                   />
                   <button 
                     type="button" 
@@ -590,7 +841,42 @@ function LoginSignup({ onLogin }) {
               </div>
             )}
             
-            {formMode === 'forgotPassword' && (
+            {/* OTP input for password reset */}
+            {formMode === 'forgotPassword' && formData.otpSent && !formData.otpVerified && (
+              <>
+                <div className="form-group">
+                  <label>Enter OTP</label>
+                  <div className="input-wrapper">
+                    <span className="input-icon">🔢</span>
+                    <input 
+                      type="text" 
+                      name="otp" 
+                      value={formData.otp} 
+                      onChange={handleChange} 
+                      placeholder="Enter OTP sent to your email"
+                      required 
+                    />
+                  </div>
+                </div>
+                <div className="resend-otp-container">
+                  <button 
+                    type="button"
+                    className="resend-otp-button"
+                    onClick={handleSendOTP}
+                    disabled={cooldownActive || isLoading}
+                  >
+                    {cooldownActive 
+                      ? `Resend OTP (${cooldownTime}s)` 
+                      : isLoading 
+                        ? "Sending..." 
+                        : "Resend OTP"}
+                  </button>
+                </div>
+              </>
+            )}
+            
+            {/* Security question and answer for password reset */}
+            {formMode === 'forgotPassword' && formData.otpVerified && (
               <>
                 <div className="form-group">
                   <label>Security Question</label>
@@ -607,7 +893,7 @@ function LoginSignup({ onLogin }) {
                       <option value="" disabled>
                         {formData.securityQuestionFetched 
                           ? "Select your security question" 
-                          : "Enter email and click 'Find Account'"}
+                          : "Fetching security question..."}
                       </option>
                       {formData.securityQuestionFetched && (
                         <option value={formData.securityQuestion}>
@@ -631,6 +917,7 @@ function LoginSignup({ onLogin }) {
                           onChange={handleChange} 
                           placeholder="Answer to your security question"
                           required 
+                          disabled={formData.answerVerified}
                         />
                       </div>
                     </div>
@@ -664,6 +951,41 @@ function LoginSignup({ onLogin }) {
               </>
             )}
             
+            {/* OTP input for signup */}
+            {formMode === 'signup' && formData.signupOtpSent && !formData.signupOtpVerified && (
+              <>
+                <div className="form-group">
+                  <label>Enter OTP</label>
+                  <div className="input-wrapper">
+                    <span className="input-icon">🔢</span>
+                    <input 
+                      type="text" 
+                      name="otp" 
+                      value={formData.otp} 
+                      onChange={handleChange} 
+                      placeholder="Enter OTP sent to your email"
+                      required 
+                    />
+                  </div>
+                </div>
+                <div className="resend-otp-container">
+                  <button 
+                    type="button"
+                    className="resend-otp-button"
+                    onClick={handleSendSignupOTP}
+                    disabled={cooldownActive || isLoading}
+                  >
+                    {cooldownActive 
+                      ? `Resend OTP (${cooldownTime}s)` 
+                      : isLoading 
+                        ? "Sending..." 
+                        : "Resend OTP"}
+                  </button>
+                </div>
+              </>
+            )}
+            
+            {/* Terms and conditions for signup */}
             {formMode === 'signup' && (
               <div className="terms-container">
                 <label className="terms-label">
@@ -672,6 +994,7 @@ function LoginSignup({ onLogin }) {
                     checked={termsAccepted}
                     onChange={() => setTermsAccepted(!termsAccepted)}
                     className="terms-checkbox"
+                    disabled={formData.signupOtpSent}
                   />
                   <span className="terms-text">
                     I accept the <Link to="/terms-and-conditions" target="_blank" className="terms-link">Terms and Conditions</Link>
@@ -680,6 +1003,7 @@ function LoginSignup({ onLogin }) {
               </div>
             )}
 
+            {/* Success message */}
             {formSuccess && (
               <div className="form-success">
                 <span className="success-icon">✅</span>
@@ -687,6 +1011,7 @@ function LoginSignup({ onLogin }) {
               </div>
             )}
 
+            {/* Error message */}
             {formError && (
               <div className="form-error">
                 <span className="error-icon">⚠️</span>
@@ -694,6 +1019,7 @@ function LoginSignup({ onLogin }) {
               </div>
             )}
 
+            {/* Password policy */}
             {(formMode === 'signup' || (formMode === 'forgotPassword' && formData.answerVerified)) && 
              showPasswordPolicy && (
               <div className="password-policy">
@@ -718,31 +1044,59 @@ function LoginSignup({ onLogin }) {
               </div>
             )}
 
+            {/* Buttons for forgot password flow */}
             {formMode === 'forgotPassword' ? (
               <div className="forgot-password-buttons">
-                {!formData.securityQuestionFetched ? (
+                {!formData.otpSent ? (
                   <button 
                     type="button" 
                     className="submit-button"
-                    onClick={handleFindAccount}
+                    onClick={handleSendOTP}
+                    disabled={isLoading}
                   >
-                    Find Account
+                    {isLoading ? (
+                      <>
+                        <LoadingSpinner /> Sending OTP...
+                      </>
+                    ) : 'Send OTP'}
+                  </button>
+                ) : !formData.otpVerified ? (
+                  <button 
+                    type="button" 
+                    className="submit-button"
+                    onClick={handleVerifyOTP}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <LoadingSpinner /> Verifying...
+                      </>
+                    ) : 'Verify OTP'}
                   </button>
                 ) : !formData.answerVerified ? (
                   <button 
                     type="button" 
                     className="submit-button"
                     onClick={handleVerifyAnswer}
+                    disabled={isLoading}
                   >
-                    Verify Answer
+                    {isLoading ? (
+                      <>
+                        <LoadingSpinner /> Verifying...
+                      </>
+                    ) : 'Verify Answer'}
                   </button>
                 ) : (
                   <button 
                     type="submit" 
                     className="submit-button"
-                    disabled={!passwordValid}
+                    disabled={!passwordValid || isLoading}
                   >
-                    Reset Password
+                    {isLoading ? (
+                      <>
+                        <LoadingSpinner /> Resetting...
+                      </>
+                    ) : 'Reset Password'}
                   </button>
                 )}
                 
@@ -750,6 +1104,7 @@ function LoginSignup({ onLogin }) {
                   type="button" 
                   className="back-to-login-button"
                   onClick={handleBackToLogin}
+                  disabled={isLoading}
                 >
                   Back to Login
                 </button>
@@ -758,9 +1113,23 @@ function LoginSignup({ onLogin }) {
               <button 
                 type="submit" 
                 className="submit-button"
-                disabled={(formMode === 'signup' && (!passwordValid || !termsAccepted))}
+                disabled={(formMode === 'signup' && (
+                  (!passwordValid || !termsAccepted) || 
+                  (formData.signupOtpSent && !formData.otp) ||
+                  isLoading
+                )) || (formMode === 'login' && isLoading)}
               >
-                {formMode === 'login' ? 'Login' : 'Sign Up'}
+                {isLoading ? (
+                  <>
+                    <LoadingSpinner /> {formMode === 'login' ? 'Logging in...' : 
+                      formData.signupOtpSent && !formData.signupOtpVerified ? 'Verifying...' : 
+                      formData.signupOtpVerified ? 'Creating Account...' : 'Sending OTP...'}
+                  </>
+                ) : (
+                  formMode === 'login' ? 'Login' : 
+                  formData.signupOtpSent && !formData.signupOtpVerified ? 'Verify OTP' : 
+                  formData.signupOtpVerified ? 'Complete Signup' : 'Send OTP'
+                )}
               </button>
             )}
           </form>
@@ -772,18 +1141,17 @@ function LoginSignup({ onLogin }) {
               </p>
             )}
             
-            <p onClick={handleToggle} className="toggle-link">
-              {formMode === 'login' 
-                ? "Don't have an account? Sign up" 
-                : formMode === 'signup'
-                  ? 'Already have an account? Log in'
-                  : null}
-            </p>
+            {(formMode === 'login' || formMode === 'signup') && (
+              <p onClick={handleToggle} className="toggle-link">
+                {formMode === 'login' 
+                  ? "Don't have an account? Sign up" 
+                  : 'Already have an account? Log in'}
+              </p>
+            )}
           </div>
         </div>
       </div>
     </>
   );
 }
-
 export default LoginSignup;

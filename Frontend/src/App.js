@@ -19,21 +19,17 @@ import HamburgerMenu from './components/HamburgerMenu';
 import DiscoverRecipePage from './pages/DiscoverRecipePage'; 
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsAndConditionsPage from './pages/TermsAndConditionsPage';
+import { checkTokenExpiration } from './utils/authUtils';
+import ProfileDetails from './pages/ProfileDetails';
 
 // Protected route component
 const ProtectedRoute = ({ element }) => {
-  const isAuthenticated = !!localStorage.getItem('userId');
+  const isAuthenticated = !!localStorage.getItem('token');
   return isAuthenticated ? element : <Navigate to="/login" replace />;
 };
 
-function HomePage() {
+function HomePage({ isLoggedIn, setIsLoggedIn }) {
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  
-  useEffect(() => {
-    const userId = localStorage.getItem('userId');
-    setIsLoggedIn(!!userId);
-  }, []);
   
   const handleLogout = () => {
     if (window.confirm('Are you sure you want to log out?')) {
@@ -312,11 +308,51 @@ function HomePage() {
 }
 
 function App() {
+  // Add state for login status at App level
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Add the decodeJWT function at App level
+  const decodeJWT = (token) => {
+    try {
+      const [headerEncoded, payloadEncoded] = token.split('.');
+      const payload = JSON.parse(atob(payloadEncoded));
+      return payload;
+    } catch (err) {
+      console.error("Invalid JWT token:", err);
+      return null;
+    }
+  };
+
+  // Check token expiration throughout the entire app
+  useEffect(() => {
+    const checkExpiration = async () => {
+      const isExpired = await checkTokenExpiration();
+      
+      if (isExpired) {
+        // Token was expired and has been refreshed
+        const token = localStorage.getItem('token');
+        const decoded = decodeJWT(token);
+        setIsLoggedIn(!!(decoded && decoded.userId));
+      }
+    };
+    
+    // Run immediately on mount
+    checkExpiration();
+    
+    // Set up interval to run every minute (60000 ms)
+    const intervalId = setInterval(() => {
+      checkExpiration();
+    }, 900000);
+    
+    // Clean up interval when component unmounts
+    return () => clearInterval(intervalId);
+  }, []);
+
   return (
     <Router> 
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<LoginSignup />} />
+        <Route path="/" element={<HomePage isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />} />
+        <Route path="/login" element={<LoginSignup setIsLoggedIn={setIsLoggedIn} />} />
         
         {/* Legal pages */}
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
@@ -330,6 +366,7 @@ function App() {
         <Route path="/grocery-list" element={<ProtectedRoute element={<GroceryListPage />} />} />
         <Route path="/nearby-restaurants" element={<ProtectedRoute element={<RestaurantMapPage />} />} />
         <Route path="/discover-recipes" element={<ProtectedRoute element={<DiscoverRecipePage />} />} /> 
+        <Route path="/profile" element={<ProtectedRoute element={<ProfileDetails />} />} />
         
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

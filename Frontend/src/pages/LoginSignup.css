@@ -602,3 +602,50 @@
 .terms-link:hover {
   color: #357abf;
 }
+
+.resend-otp-container {
+  text-align: right;
+  margin-top: 5px;
+  margin-bottom: 15px;
+}
+
+.resend-otp-button {
+  background: none;
+  border: none;
+  color: #4a90e2;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 5px;
+  transition: all 0.2s ease;
+}
+
+.resend-otp-button:hover:not(:disabled) {
+  color: #2a70c2;
+  text-decoration: underline;
+}
+
+.resend-otp-button:disabled {
+  color: #aaa;
+  cursor: not-allowed;
+}
+
+/* Add these spinner styles to your existing CSS file */
+.spinner-container {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 8px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

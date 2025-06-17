@@ -286,13 +286,15 @@
   padding: 1.1rem 1.4rem;
   border-radius: 14px;
   border: 2px solid #2d3748;
-  background: rgba(35, 43, 61, 0.8);
-  color: #e2e8f0;
+  background: rgba(35, 43, 61, 0.8) !important;
+  color: #e2e8f0 !important;
   font-size: 1.05rem;
   transition: all 0.3s ease;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
   letter-spacing: 0.3px;
   box-sizing: border-box; 
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .enhanced-input:hover {
@@ -539,142 +541,32 @@
   }
 }
 
-.hamburger-menu-container {
-  position: relative;
-}
-
-.hamburger-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: #1a2235;
-  border: 1px solid #2d3748;
-  border-radius: 50%;
-  cursor: pointer;
-  padding: 0;
-  position: relative;
-  z-index: 11;
-  transition: background-color 0.3s;
-}
-
-.hamburger-button:hover {
-  background: #2d3748;
-}
-
-.hamburger-icon,
-.hamburger-icon:before,
-.hamburger-icon:after {
-  width: 20px;
-  height: 2px;
-  background-color: #fff;
-  border-radius: 2px;
-  position: absolute;
-  transition: all 0.3s ease;
-}
-
-.hamburger-icon {
-  margin: 0;
-}
-
-.hamburger-icon:before,
-.hamburger-icon:after {
-  content: '';
-  left: 0;
-}
-
-.hamburger-icon:before {
-  top: -6px;
-}
-
-.hamburger-icon:after {
-  top: 6px;
-}
-
-.hamburger-button.active .hamburger-icon {
-  background-color: transparent;
-}
-
-.hamburger-button.active .hamburger-icon:before {
-  top: 0;
-  transform: rotate(45deg);
-}
-
-.hamburger-button.active .hamburger-icon:after {
-  top: 0;
-  transform: rotate(-45deg);
-}
-
-.menu-dropdown {
-  position: absolute;
-  top: 50px;
-  right: 0;
-  background: #1a2235;
-  border-radius: 12px;
-  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
-  width: 200px;
-  transform: translateY(-20px);
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  z-index: 10;
-  overflow: hidden;
-}
-
-.menu-dropdown.open {
-  transform: translateY(0);
-  opacity: 1;
-  visibility: visible;
-}
-
-.menu-item {
-  display: flex;
-  align-items: center;
+/* Fix overflowing input fields in edit modal */
+.form-field input,
+.form-field select {
+  width: 100%;
   padding: 12px 16px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  color: white;
+  border-radius: 8px;
+  border: 1px solid #2d3748;
+  background-color: #232b3d !important; /* Force dark background */
+  color: #e2e8f0 !important; /* Force light text */
+  font-size: 16px;
+  transition: all 0.2s;
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-appearance: none; /* Remove default styling on iOS */
+  appearance: none; /* Remove default styling on all browsers */
 }
 
-.menu-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.menu-icon {
-  margin-right: 12px;
-  font-size: 1.2rem;
-}
-
-@media print {
-  .grocery-list-page {
-    background: white;
-    color: black;
-  }
-  
-  .grocery-list-header, .list-controls {
-    display: none;
-  }
-  
-  .grocery-list {
-    background: white;
-    border: none;
-    box-shadow: none;
-    padding: 0;
-  }
-  
-  .category-group h2 {
-    color: black;
-  }
-  
-  .item-checkbox {
-    border-color: #ccc;
-  }
-  
-  .item-quantity {
-    color: #333;
-  }
+/* Fix the select dropdown arrow color */
+.form-field select {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234f8cff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.75rem center !important;
+  background-size: 1em !important;
+  padding-right: 36px !important;
 }
 
 .delete-item-button {
@@ -1034,6 +926,8 @@ li.editing {
   position: relative;
   padding: 24px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box; /* Ensure padding doesn't increase width */
+  overflow: hidden; /* Prevent overflow */
 }
 
 .modal-content h2 {
@@ -1048,6 +942,8 @@ li.editing {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%; /* Ensure full width */
+  overflow: hidden; /* Prevent overflow */
 }
 
 .form-field {
@@ -1058,7 +954,7 @@ li.editing {
 
 .form-field label {
   font-weight: 500;
-  color: #666;
+  color: #a0aec0; /* Lighter color for better contrast against dark background */
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1070,19 +966,20 @@ li.editing {
 
 .form-field input,
 .form-field select {
+  width: 100%;
   padding: 12px 16px;
   border-radius: 8px;
-  border: 1px solid #ddd;
-  background-color: #a0acc7;
+  border: 1px solid #2d3748;
+  background-color: #232b3d !important; /* Force dark background */
+  color: #e2e8f0 !important; /* Force light text */
   font-size: 16px;
   transition: all 0.2s;
-}
-
-.form-field input:focus,
-.form-field select:focus {
-  outline: none;
-  border-color: #4a6fdc;
-  box-shadow: 0 0 0 2px rgba(74, 111, 220, 0.2);
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-appearance: none; /* Remove default styling on iOS */
+  appearance: none; /* Remove default styling on all browsers */
 }
 
 .modal-actions {

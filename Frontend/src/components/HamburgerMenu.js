@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './HamburgerMenu.css';
 
-function HamburgerMenu({ additionalItems, onLogout, isLoggedIn }) {
+function HamburgerMenu({ additionalItems, onLogout, isLoggedIn, onClearCache }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -23,6 +23,7 @@ function HamburgerMenu({ additionalItems, onLogout, isLoggedIn }) {
     { path: '/saved-recipes', icon: '📚', label: 'Saved Recipes' },
     { path: '/grocery-list', icon: '🛒', label: 'Grocery List' },
     { path: '/nearby-restaurants', icon: '🍽️', label: 'Find Restaurants' },
+    { path: '/profile', icon: '👤', label: 'My Profile' },
   ];
 
   const handleClearChat = () => {
@@ -58,7 +59,7 @@ function HamburgerMenu({ additionalItems, onLogout, isLoggedIn }) {
         {additionalItems?.showNewChat && (
           <div className="menu-item" onClick={handleClearChat}>
             <span className="menu-icon">🔄</span>
-            <span>New Chat</span>
+            <span>Clear Chat</span>
           </div>
         )}
 
@@ -67,6 +68,14 @@ function HamburgerMenu({ additionalItems, onLogout, isLoggedIn }) {
           <div className="menu-item logout-item" onClick={onLogout}>
             <span className="menu-icon">🔓</span>
             <span>Logout</span>
+          </div>
+        )}
+
+        {/* Clear Recipe Cache option if user is logged in */}
+        {isLoggedIn && onClearCache && (
+          <div className="menu-item" onClick={onClearCache}>
+            <span className="menu-icon">🧹</span>
+            <span className="menu-text">Clear Recipe Cache</span>
           </div>
         )}
       </div>

@@ -25,6 +25,12 @@ body {
   cursor: default; /* Changed from none to default */
 }
 
+/* Add this to the top of your App.css file */
+.main-content-container {
+  margin-top: 60px; /* Match the navbar height */
+  min-height: calc(100vh - 60px);
+}
+
 /* App background with radial and linear gradients */
 .app-bg-pro {
   min-height: 100vh;
@@ -2249,4 +2255,12 @@ body {
     position: relative;
     z-index: 1001;
   }
+}
+
+/* Adjust your existing success message CSS */
+.profile-message.success {
+  margin-top: 70px; /* Add extra space for fixed navbar */
+  position: sticky;
+  top: 70px; /* Position below navbar */
+  z-index: 999;
 }

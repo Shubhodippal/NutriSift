@@ -38,11 +38,25 @@ function SavedRecipesPage() {
   const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate();
 
+  const decodeJWT = (token) => {
+    try {
+      const [headerEncoded, payloadEncoded] = token.split('.');
+      const payload = JSON.parse(atob(payloadEncoded));
+      return payload;
+    } catch (err) {
+      console.error("Invalid JWT token:", err);
+      return null;
+    }
+  };
+
   const fetchSavedRecipes = React.useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const userId = localStorage.getItem('userId');
+      const token = localStorage.getItem('token');
+      const decoded = decodeJWT(token);
+      
+      const userId = decoded.userId;
       
       if (!userId) {
         navigate('/login');
@@ -280,7 +294,10 @@ function SavedRecipesPage() {
     setLoading(true);
     
     try {
-      const userId = localStorage.getItem('userId');
+      const token = localStorage.getItem('token');
+      const decoded = decodeJWT(token);
+      
+      const userId = decoded.userId;
       
       if (!userId) {
         alert('You must be logged in to add items to your grocery list');

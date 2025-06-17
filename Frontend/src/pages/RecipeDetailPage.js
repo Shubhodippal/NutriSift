@@ -37,11 +37,25 @@ function RecipeDetailPage() {
       console.error('Error fetching recipe image:', error);
     }
   };
+  
+  const decodeJWT = (token) => {
+    try {
+      const [headerEncoded, payloadEncoded] = token.split('.');
+      const payload = JSON.parse(atob(payloadEncoded));
+      return payload;
+    } catch (err) {
+      console.error("Invalid JWT token:", err);
+      return null;
+    }
+  };
 
-  useEffect(() => {
+  /*useEffect(() => {
     const fetchRecipe = async () => {
       try {
-        const userId = localStorage.getItem('userId');
+      const token = localStorage.getItem('token');
+      const decoded = decodeJWT(token);
+      
+      const userId = decoded.userId;
         if (userId) {
           try {
             const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}${process.env.REACT_APP_RECIPES_ENDPOINT}/${id}`, {
@@ -113,7 +127,7 @@ function RecipeDetailPage() {
     };
     
     fetchRecipe();
-  }, [id]);
+  }, [id]);*/
 
   useEffect(() => {
     const loadViewingRecipe = async () => {
