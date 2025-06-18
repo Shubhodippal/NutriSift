@@ -1,4 +1,4 @@
-package com.shubhodip.nutrisift;
+package com.shubhodip.nutrisift.user;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -91,11 +91,97 @@ public class UserDAOImpl implements UserDAO {
         }
     }
 
+    @Override
+    public int saveProfile(Profile profile) {
+        String sql = "INSERT INTO profile (uid, mail, name, weight, height, bmi, gender, dob, diet_pref, body_goal, allergies, city, country, address, pincode) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        return jdbcTemplate.update(sql, 
+                profile.getUid(),
+                profile.getMail(), 
+                profile.getName(),
+                profile.getWeight(),
+                profile.getHeight(),
+                profile.getBmi(),
+                profile.getGender(),
+                profile.getDob(),
+                profile.getDietPref(),
+                profile.getBodyGoal(),
+                profile.getAllergies(),
+                profile.getCity(),
+                profile.getCountry(),
+                profile.getAddress(),
+                profile.getPincode());
+    }
+
+    @Override
+    public Profile getProfileByEmail(String email) {
+        try {
+            String sql = "SELECT * FROM profile WHERE mail = ?";
+            return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
+                Profile profile = new Profile();
+                profile.setId(rs.getLong("id"));
+                profile.setUid(rs.getString("uid"));
+                profile.setMail(rs.getString("mail"));
+                profile.setName(rs.getString("name"));
+                profile.setWeight(rs.getFloat("weight"));
+                profile.setHeight(rs.getFloat("height"));
+                profile.setBmi(rs.getFloat("bmi"));
+                profile.setGender(rs.getString("gender"));
+                profile.setDob(rs.getDate("dob"));
+                profile.setDietPref(rs.getString("diet_pref"));
+                profile.setBodyGoal(rs.getString("body_goal"));
+                profile.setAllergies(rs.getString("allergies"));
+                profile.setCity(rs.getString("city"));
+                profile.setCountry(rs.getString("country"));
+                profile.setAddress(rs.getString("address"));
+                profile.setPincode(rs.getString("pincode"));
+                return profile;
+            }, email);
+        } catch (EmptyResultDataAccessException e) {
+            return null; // Return null when no profile is found
+        }
+    }
+
+    @Override
+    public int updateProfile(Profile profile) {
+        String sql = "UPDATE profile SET " +
+                     "weight = ?, " +
+                     "height = ?, " +
+                     "bmi = ?, " +
+                     "gender = ?, " +
+                     "dob = ?, " +
+                     "diet_pref = ?, " +
+                     "body_goal = ?, " +
+                     "allergies = ?, " +
+                     "city = ?, " +
+                     "country = ?, " +
+                     "address = ?, " +
+                     "pincode = ? " +
+                     "WHERE mail = ?";
+        
+        return jdbcTemplate.update(sql, 
+            profile.getWeight(),
+            profile.getHeight(),
+            profile.getBmi(),
+            profile.getGender(),
+            profile.getDob(),
+            profile.getDietPref(),
+            profile.getBodyGoal(),
+            profile.getAllergies(),
+            profile.getCity(),
+            profile.getCountry(),
+            profile.getAddress(),
+            profile.getPincode(),
+            profile.getMail()
+        );
+    }
+
     private static class UserRowMapper implements RowMapper<User> {
         @Override
         public User mapRow(ResultSet rs, int rowNum) throws SQLException {
             User user = new User();
-            user.setId(rs.getInt("id"));
+            user.setId(rs.getLong("id"));
             user.setUserid(rs.getString("userid"));
             user.setName(rs.getString("name"));
             user.setEmail(rs.getString("email"));

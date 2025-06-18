@@ -1,11 +1,12 @@
-package com.shubhodip.nutrisift;
+package com.shubhodip.nutrisift.user;
 
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.concurrent.atomic.LongAccumulator;
 
 public class User {
-    private int id;
+    private long id;
     private Timestamp time;
     private Date date;
     private String userid;
@@ -14,7 +15,7 @@ public class User {
     private String phone;
     private String password;
     private String securityQuestion;
-    private String securityAnswer; // Maps to "answer" in the database
+    private String securityAnswer; 
     private LocalDateTime lastLogin;
 
     // Default constructor
@@ -22,11 +23,11 @@ public class User {
     }
 
     // Getters and setters
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 

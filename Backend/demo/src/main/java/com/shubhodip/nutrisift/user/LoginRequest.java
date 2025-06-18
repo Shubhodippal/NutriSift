@@ -1,4 +1,4 @@
-package com.shubhodip.nutrisift;
+package com.shubhodip.nutrisift.user;
 
 public class LoginRequest {
     private String email;
