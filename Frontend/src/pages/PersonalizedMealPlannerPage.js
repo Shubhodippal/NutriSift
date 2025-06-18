@@ -47,6 +47,8 @@ function PersonalizedMealPlannerPage() {
   const [orientation, setOrientation] = useState(window.innerHeight > window.innerWidth ? 'portrait' : 'landscape');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [profileChecked, setProfileChecked] = useState(false);
+  const [profileCheckLoading, setProfileCheckLoading] = useState(true);
 
   const decodeJWT = (token) => {
     try {
@@ -58,6 +60,76 @@ function PersonalizedMealPlannerPage() {
       return null;
     }
   };
+
+  // Add profile checking functionality
+  const checkUserProfile = async () => {
+    setProfileCheckLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+      
+      const decoded = decodeJWT(token);
+      const userEmail = decoded?.email;
+      
+      if (!userEmail) {
+        setError('User information is missing');
+        navigate('/login');
+        return;
+      }
+      
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/profile/${userEmail}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY
+        },
+      });
+      
+      if (response.status === 404) {
+        // User doesn't exist
+        //setError('Please complete your profile to generate meal plans');
+        setTimeout(() => {
+          navigate('/profile');
+        }, 5000);
+        return;
+      }
+      
+      /*const data = await response.json();
+      
+      if (!data) {
+        // Profile doesn't exist - redirect to profile page
+        setError('Please complete your profile to generate meal plans');
+        setTimeout(() => {
+          navigate('/profile');
+        }, 2000);
+        return;
+      }*/
+      
+      // Profile exists, continue loading the page
+      setProfileChecked(true);
+      
+    } catch (error) {
+      console.error('Error checking user profile:', error);
+      setError('Failed to verify user profile');
+    } finally {
+      setProfileCheckLoading(false);
+    }
+  };
+
+  // Check profile when component mounts
+  useEffect(() => {
+    checkUserProfile();
+  }, []);
+
+  // Only fetch meal plans after profile check is complete and successful
+  useEffect(() => {
+    if (profileChecked) {
+      fetchMealPlans();
+    }
+  }, [profileChecked]);
 
   const fetchMealPlans = async () => {
     setLoading(true);
@@ -1117,210 +1189,248 @@ function PersonalizedMealPlannerPage() {
       </header>
       
       <div className="meal-planner-content">
-        <div className="control-bar">
-          <button 
-            className={`action-button primary ${generateLoading ? 'loading' : ''}`}
-            onClick={generateMealPlan}
-            disabled={generateLoading || loading}
-          >
-            {generateLoading ? 
-              <><span className="spinner"></span> Generating...</> : 
-              <><span className="icon">✨</span> Generate New Plan</>}
-          </button>
-          
-          <button 
-            className={`action-button secondary ${loading ? 'loading' : ''}`}
-            onClick={fetchMealPlans}
-            disabled={loading || generateLoading}
-          >
-            {loading ? 
-              <><span className="spinner"></span> Fetching...</> : 
-              <><span className="icon">🔄</span> Refresh Plans</>}
-          </button>
-          
-          {/* Print Meal Plan button */}
-          {mealPlans.length > 0 && (
-            <button 
-              className="action-button print-plan"
-              onClick={handlePrintMealPlan}
-              disabled={loading || generateLoading || !currentPlan}
-            >
-              <span className="icon">📃</span> Print Plan
-            </button>
-          )}
-          
-          {mealPlans.length > 0 && (
-            <button 
-              className="action-button danger"
-              onClick={() => setShowDeleteConfirm(true)}
-              disabled={loading || generateLoading || deleteLoading}
-            >
-              <span className="icon">🗑️</span> Delete Plan
-            </button>
-          )}
-          
-          {mealPlans.length > 1 && (
-            <div className="select-container top-select">
-              <select 
-                value={selectedPlanIndex}
-                onChange={(e) => setSelectedPlanIndex(Number(e.target.value))}
-              >
-                {mealPlans.map((plan, index) => (
-                  <option key={index} value={index}>
-                    Plan Id {plan.id || plan._id || index + 1} - {formatDate(plan.created_at || plan.createdAt)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-          
-          {successMessage && (
-            <div className="toast success">
-              <span className="toast-icon">✅</span>
-              <span>{successMessage}</span>
-            </div>
-          )}
-          
-          {error && (
-            <div className="toast error">
-              <span className="toast-icon">❌</span>
-              <span>{error}</span>
-              <button onClick={() => setError(null)} className="close-toast">×</button>
-            </div>
-          )}
-        </div>
-        
-        {loading && (
+        {profileCheckLoading ? (
           <div className="loading-state">
             <div className="spinner large"></div>
-            <p>Loading your personalized meal plans...</p>
+            <p>Verifying your profile...</p>
           </div>
-        )}
-        
-        {!loading && mealPlans.length === 0 && !error && (
+        ) : profileChecked ? (
+          // Show meal planner content only if profile exists
+          <>
+            <div className="control-bar">
+              <button 
+                className={`action-button primary ${generateLoading ? 'loading' : ''}`}
+                onClick={generateMealPlan}
+                disabled={generateLoading || loading}
+              >
+                {generateLoading ? 
+                  <><span className="spinner"></span> Generating...</> : 
+                  <><span className="icon">✨</span> Generate New Plan</>}
+              </button>
+              
+              <button 
+                className={`action-button secondary ${loading ? 'loading' : ''}`}
+                onClick={fetchMealPlans}
+                disabled={loading || generateLoading}
+              >
+                {loading ? 
+                  <><span className="spinner"></span> Fetching...</> : 
+                  <><span className="icon">🔄</span> Refresh Plans</>}
+              </button>
+              
+              {/* Print Meal Plan button */}
+              {mealPlans.length > 0 && (
+                <button 
+                  className="action-button print-plan"
+                  onClick={handlePrintMealPlan}
+                  disabled={loading || generateLoading || !currentPlan}
+                >
+                  <span className="icon">📃</span> Print Plan
+                </button>
+              )}
+              
+              {mealPlans.length > 0 && (
+                <button 
+                  className="action-button danger"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  disabled={loading || generateLoading || deleteLoading}
+                >
+                  <span className="icon">🗑️</span> Delete Plan
+                </button>
+              )}
+              
+              {mealPlans.length > 1 && (
+                <div className="select-container top-select">
+                  <select 
+                    value={selectedPlanIndex}
+                    onChange={(e) => setSelectedPlanIndex(Number(e.target.value))}
+                  >
+                    {mealPlans.map((plan, index) => (
+                      <option key={index} value={index}>
+                        Plan Id {plan.id || plan._id || index + 1} - {formatDate(plan.created_at || plan.createdAt)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              
+              {successMessage && (
+                <div className="toast success">
+                  <span className="toast-icon">✅</span>
+                  <span>{successMessage}</span>
+                </div>
+              )}
+              
+              {error && (
+                <div className="toast error">
+                  <span className="toast-icon">❌</span>
+                  <span>{error}</span>
+                  <button onClick={() => setError(null)} className="close-toast">×</button>
+                </div>
+              )}
+            </div>
+            
+            {loading && (
+              <div className="loading-state">
+                <div className="spinner large"></div>
+                <p>Loading your personalized meal plans...</p>
+              </div>
+            )}
+            
+            {!loading && mealPlans.length === 0 && !error && (
+              <div className="empty-state">
+                <div className="empty-icon">🍽️</div>
+                <h2>No Meal Plans Found</h2>
+                <p>Get started by generating your first personalized meal plan.</p>
+                <button 
+                  className="action-button primary"
+                  onClick={generateMealPlan}
+                  disabled={generateLoading}
+                >
+                  {generateLoading ? 'Generating...' : 'Generate Meal Plan'}
+                </button>
+              </div>
+            )}
+            
+            {!loading && mealPlans.length > 0 && (
+              <div className="meal-plan-view">            
+                <div className={`days-container ${orientation}`}>
+                  {weeklyPlan.map((day, dayIndex) => (
+                    <div key={dayIndex} className="day">
+                      <div className="day-name">
+                        <h3>{day.day}</h3>
+                      </div>
+                      
+                      <div className="meals">
+                        {day.meals && day.meals.map((meal, mealIndex) => (
+                          <div 
+                            key={mealIndex} 
+                            className={`meal ${orientation}`}
+                            onClick={() => handleViewRecipe(meal)}
+                          >
+                            <div className={`meal-img ${orientation === 'portrait' ? 'full-width' : ''}`}>
+                              <img 
+                                src={getMealImageUrl(meal)} 
+                                alt={meal.title} 
+                                onError={(e) => {
+                                  e.target.onerror = null; 
+                            }}
+                            />
+                            <span className="meal-type">{meal.type}</span>
+                          </div>
+                          
+                          <div className="meal-info">
+                            <h4>{meal.title}</h4>
+                            
+                            <p className="description">{getMealDescription(meal)}</p>
+                            
+                            <div className="meal-stats">
+                              {meal.calories && (
+                                <span className="stat">
+                                  <span className="stat-icon">🔥</span>
+                                  {meal.calories} cal
+                                </span>
+                              )}
+                              
+                              {meal.ingredients && (
+                                <span className="stat">
+                                  <span className="stat-icon">🥕</span>
+                                  {meal.ingredients.length} ingredients
+                                </span>
+                              )}
+                            </div>
+                            
+                            {/* New action buttons */}
+                            <div className={`meal-actions ${orientation === 'portrait' ? 'compact' : ''}`}>
+                              <button 
+                                className="action-icon view" 
+                                title="View Recipe"
+                                onClick={(e) => { e.stopPropagation(); handleViewRecipe(meal); }}
+                              >
+                                <span className="action-icon-symbol">👁️</span>
+                                <span className="action-label">View</span>
+                              </button>
+                              
+                              <button 
+                                className="action-icon save" 
+                                title="Save Recipe"
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Prevent the event from bubbling up to parent
+                                  handleSaveRecipe(meal);
+                                }}
+                              >
+                                <span className="action-icon-symbol">💾</span>
+                                <span className="action-label">Save</span>
+                              </button>
+                              
+                              <button 
+                                className="action-icon share" 
+                                title="Share Recipe"
+                                onClick={(e) => handleShareRecipe(meal, e)}
+                              >
+                                <span className="action-icon-symbol">📤</span>
+                                <span className="action-label">Share</span>
+                              </button>
+                              
+                              <button 
+                                className="action-icon print" 
+                                title="Print Recipe"
+                                onClick={(e) => handlePrintRecipe(meal, e)}
+                              >
+                                <span className="action-icon-symbol">🖨️</span>
+                                <span className="action-label">Print</span>
+                              </button>
+                              
+                              <button 
+                                className="action-icon grocery" 
+                                title="Add to Grocery List"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddToGroceryList(meal, e);
+                                }}
+                                disabled={addingToGroceryList}
+                              >
+                                <span className="action-icon-symbol">{addingToGroceryList ? '⏳' : '🛒'}</span>
+                                <span className="action-label">{addingToGroceryList ? 'Adding...' : 'Add to List'}</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+        ) : (
           <div className="empty-state">
-            <div className="empty-icon">🍽️</div>
-            <h2>No Meal Plans Found</h2>
-            <p>Get started by generating your first personalized meal plan.</p>
+            <div className="empty-icon">👤</div>
+            <h2>Profile Required</h2>
+            <p>You need to complete your profile before using the meal planner.</p>
             <button 
               className="action-button primary"
-              onClick={generateMealPlan}
-              disabled={generateLoading}
+              onClick={() => navigate('/profile')}
             >
-              {generateLoading ? 'Generating...' : 'Generate Meal Plan'}
+              Complete Profile
             </button>
           </div>
         )}
         
-        {!loading && mealPlans.length > 0 && (
-          <div className="meal-plan-view">            
-            <div className={`days-container ${orientation}`}>
-              {weeklyPlan.map((day, dayIndex) => (
-                <div key={dayIndex} className="day">
-                  <div className="day-name">
-                    <h3>{day.day}</h3>
-                  </div>
-                  
-                  <div className="meals">
-                    {day.meals && day.meals.map((meal, mealIndex) => (
-                      <div 
-                        key={mealIndex} 
-                        className={`meal ${orientation}`}
-                        onClick={() => handleViewRecipe(meal)}
-                      >
-                        <div className={`meal-img ${orientation === 'portrait' ? 'full-width' : ''}`}>
-                          <img 
-                            src={getMealImageUrl(meal)} 
-                            alt={meal.title} 
-                            onError={(e) => {
-                              e.target.onerror = null; 
-                            }}
-                          />
-                          <span className="meal-type">{meal.type}</span>
-                        </div>
-                        
-                        <div className="meal-info">
-                          <h4>{meal.title}</h4>
-                          
-                          <p className="description">{getMealDescription(meal)}</p>
-                          
-                          <div className="meal-stats">
-                            {meal.calories && (
-                              <span className="stat">
-                                <span className="stat-icon">🔥</span>
-                                {meal.calories} cal
-                              </span>
-                            )}
-                            
-                            {meal.ingredients && (
-                              <span className="stat">
-                                <span className="stat-icon">🥕</span>
-                                {meal.ingredients.length} ingredients
-                              </span>
-                            )}
-                          </div>
-                          
-                          {/* New action buttons */}
-                          <div className={`meal-actions ${orientation === 'portrait' ? 'compact' : ''}`}>
-                            <button 
-                              className="action-icon view" 
-                              title="View Recipe"
-                              onClick={(e) => { e.stopPropagation(); handleViewRecipe(meal); }}
-                            >
-                              <span className="action-icon-symbol">👁️</span>
-                              <span className="action-label">View</span>
-                            </button>
-                            
-                            <button 
-                              className="action-icon save" 
-                              title="Save Recipe"
-                              onClick={(e) => {
-                                e.stopPropagation(); // Prevent the event from bubbling up to parent
-                                handleSaveRecipe(meal);
-                              }}
-                            >
-                              <span className="action-icon-symbol">💾</span>
-                              <span className="action-label">Save</span>
-                            </button>
-                            
-                            <button 
-                              className="action-icon share" 
-                              title="Share Recipe"
-                              onClick={(e) => handleShareRecipe(meal, e)}
-                            >
-                              <span className="action-icon-symbol">📤</span>
-                              <span className="action-label">Share</span>
-                            </button>
-                            
-                            <button 
-                              className="action-icon print" 
-                              title="Print Recipe"
-                              onClick={(e) => handlePrintRecipe(meal, e)}
-                            >
-                              <span className="action-icon-symbol">🖨️</span>
-                              <span className="action-label">Print</span>
-                            </button>
-                            
-                            <button 
-                              className="action-icon grocery" 
-                              title="Add to Grocery List"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleAddToGroceryList(meal, e);
-                              }}
-                              disabled={addingToGroceryList}
-                            >
-                              <span className="action-icon-symbol">{addingToGroceryList ? '⏳' : '🛒'}</span>
-                              <span className="action-label">{addingToGroceryList ? 'Adding...' : 'Add to List'}</span>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+        {/* Display error messages */}
+        {error && (
+          <div className="toast error">
+            <span className="toast-icon">❌</span>
+            <span>{error}</span>
+            <button onClick={() => setError(null)} className="close-toast">×</button>
+          </div>
+        )}
+        
+        {successMessage && (
+          <div className="toast success">
+            <span className="toast-icon">✅</span>
+            <span>{successMessage}</span>
           </div>
         )}
       </div>
