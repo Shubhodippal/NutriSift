@@ -21,6 +21,7 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsAndConditionsPage from './pages/TermsAndConditionsPage';
 import { checkTokenExpiration } from './utils/authUtils';
 import ProfileDetails from './pages/ProfileDetails';
+import PersonalizedMealPlannerPage from './pages/PersonalizedMealPlannerPage';
 
 // Protected route component
 const ProtectedRoute = ({ element }) => {
@@ -367,6 +368,7 @@ function App() {
         <Route path="/nearby-restaurants" element={<ProtectedRoute element={<RestaurantMapPage />} />} />
         <Route path="/discover-recipes" element={<ProtectedRoute element={<DiscoverRecipePage />} />} /> 
         <Route path="/profile" element={<ProtectedRoute element={<ProfileDetails />} />} />
+        <Route path="/meal-planner" element={<ProtectedRoute element={<PersonalizedMealPlannerPage />} />} />
         
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

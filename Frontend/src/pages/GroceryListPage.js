@@ -127,7 +127,8 @@ function GroceryListPage() {
         const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/item/${item.id}/toggle`, {
           method: 'PUT',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY
           },
           body: JSON.stringify({ uid: userId })
         });
@@ -197,7 +198,8 @@ function GroceryListPage() {
         const saveResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY
           },
           body: JSON.stringify({ items: updatedItems })
         });
@@ -262,7 +264,8 @@ function GroceryListPage() {
         const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/item/${item.id}`, {
           method: 'DELETE',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY
           },
           body: JSON.stringify({ uid: userId })
         });
@@ -342,7 +345,8 @@ function GroceryListPage() {
         const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/item/${item.id}`, {
           method: 'PUT',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY
           },
           body: JSON.stringify(updatedItem)
         });
@@ -554,7 +558,8 @@ function GroceryListPage() {
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY
         }
       });
       
@@ -610,7 +615,8 @@ function GroceryListPage() {
         const verifyResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users/verify/${userId}`, {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY
           }
         });
         
@@ -638,7 +644,8 @@ function GroceryListPage() {
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY
         },
         body: JSON.stringify({ items: transformedItems })
       });
@@ -669,6 +676,47 @@ function GroceryListPage() {
       setIsSaving(false);
     }
   };
+
+  const handleClearList = async () => {
+    const token = localStorage.getItem('token');
+    const decoded = decodeJWT(token);
+    const userId = decoded?.userId;
+    
+    setGroceryItems([]);
+    localStorage.removeItem('groceryItems');
+    
+    if (userId) {
+      setSyncStatus('syncing');
+      try {
+        const clearResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY
+          }
+        });
+        
+        if (!clearResponse.ok) {
+          throw new Error(`Failed to clear list on server: ${clearResponse.status}`);
+        }
+        
+        const result = await clearResponse.json();
+        if (!result.success) {
+          throw new Error(result.message || 'Failed to clear grocery list');
+        }
+        
+        setSyncStatus('synced');
+      } catch (error) {
+        console.error('Error clearing list on server:', error);
+        setApiError('Failed to clear list on server. Cleared locally only.');
+        setSyncStatus('offline');
+      }
+    } else {
+      setApiError('User not logged in. List cleared locally only.');
+      setSyncStatus('offline');
+    }
+  };
+
   return (
     <div className="grocery-list-page">
       <header className="grocery-list-header">
@@ -706,39 +754,9 @@ function GroceryListPage() {
         <button onClick={handlePrintList}>
           🖨️ Print List
         </button>
-        <button onClick={async () => {
-          const userId = localStorage.getItem('userId');
-          
-          setGroceryItems([]);
-          localStorage.removeItem('groceryItems');
-          
-          if (userId) {
-            setSyncStatus('syncing');
-            try {
-              const clearResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
-                method: 'DELETE',
-                headers: {
-                  'Content-Type': 'application/json'
-                }
-              });
-              
-              if (!clearResponse.ok) {
-                throw new Error(`Failed to clear list on server: ${clearResponse.status}`);
-              }
-              
-              const result = await clearResponse.json();
-              if (!result.success) {
-                throw new Error(result.message || 'Failed to clear grocery list');
-              }
-              
-              setSyncStatus('synced');
-            } catch (error) {
-              console.error('Error clearing list on server:', error);
-              setApiError('Failed to clear list on server. Cleared locally only.');
-              setSyncStatus('offline');
-            }
-          }
-        }}>🗑️ Clear List</button>
+        <button onClick={handleClearList}>
+          🗑️ Clear List
+        </button>
         <button onClick={handleShareList}>
           📤 Share List
         </button>

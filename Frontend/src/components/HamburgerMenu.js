@@ -22,6 +22,7 @@ function HamburgerMenu({ additionalItems, onLogout, isLoggedIn, onClearCache }) 
     { path: '/discover-recipes', icon: '🔍', label: 'Discover Recipes' }, 
     { path: '/saved-recipes', icon: '📚', label: 'Saved Recipes' },
     { path: '/grocery-list', icon: '🛒', label: 'Grocery List' },
+    { path: '/meal-planner', icon: '🗓️', label: 'Meal Planner' }, // Add this line
     { path: '/nearby-restaurants', icon: '🍽️', label: 'Find Restaurants' },
     { path: '/profile', icon: '👤', label: 'My Profile' },
   ];

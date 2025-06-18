@@ -90,8 +90,8 @@ function ProfileDetails() {
         const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users/profile/${userEmail}`, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY
           }
         });
         
@@ -251,8 +251,8 @@ function ProfileDetails() {
       const response = await fetch(endpoint, {
         method: method,
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY
         },
         body: JSON.stringify(profileData)
       });

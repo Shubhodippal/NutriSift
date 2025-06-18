@@ -217,7 +217,8 @@ function LoginSignup({ onLogin }) {
     try {
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users/otp`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' ,
+          [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY},
         body: JSON.stringify({ email: formData.email, type })
       });
       
@@ -344,7 +345,8 @@ function LoginSignup({ onLogin }) {
     try {
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users/security-question?email=${encodeURIComponent(formData.email)}`, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' ,
+          [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY}
       });
       
       if (response.ok) {
@@ -377,7 +379,8 @@ function LoginSignup({ onLogin }) {
     try {
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users/verify-answer`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' ,
+          [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY},
         body: JSON.stringify({ 
           email: formData.email,
           answer: formData.answer 
@@ -411,7 +414,8 @@ function LoginSignup({ onLogin }) {
     try {
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users/reset-password`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' ,
+          [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY},
         body: JSON.stringify({
           email: formData.email,
           answer: formData.answer,
@@ -458,14 +462,19 @@ function LoginSignup({ onLogin }) {
     setIsLoading(true);
     
     try {
+      //const key = process.env.REACT_APP_API_KEY;
+      //console.log("Using API Key:", key); // Debugging line to check API key
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email: formData.email, 
-          password: formData.password 
-        })
-      });
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY // Add the API key
+      },
+      body: JSON.stringify({ 
+        email: formData.email, 
+        password: formData.password 
+      })
+    });
 
       if (response.ok) {
         const contentType = response.headers.get("content-type");
@@ -543,7 +552,8 @@ function LoginSignup({ onLogin }) {
     try {
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users/register`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' ,
+          [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY},
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
