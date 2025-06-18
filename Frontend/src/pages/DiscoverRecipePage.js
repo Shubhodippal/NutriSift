@@ -125,7 +125,8 @@ function DiscoverRecipePage() {
       });
       
       if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(`API request failed ${errorText}`);
       }
       
       const data = await response.json();
@@ -530,10 +531,12 @@ function DiscoverRecipePage() {
       localStorage.setItem('groceryItems', JSON.stringify(sortedList));
       
       try {
-        const saveResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
+        const saveResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}/${userEmail}`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json',
-          [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY },
+          headers: { 
+            'Content-Type': 'application/json',
+            [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY 
+          },
           body: JSON.stringify({ items: sortedList })
         });
         

@@ -361,10 +361,15 @@ function SavedRecipesPage() {
           );
           
           if (existingIndex >= 0) {
+            // Check if meals exists and is an array before spreading
+            const existingMeals = Array.isArray(currentList[existingIndex].meals) 
+              ? currentList[existingIndex].meals 
+              : [];
+              
             return {
               ...currentList[existingIndex],
               count: currentList[existingIndex].count + 1,
-              meals: [...currentList[existingIndex].meals, recipe.title || recipe.recipeName]
+              meals: [...existingMeals, recipe.title || recipe.recipeName]
             };
           }
           
@@ -404,7 +409,9 @@ function SavedRecipesPage() {
       localStorage.setItem('groceryItems', JSON.stringify(sortedList));
       
       try {
-        const saveResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
+        const userEmail = decoded.email; // Make sure to get email from the token
+        
+        const saveResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}/${userEmail}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

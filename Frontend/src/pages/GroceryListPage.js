@@ -163,6 +163,7 @@ function GroceryListPage() {
     const decoded = decodeJWT(token);
 
     const userId = decoded.userId;
+    const email = decoded.email;
     
     if (!userId) {
       setApiError('You must be logged in to add items');
@@ -195,7 +196,7 @@ function GroceryListPage() {
       setNewItemQuantity('');
       
       try {
-        const saveResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
+        const saveResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}/${email}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -557,10 +558,10 @@ function GroceryListPage() {
       
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
         method: 'GET',
-        headers: {
+        headers: { 
           'Content-Type': 'application/json',
-          [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY
-        }
+          'X-API-Key': process.env.REACT_APP_API_KEY // Add the API key
+        },
       });
       
       if (!response.ok) {

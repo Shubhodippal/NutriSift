@@ -584,6 +584,7 @@ const generateMockRecipe = (ingredients) => {
       const decoded = decodeJWT(token);
       
       const userId = decoded.userId;
+      const userEmail = decoded.email;
       
       if (!userId) {
         setErrorMessage('You must be logged in to add items to your grocery list');
@@ -595,10 +596,13 @@ const generateMockRecipe = (ingredients) => {
       let currentList = [];
       
       try {
+        // Fetch current grocery list using GET to /{userId}
         const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
           method: 'GET',
-          headers: { 'Content-Type': 'application/json',
-          [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY }
+          headers: { 
+            'Content-Type': 'application/json',
+            [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY 
+          }
         });
         
         if (response.ok) {
@@ -666,10 +670,13 @@ const generateMockRecipe = (ingredients) => {
       localStorage.setItem('groceryItems', JSON.stringify(sortedItems));
       
       try {
-        const saveResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json',
-          [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY },
+        // Save grocery list using POST to /{userId}/{email}
+        const saveResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}/${userEmail}`, {
+          method: 'POST', // Changed to POST to match backend controller
+          headers: { 
+            'Content-Type': 'application/json',
+            [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY 
+          },
           body: JSON.stringify({ items: sortedItems })
         });
         
