@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ProfileDetails.css';
 import HamburgerMenu from '../components/HamburgerMenu';
@@ -63,7 +63,16 @@ function ProfileDetails() {
         }
     }
 
-
+    const decodeJWT = (token) => {
+      try {
+        const [headerEncoded, payloadEncoded] = token.split('.');
+        const payload = JSON.parse(atob(payloadEncoded));
+        return payload;
+      } catch (err) {
+        console.error("Invalid JWT token:", err);
+        return null;
+      }
+    };
   // Fetch existing profile data if available
   useEffect(() => {
     const fetchProfile = async () => {
@@ -218,13 +227,17 @@ function ProfileDetails() {
     
     try {
       const token = localStorage.getItem('token');
+      const decoded = decodeJWT(token);
+      
+      const userId = decoded.userId;
+      const userEmail = decoded.email;
+
       if (!token) {
         navigate('/login');
         return;
       }
       
       // Get user email from token
-      const userEmail = getUserEmailFromToken(token);
       if (!userEmail) {
         setMessage({
           text: 'Unable to identify user. Please log in again.',
@@ -239,7 +252,8 @@ function ProfileDetails() {
       // Add email to profile data
       const profileData = {
         ...profile,
-        mail: userEmail
+        mail: userEmail,
+        uid: userId 
       };
       
       // Check if we're creating a new profile or updating existing one
