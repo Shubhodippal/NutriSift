@@ -113,7 +113,7 @@ function DiscoverRecipePage() {
         mail: decoded.email || null
       };
       
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/recipe`, {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/recipe/search`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -121,13 +121,26 @@ function DiscoverRecipePage() {
         },
         body: JSON.stringify(params)
       });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`API request failed ${errorText}`);
+
+      let data;
+      try {
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          data = await response.json();
+        } else {
+          data = await response.text();
+        }
+      } catch (err) {
+        data = await response.text();
+        console.error('Error parsing response:', err);
       }
-      
-      const data = await response.json();
+
+      if (!response.ok) {
+        const errorMessage = typeof data === 'string' 
+          ? data 
+          : data.error || `Failed with status: ${response.status}`;
+        throw new Error(errorMessage);
+      }
       
       const formattedRecipes = await Promise.all(data.map(async recipe => {
         const imageUrl = recipe.imageUrl || await getRecipeImage(recipe);
