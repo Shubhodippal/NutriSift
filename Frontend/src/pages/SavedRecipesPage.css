@@ -260,6 +260,28 @@
   flex: 1;
 }
 
+/* Style for all action buttons */
+.recipe-actions button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 8px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #1c2435 !important; /* Solid dark navy/blue background */
+  color: #e2e8f0;
+  min-width: 36px;
+  height: 36px;
+  flex: 1;
+}
+
+/* Hover state */
+.recipe-actions button:hover {
+  background-color: #2a3547;
+}
+
 .view-recipe-button {
   background: linear-gradient(135deg, #4f8cff 0%, #2563eb 100%) !important;
   color: white !important;
@@ -276,46 +298,55 @@
   align-items: center;
 }
 
-.recipe-actions button {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 8px 8px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background-color: transparent;
-  color: #e2e8f0;
-  min-width: 36px;
-  height: 36px;
-  flex: 1;
-}
-
-/* Media query adjustments */
+/* Fix for mobile action buttons - equal width for all buttons */
 @media (max-width: 768px) {
   .recipe-actions {
+    display: flex;
     flex-wrap: nowrap;
+    gap: 8px !important;
+    margin-top: 12px;
     justify-content: space-between;
+    align-items: stretch;
+    width: 100%;
   }
   
   .recipe-actions button {
+    flex: 1 1 0 !important; /* Equal flex growth and shrinking, 0 basis */
+    width: 0; /* Force equal width distribution */
+    min-width: 0 !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 8px 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: none !important; /* Remove max-width constraint */
+  }
+  
+  /* View button should be the same size as others but keep its gradient */
+  .view-recipe-button {
+    flex: 1 1 0 !important; /* Same as other buttons */
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 8px 0 !important;
+    max-width: none !important;
+  }
+  
+  /* Make icons fit better */
+  .action-icon {
+    font-size: 16px;
     margin: 0;
-    flex: 1;
-    min-width: auto;
-    padding: 8px 4px;
   }
 }
 
 /* For very small screens */
 @media (max-width: 375px) {
   .recipe-actions {
-    gap: 2px;
+    gap: 4px !important;
   }
   
   .recipe-actions button {
-    padding: 6px 2px;
-    font-size: 0.8rem;
+    padding: 4px 0 !important;
   }
   
   .action-icon {
@@ -410,15 +441,60 @@
   }
 }
 
-/* For very small screens */
-@media (max-width: 375px) {
-  .saved-recipes-header h1 {
-    font-size: 1.2rem;
+/* Update the base container padding for mobile */
+@media (max-width: 768px) {
+  .saved-recipes-page {
+    padding: 1rem 0.5rem; /* Reduce side padding significantly */
   }
   
-  .hamburger-button {
-    width: 36px;
-    height: 36px;
+  .saved-recipes-header {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Make the recipe grid use the full width */
+  .recipe-grid {
+    grid-template-columns: 1fr; /* Single column that takes full width */
+    padding: 0;
+    gap: 1rem;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  /* Let recipe cards expand to nearly full width */
+  .recipe-card {
+    width: 100%;
+    max-width: 100%; /* Remove the 360px constraint */
+    margin: 0;
+  }
+  
+  .search-container {
+    width: 100%;
+    max-width: 100%;
+    padding: 5px;
+  }
+  
+  .image-disclaimer {
+    width: 100%;
+    max-width: 100%;
+    margin: 1rem 0;
+    padding: 0.75rem;
+  }
+}
+
+/* Further optimize for very small screens */
+@media (max-width: 375px) {
+  .saved-recipes-page {
+    padding: 0.5rem 0.25rem;
+  }
+  
+  .recipe-actions {
+    gap: 2px !important;
+  }
+  
+  .recipe-actions button {
+    padding: 4px 0 !important;
+    min-width: 30px;
   }
 }
 

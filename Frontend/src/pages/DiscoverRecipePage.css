@@ -392,33 +392,43 @@ input[placeholder*="Enter keywords"],
 
 @media (max-width: 768px) {
   .recipe-actions {
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 3px;
+    justify-content: space-between;
+    width: 100%;
+    align-items: stretch; /* Ensure all items stretch to same height */
+  }
+  
+  .recipe-actions button {
+    flex: 1;
+    min-width: 0;
+    padding: 6px !important;
+    font-size: 0.8rem;
+    height: 36px !important; /* Force same height for all buttons */
+    box-sizing: border-box; /* Ensure padding doesn't affect height */
   }
   
   .view-recipe-button {
-    grid-column: span 2;
+    flex: 1.5;
+    height: 36px !important; /* Explicitly set same height as other buttons */
   }
   
+  /* Make all buttons have identical padding */
   .save-recipe-button,
   .print-recipe-button,
   .share-recipe-button,
   .grocery-recipe-button {
-    grid-column: span 1;
+    padding: 6px 4px !important;
+    height: 36px !important; /* Match the View button height */
   }
-  
-  .search-buttons {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .search-recipes-button,
-  .reset-filters-button {
-    width: 100%;
-  }
-  
-  .filters-section {
-    margin: 1rem;
-    padding: 1rem;
+}
+
+/* Very small screens - maintain consistent heights */
+@media (max-width: 400px) {
+  .recipe-actions button {
+    padding: 4px !important;
+    height: 36px !important; /* Keep consistent height */
   }
 }
 
@@ -529,7 +539,7 @@ input[placeholder*="Enter keywords"],
 .print-recipe-button,
 .share-recipe-button,
 .grocery-recipe-button {
-  background-color: #2d3748;
+  background-color: #1c2435 !important;
   color: #e2e8f0;
   border: none;
   border-radius: 6px;
@@ -538,19 +548,52 @@ input[placeholder*="Enter keywords"],
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  min-width: 36px; /* Ensure minimum width */
+  height: 36px; /* Fixed height for consistency */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-/* Ensure consistent hover state */
-.recipe-actions button:hover,
-.view-recipe-button:hover,
-.save-recipe-button:hover,
-.print-recipe-button:hover,
-.share-recipe-button:hover,
-.grocery-recipe-button:hover {
-  background-color: #3a4a63;
+/* Fix for mobile view */
+@media (max-width: 768px) {
+  .recipe-actions {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 3px;
+    justify-content: space-between;
+    width: 100%;
+    align-items: stretch; /* Ensure all items stretch to same height */
+  }
+  
+  .recipe-actions button {
+    flex: 1;
+    min-width: 0;
+    padding: 6px !important;
+    font-size: 0.8rem;
+    height: 36px !important; /* Force same height for all buttons */
+    box-sizing: border-box; /* Ensure padding doesn't affect height */
+  }
+  
+  .view-recipe-button {
+    flex: 1.5;
+    height: 36px !important; /* Explicitly set same height as other buttons */
+  }
+  
+  /* Make all buttons have identical padding */
+  .save-recipe-button,
+  .print-recipe-button,
+  .share-recipe-button,
+  .grocery-recipe-button {
+    padding: 6px 4px !important;
+    height: 36px !important; /* Match the View button height */
+  }
 }
 
-/* Specifically target the save button to override any inline styles */
-.save-recipe-button {
-  background-color: #2d3748 !important;
+/* Very small screens - maintain consistent heights */
+@media (max-width: 400px) {
+  .recipe-actions button {
+    padding: 4px !important;
+    height: 36px !important; /* Keep consistent height */
+  }
 }

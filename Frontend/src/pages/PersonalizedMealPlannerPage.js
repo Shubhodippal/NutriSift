@@ -80,33 +80,24 @@ function PersonalizedMealPlannerPage() {
         return;
       }
       
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/profile/${userEmail}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users/profile/${userEmail}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY
         },
       });
+            
+      const data = await response.json();
       
-      if (response.status === 404) {
-        // User doesn't exist
-        //setError('Please complete your profile to generate meal plans');
-        setTimeout(() => {
-          navigate('/profile');
-        }, 5000);
-        return;
-      }
-      
-      /*const data = await response.json();
-      
-      if (!data) {
+      if (data == null || data === undefined || Object.keys(data).length === 0) {
         // Profile doesn't exist - redirect to profile page
         setError('Please complete your profile to generate meal plans');
         setTimeout(() => {
           navigate('/profile');
         }, 2000);
         return;
-      }*/
+      }
       
       // Profile exists, continue loading the page
       setProfileChecked(true);

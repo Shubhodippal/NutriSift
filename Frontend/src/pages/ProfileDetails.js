@@ -432,7 +432,7 @@ function ProfileDetails() {
         
         <div className="profile-content">
           <p className="profile-subtitle">
-            Help us personalize your experience by providing your details
+            Help us personalize your experience
           </p>
           
           {message.text && (

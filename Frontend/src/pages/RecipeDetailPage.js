@@ -52,60 +52,22 @@ function RecipeDetailPage() {
   useEffect(() => {
     const fetchRecipe = async () => {
       try {
-      const token = localStorage.getItem('token');
-      const decoded = decodeJWT(token);
-      
-      const userId = decoded.userId;
-        if (userId) {
-          try {
-            const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}${process.env.REACT_APP_RECIPES_ENDPOINT}/${id}`, {
-              method: 'GET',
-              headers: { 'Content-Type': 'application/json',
-              [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY }
-            });
-            
-            if (response.ok) {
-              const data = await response.json();
-              const imageUrl = data.imageUrl || await getRecipeImage({
-                title: data.recipeName,
-                cuisine: data.cuisine,
-                course: data.course
-              });
-              
-              setRecipe({
-                id: data.id,
-                title: data.recipeName,
-                ingredients: data.ingredients.split('\n').filter(item => item.trim()),
-                steps: data.steps.split('\n').filter(item => item.trim()),
-                text: `# ${data.recipeName}\n\n## Ingredients\n${data.ingredients}\n\n## Instructions\n${data.steps}`,
-                calories: data.calories,
-                diet: data.diet,
-                origin: data.origin,
-                course: data.course,
-                cuisine: data.cuisine,
-                savedAt: data.savedTimeDate,
-                image: imageUrl 
-              });
-              setLoading(false);
-              return;
-            }
-          } catch (error) {
-            console.error('Error fetching from API:', error);
-          }
-        }
+        const token = localStorage.getItem('token');
+        const decoded = decodeJWT(token);
         
+        const userId = decoded.userId; 
         const savedRecipes = JSON.parse(localStorage.getItem('savedRecipes') || '[]');
         const found = savedRecipes.find(r => r.id.toString() === id.toString());
-        
+          
         if (found) {
           if (!found.image) {
             found.image = await getRecipeImage(found);
-            
+              
             localStorage.setItem('savedRecipes', JSON.stringify(
               savedRecipes.map(r => r.id.toString() === id.toString() ? {...r, image: found.image} : r)
             ));
           }
-          
+            
           const adaptedRecipe = {
             ...found,
             ingredients: Array.isArray(found.ingredients) 
@@ -122,8 +84,9 @@ function RecipeDetailPage() {
           setLoading(false);
         }
       } catch (error) {
-        console.error('Error loading recipe:', error);
+        setError('An error occurred while loading the recipe.');
         setLoading(false);
+        console.error(error);
       }
     };
     

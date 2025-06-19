@@ -38,7 +38,8 @@ const refreshToken = async () => {
     const response = await fetch('http://localhost:8080/users/refresh-token', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY
       },
       body: JSON.stringify({ refreshToken })
     });

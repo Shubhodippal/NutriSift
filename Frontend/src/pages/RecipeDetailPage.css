@@ -346,22 +346,39 @@
 
 .health-nutrition-disclaimer {
   margin-top: 2rem;
-  padding: 1rem;
-  background-color: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 5px;
-  color: #495057;
+  padding: 1.5rem;
+  background-color: #1a2235;
+  border: 1px solid #2d3748;
+  border-radius: 12px;
+  color: #e2e8f0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .health-nutrition-disclaimer h3 {
   margin-top: 0;
-  color: #2c5282;
-  font-size: 1.1rem;
-  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #4f8cff 0%, #6a5af9 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.health-nutrition-disclaimer h3::before {
+  content: "⚕️";
+  -webkit-text-fill-color: initial;
 }
 
 .health-nutrition-disclaimer p {
   font-size: 0.9rem;
-  line-height: 1.5;
-  margin-bottom: 0.5rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  color: #a0aec0;
+}
+
+.health-nutrition-disclaimer p:last-child {
+  margin-bottom: 0;
 }

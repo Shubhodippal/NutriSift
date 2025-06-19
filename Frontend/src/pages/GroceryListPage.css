@@ -4,6 +4,7 @@
   padding: 2rem;
   color: #e2e8f0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  padding-top: 5rem; /* Add top padding to prevent content from hiding behind header */
 }
 
 .grocery-list-header {
@@ -13,7 +14,15 @@
   padding: 1rem 1.5rem;
   background: linear-gradient(90deg, #1a2235 0%, #121826 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  margin-bottom: 1.5rem;
+  margin-bottom: 0; /* Remove bottom margin */
+  position: fixed; /* Fix header to top */
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 1000; /* Ensure header stays on top */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
 }
 
 .grocery-list-header h1 {
@@ -423,20 +432,28 @@
   }
 
   .grocery-list-header {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row; /* Change from column to row */
+    justify-content: space-between; /* Space between title and menu */
+    align-items: center; /* Center items vertically */
+    padding: 0.8rem 1rem;
   }
   
-  .header-buttons {
-    width: 100%;
-    margin-top: 1rem;
-    justify-content: space-between;
+  .grocery-list-header h1 {
+    font-size: 1.6rem; /* Slightly smaller font to fit better */
+    margin-right: 1rem; /* Add some space between title and menu */
   }
   
-  .header-buttons button {
-    flex: 1;
-    padding: 0.7rem 0.5rem;
-    font-size: 0.9rem;
+  /* Add specific styles for the hamburger menu in the header */
+  .grocery-list-header .hamburger-menu {
+    position: relative;
+    top: 0; /* Align at the top of the header */
+    right: 0;
+    margin: 0; /* Remove any margin */
+  }
+  
+  .grocery-list-page {
+    padding: 1rem;
+    padding-top: 4.5rem; /* Smaller padding for mobile */
   }
 
   /* Category dropdown in Add Item form */
@@ -752,7 +769,7 @@ li.editing {
 .sync-status {
   text-align: center;
   padding: 0.5rem;
-  margin: 0.5rem auto 1rem;
+  margin: 1rem auto;
   max-width: 90%;
 }
 
