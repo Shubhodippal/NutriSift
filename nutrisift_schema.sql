@@ -167,28 +167,6 @@ CREATE TABLE `saved_recipe` (
 ) ENGINE=InnoDB AUTO_INCREMENT=84 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Table structure for table `transaction_records`
---
-
-DROP TABLE IF EXISTS `transaction_records`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `transaction_records` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `uid` varchar(100) NOT NULL,
-  `mail` varchar(255) NOT NULL,
-  `purchase_date` date NOT NULL,
-  `expiry_date` date NOT NULL,
-  `price` decimal(10,2) NOT NULL,
-  `final_price` decimal(10,2) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `fk_tr_uid` (`uid`),
-  KEY `fk_tr_mail` (`mail`),
-  CONSTRAINT `fk_tr_mail` FOREIGN KEY (`mail`) REFERENCES `users` (`email`),
-  CONSTRAINT `fk_tr_uid` FOREIGN KEY (`uid`) REFERENCES `users` (`userid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `users`
