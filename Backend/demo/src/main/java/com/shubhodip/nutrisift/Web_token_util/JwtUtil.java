@@ -16,14 +16,10 @@ import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtUtil {
-    
-    // Generate a secure key for HS256 algorithm
     private final SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
     
-    // Standard token expiration (e.g., 1 hour)
     private final long tokenExpiration = 1000 * 60 * 60 * 2; 
     
-    // Refresh token expiration (e.g., 7 days)
     private final long refreshTokenExpiration = 1000 * 60 * 60 * 24 * 7;
 
     public String extractUsername(String token) {

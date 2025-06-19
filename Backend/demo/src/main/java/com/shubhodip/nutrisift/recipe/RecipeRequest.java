@@ -1,10 +1,9 @@
 package com.shubhodip.nutrisift.recipe;
 
-// (Assuming your RecipeRequest class looks like this)
 public class RecipeRequest {
     private String ingredients;
     private String mail;
-    private String uid; // Add this field if not present
+    private String uid; 
 
     public String getIngredients() {
         return ingredients;

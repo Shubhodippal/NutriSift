@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.shubhodip.nutrisift.recipe.ApiUsageDAO; // Add this import
+import com.shubhodip.nutrisift.recipe.ApiUsageDAO; 
 
 @RestController
 @RequestMapping("/grocerylist")
@@ -24,7 +24,7 @@ public class GroceryListController {
     private GroceryListDAO groceryListDAO;
     
     @Autowired
-    private ApiUsageDAO apiUsageDAO; // Add this dependency
+    private ApiUsageDAO apiUsageDAO; 
 
     @GetMapping("/{userId}")
     public ResponseEntity<GroceryListResponse> getGroceryList(@PathVariable String userId) {
@@ -56,7 +56,6 @@ public class GroceryListController {
             GroceryListResponse response = new GroceryListResponse();
             
             if (saved) {
-                // Retrieve the latest list from the database to include generated IDs
                 List<GroceryItem> updatedItems = groceryListDAO.getGroceryList(userId);
                 response.setItems(updatedItems);
                 response.setSuccess(true);
@@ -106,7 +105,6 @@ public class GroceryListController {
     @PutMapping("/item/{itemId}")
     public ResponseEntity<GroceryListResponse> updateGroceryItem(@PathVariable long itemId, @RequestBody GroceryItem item) {
         try {
-            
             boolean updated = groceryListDAO.updateGroceryItem(itemId, item);
             
             GroceryListResponse response = new GroceryListResponse();
@@ -114,7 +112,6 @@ public class GroceryListController {
             if (updated) {
                 response.setSuccess(true);
                 response.setMessage("Item updated successfully");
-                // Get updated list for the user
                 List<GroceryItem> updatedItems = groceryListDAO.getGroceryList(item.getUid());
                 response.setItems(updatedItems);
                 return ResponseEntity.ok(response);
@@ -136,7 +133,6 @@ public class GroceryListController {
     @DeleteMapping("/item/{itemId}")
     public ResponseEntity<GroceryListResponse> deleteGroceryItem(@PathVariable long itemId, @RequestBody GroceryItem item) {
         try {
-            
             boolean deleted = groceryListDAO.deleteGroceryItem(itemId);
             
             GroceryListResponse response = new GroceryListResponse();
@@ -144,7 +140,6 @@ public class GroceryListController {
             if (deleted) {
                 response.setSuccess(true);
                 response.setMessage("Item deleted successfully");
-                // Get updated list for the user
                 List<GroceryItem> updatedItems = groceryListDAO.getGroceryList(item.getUid());
                 response.setItems(updatedItems);
                 return ResponseEntity.ok(response);
@@ -166,7 +161,6 @@ public class GroceryListController {
     @PutMapping("/item/{itemId}/toggle")
     public ResponseEntity<GroceryListResponse> toggleItemCheck(@PathVariable long itemId, @RequestBody GroceryItem item) {
         try {
-            
             boolean toggled = groceryListDAO.toggleItemCheck(itemId);
             
             GroceryListResponse response = new GroceryListResponse();
@@ -174,7 +168,6 @@ public class GroceryListController {
             if (toggled) {
                 response.setSuccess(true);
                 response.setMessage("Item check status toggled successfully");
-                // Get updated list for the user
                 List<GroceryItem> updatedItems = groceryListDAO.getGroceryList(item.getUid());
                 response.setItems(updatedItems);
                 return ResponseEntity.ok(response);

@@ -4,7 +4,6 @@ public class PasswordResetRequest {
     private String email;
     private String newPassword;
     
-    // Default constructor for Jackson
     public PasswordResetRequest() {
     }
     

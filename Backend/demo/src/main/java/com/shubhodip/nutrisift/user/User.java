@@ -3,7 +3,6 @@ package com.shubhodip.nutrisift.user;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.concurrent.atomic.LongAccumulator;
 
 public class User {
     private long id;
@@ -18,11 +17,9 @@ public class User {
     private String securityAnswer; 
     private LocalDateTime lastLogin;
 
-    // Default constructor
     public User() {
     }
 
-    // Getters and setters
     public long getId() {
         return id;
     }

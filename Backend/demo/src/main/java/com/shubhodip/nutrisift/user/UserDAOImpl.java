@@ -29,7 +29,7 @@ public class UserDAOImpl implements UserDAO {
             String sql = "SELECT * FROM users WHERE email = ?";
             return jdbcTemplate.queryForObject(sql, new UserRowMapper(), email);
         } catch (EmptyResultDataAccessException e) {
-            return null; // User not found
+            return null; 
         }
     }
 
@@ -68,10 +68,8 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public boolean updateLastLogin(String email) {
-        // Set the timezone to Indian Standard Time (IST)
         TimeZone.setDefault(TimeZone.getTimeZone("Asia/Kolkata"));
         
-        // Get current timestamp in IST
         java.sql.Timestamp currentTimestamp = new java.sql.Timestamp(System.currentTimeMillis());
         
         String sql = "UPDATE users SET last_login = ? WHERE email = ?";
@@ -139,7 +137,7 @@ public class UserDAOImpl implements UserDAO {
                 return profile;
             }, email);
         } catch (EmptyResultDataAccessException e) {
-            return null; // Return null when no profile is found
+            return null; 
         }
     }
 
@@ -188,7 +186,7 @@ public class UserDAOImpl implements UserDAO {
             user.setPhone(rs.getString("phone"));
             user.setPassword(rs.getString("password"));
             user.setSecurityQuestion(rs.getString("security_question"));
-            user.setSecurityAnswer(rs.getString("answer")); // Note the column name is "answer"
+            user.setSecurityAnswer(rs.getString("answer")); 
             return user;
         }
     }

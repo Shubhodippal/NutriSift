@@ -30,19 +30,15 @@ public class GroceryListDAOImpl implements GroceryListDAO {
     @Override
     public boolean saveGroceryList(String userId, String email, List<GroceryItem> items) {
         try {
-            // First verify that the email exists
             String verifyEmailSql = "SELECT email FROM users WHERE userid = ?";
             String verifiedEmail = jdbcTemplate.queryForObject(verifyEmailSql, String.class, userId);
             
-            // If email doesn't match what's in the database, use the correct one
             if (!email.equals(verifiedEmail)) {
                 email = verifiedEmail;
             }
             
-            // First delete any existing items for this user
             deleteGroceryList(userId);
             
-            // Then insert the new items with the verified email
             for (GroceryItem item : items) {
                 String sql = "INSERT INTO grocery_list (uid, mail, state, item_name, quantity, category) " +
                             "VALUES (?, ?, ?, ?, ?, ?)";
@@ -50,7 +46,7 @@ public class GroceryListDAOImpl implements GroceryListDAO {
                 jdbcTemplate.update(
                     sql, 
                     userId,
-                    email, // Use verified email
+                    email, 
                     item.isChecked() ? "checked" : "active",
                     item.getItemName(),
                     item.getQuantity(),
@@ -69,7 +65,7 @@ public class GroceryListDAOImpl implements GroceryListDAO {
         try {
             String sql = "DELETE FROM grocery_list WHERE uid = ?";
             int rowsAffected = jdbcTemplate.update(sql, userId);
-            return rowsAffected >= 0; // Return true even if no rows deleted (idempotent operation)
+            return rowsAffected >= 0; 
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -113,14 +109,11 @@ public class GroceryListDAOImpl implements GroceryListDAO {
     @Override
     public boolean toggleItemCheck(long itemId) {
         try {
-            // First get the current state
             String getStateSql = "SELECT state FROM grocery_list WHERE id = ?";
             String currentState = jdbcTemplate.queryForObject(getStateSql, String.class, itemId);
             
-            // Toggle the state
             String newState = "checked".equals(currentState) ? "active" : "checked";
             
-            // Update the state
             String updateSql = "UPDATE grocery_list SET state = ? WHERE id = ?";
             int rowsAffected = jdbcTemplate.update(updateSql, newState, itemId);
             

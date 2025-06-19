@@ -17,11 +17,9 @@ public class SavedRecipe {
     private String cuisine;
     private LocalDateTime savedTimeDate;
     
-    // Default constructor
     public SavedRecipe() {
     }
     
-    // Getters and setters
     public long getId() {
         return id;
     }

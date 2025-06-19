@@ -14,7 +14,5 @@ public interface RecipeDAO {
     String saveRecipelogs(String uid, String mail, String prompt, String ingredients, String result);
     List<Map<String, Object>> getUserMealPlans(String uid, String mail);
     boolean deleteMealPlan(long id);
-    
-    // Add this new method for recipe discovery
     List<SavedRecipe> discoverRecipes(String calorieRange, String diet, String origin, String course, String cuisine);
 }

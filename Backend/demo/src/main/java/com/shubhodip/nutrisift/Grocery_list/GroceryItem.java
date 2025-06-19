@@ -14,11 +14,9 @@ public class GroceryItem {
     private boolean checked;
     private String[] meals;
 
-    // Default constructor
     public GroceryItem() {
     }
 
-    // Constructor with essential fields
     public GroceryItem(String uid, String mail, String itemName, String quantity, String category) {
         this.uid = uid;
         this.mail = mail;
@@ -28,7 +26,6 @@ public class GroceryItem {
         this.state = "active";
     }
 
-    // Full constructor
     public GroceryItem(long id, String uid, String mail, String state, String itemName, 
                       String quantity, String category, Timestamp creationTime) {
         this.id = id;
@@ -41,7 +38,6 @@ public class GroceryItem {
         this.creationTime = creationTime;
     }
 
-    // Getters and setters
     public long getId() {
         return id;
     }

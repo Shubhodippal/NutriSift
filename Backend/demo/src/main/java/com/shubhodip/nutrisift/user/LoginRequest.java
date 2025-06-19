@@ -4,7 +4,6 @@ public class LoginRequest {
     private String email;
     private String password;
 
-    // Default constructor for Jackson
     public LoginRequest() {
     }
 

@@ -27,29 +27,15 @@ public class ApiKeyFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
         
-        // Get API key from request header
         String requestApiKey = request.getHeader(apiKeyHeaderName);
         
-        // Check if the API key is valid
         if (requestApiKey == null || !requestApiKey.equals(apiKey)) {
-            // API key is invalid or missing
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.getWriter().write("{\"error\": \"Unauthorized: Invalid or missing API key\"}");
             return;
         }
         
-        // API key is valid, continue with the request
         filterChain.doFilter(request, response);
     }
-    
-    /*@Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        // Optionally exclude certain paths from API key validation
-        // For example, exclude user login/registration endpoints
-        String path = request.getServletPath();
-        return path.startsWith("/users/login") || 
-               path.startsWith("/users/register"); ||
-               path.startsWith("/users/verify");
-    }*/
 }

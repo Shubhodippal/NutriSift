@@ -20,11 +20,9 @@ public class Profile {
     private String address;
     private String pincode;
 
-    // Default constructor
     public Profile() {
     }
 
-    // Getters and setters
     public long getId() {
         return id;
     }

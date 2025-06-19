@@ -25,24 +25,21 @@ public class RecipeDAOImpl implements RecipeDAO {
     private JdbcTemplate jdbcTemplate;
     
     @Autowired
-    private ObjectMapper objectMapper; // Add ObjectMapper for JSON processing
+    private ObjectMapper objectMapper; 
 
     @Override
     public int saveRecipe(SavedRecipe recipe) {
         try {
-            // Validate required fields
             System.out.println("Saving recipe: " + recipe.getUid()+recipe.getMail()+recipe.getRecipeName());
             if (recipe.getUid() == null || recipe.getMail() == null) {
                 System.err.println("Error: Required fields missing. uid, mail and recipe_name cannot be null");
                 return 0;
             }
             
-            // Trim and sanitize text fields to prevent SQL issues
             String sanitizedIngredients = recipe.getIngredients() != null ? recipe.getIngredients().replace("'", "''") : null;
             String sanitizedSteps = recipe.getSteps() != null ? recipe.getSteps().replace("'", "''") : null;
             String sanitizedPrompt = recipe.getPrompt() != null ? recipe.getPrompt().replace("'", "''") : null;
             
-            // Use the same column order as in your database
             String sql = "INSERT INTO saved_recipe (uid, mail, prompt, recipe_name, ingredients, steps, " +
                          "calories, diet, origin, course, cuisine) " +
                          "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -62,19 +59,6 @@ public class RecipeDAOImpl implements RecipeDAO {
                 recipe.getCuisine()
             );
         } catch (Exception e) {
-            System.err.println("Error in saveRecipe: " + e.getMessage());
-            e.printStackTrace();
-            
-            // Try to provide more detailed error info
-            System.err.println(e.getClass().getName() + ": " + e.getMessage()   
-            + " | SQL State: " + (e instanceof SQLException ? ((SQLException)e).getSQLState() : "N/A"));
-            System.err.println("Name: "+recipe.getRecipeName());
-            if (e.getMessage().contains("Data too long")) {
-                System.err.println("Data too long for column. Check field length limits.");
-            } else if (e.getMessage().contains("cannot be null")) {
-                System.err.println("Required field is null. Check uid, mail, and recipe_name.");
-            }
-            
             return 0;
         }
     }
@@ -85,7 +69,7 @@ public class RecipeDAOImpl implements RecipeDAO {
             String sql = "SELECT * FROM saved_recipe WHERE id = ?";
             return jdbcTemplate.queryForObject(sql, new SavedRecipeRowMapper(), id);
         } catch (EmptyResultDataAccessException e) {
-            return null; // Recipe not found
+            return null; 
         }
     }
 
@@ -107,7 +91,6 @@ public class RecipeDAOImpl implements RecipeDAO {
         StringBuilder sql = new StringBuilder("SELECT * FROM saved_recipe WHERE 1=1");
         List<Object> params = new ArrayList<>();
         
-        // Add calorie range filter
         if (calorieRange != null && !calorieRange.equals("any")) {
             switch (calorieRange) {
                 case "under300":
@@ -125,32 +108,27 @@ public class RecipeDAOImpl implements RecipeDAO {
             }
         }
         
-        // Add diet filter
         if (diet != null && !diet.equals("any")) {
             sql.append(" AND LOWER(diet) LIKE ?");
             params.add("%" + diet.toLowerCase() + "%");
         }
         
-        // Add origin filter
         if (origin != null && !origin.equals("any")) {
             sql.append(" AND LOWER(origin) LIKE ?");
             params.add("%" + origin.toLowerCase() + "%");
         }
         
-        // Add course filter
         if (course != null && !course.equals("any")) {
             sql.append(" AND LOWER(course) LIKE ?");
             params.add("%" + course.toLowerCase() + "%");
         }
         
-        // Add cuisine filter
         if (cuisine != null && !cuisine.equals("any")) {
             sql.append(" AND LOWER(cuisine) LIKE ?");
             params.add("%" + cuisine.toLowerCase() + "%");
         }
         
-        // Add order by for consistent results
-        sql.append(" ORDER BY id DESC LIMIT 50"); // Limit to 50 recipes for performance
+        sql.append(" ORDER BY id DESC LIMIT 50"); 
         
         try {
             return jdbcTemplate.query(sql.toString(), params.toArray(), new SavedRecipeRowMapper());
@@ -164,13 +142,10 @@ public class RecipeDAOImpl implements RecipeDAO {
     @Override
     public String saveRecipelogs(String uid, String mail, String prompt, String ingredients, String result) {
         try {
-            // Validate required fields
             if (uid == null || mail == null) {
-                //System.err.println("Error: Required fields missing. uid and mail cannot be null");
                 return "Error: Required fields missing. uid and mail cannot be null";
             }
             
-            // Sanitize text inputs to prevent SQL issues
             String sanitizedPrompt = prompt != null ? prompt.replace("'", "''") : null;
             String sanitizedIngredients = ingredients != null ? ingredients.replace("'", "''") : null;
             String sanitizedResult = result != null ? result.replace("'", "''") : null;
@@ -189,7 +164,6 @@ public class RecipeDAOImpl implements RecipeDAO {
             return "Recipe log saved successfully";
             
         } catch (Exception e) {
-            //System.err.println("Error in saveRecipelogs: " + e.getMessage());
             e.printStackTrace();
             return "Error saving recipe log: " + e.getMessage();
         }
@@ -201,17 +175,14 @@ public class RecipeDAOImpl implements RecipeDAO {
         Map<String, Double> recipeScores = new HashMap<>();
         
         try (Connection conn = jdbcTemplate.getDataSource().getConnection()) {
-            // Normalize and split the requested ingredients
             String normalizedRequestIngredients = ingredients.toLowerCase().trim();
             List<String> requestedIngredientsList = java.util.Arrays.asList(
                 normalizedRequestIngredients.split("[,\\s]+"));
             
-            // Filter out empty strings
             requestedIngredientsList = requestedIngredientsList.stream()
                 .filter(ing -> !ing.isEmpty())
                 .collect(Collectors.toList());
             
-            // Query to get all recipes
             String sql = "SELECT ingredient, result FROM recipe_logs";
             try (PreparedStatement stmt = conn.prepareStatement(sql);
                  ResultSet rs = stmt.executeQuery()) {
@@ -220,20 +191,17 @@ public class RecipeDAOImpl implements RecipeDAO {
                     String storedIngredients = rs.getString("ingredient");
                     String recipeJson = rs.getString("result");
                     
-                    // Calculate match score with improved algorithm
                     double matchScore = calculateBidirectionalMatchScore(
                         storedIngredients, 
                         requestedIngredientsList
                     );
                     
-                    // Only consider recipes with at least 80% match
                     if (matchScore >= 0.8) {
                         recipeScores.put(recipeJson, matchScore);
                     }
                 }
             }
             
-            // Sort recipes by match score (highest first)
             matchingRecipes = recipeScores.entrySet().stream()
                 .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
                 .map(Map.Entry::getKey)
@@ -246,18 +214,15 @@ public class RecipeDAOImpl implements RecipeDAO {
         return matchingRecipes;
     }
 
-    // Improved bidirectional matching algorithm
     private double calculateBidirectionalMatchScore(String storedIngredients, List<String> requestedIngredientsList) {
         if (storedIngredients == null || requestedIngredientsList.isEmpty()) {
             return 0.0;
         }
         
-        // Normalize stored ingredients
         String normalizedStored = storedIngredients.toLowerCase().trim();
         List<String> storedIngredientsList = java.util.Arrays.asList(
             normalizedStored.split("[,\\s]+"));
         
-        // Filter out empty strings
         storedIngredientsList = storedIngredientsList.stream()
             .filter(ing -> !ing.isEmpty())
             .collect(Collectors.toList());
@@ -266,11 +231,9 @@ public class RecipeDAOImpl implements RecipeDAO {
             return 0.0;
         }
         
-        // Count matching ingredients in both directions
         int requestedIngredientsFound = 0;
         int storedIngredientsMatched = 0;
         
-        // Count how many requested ingredients are found in the recipe
         for (String reqIng : requestedIngredientsList) {
             for (String storedIng : storedIngredientsList) {
                 if (storedIng.equals(reqIng) || 
@@ -282,7 +245,6 @@ public class RecipeDAOImpl implements RecipeDAO {
             }
         }
         
-        // Count how many recipe ingredients match requested ingredients
         for (String storedIng : storedIngredientsList) {
             for (String reqIng : requestedIngredientsList) {
                 if (storedIng.equals(reqIng) || 
@@ -294,12 +256,9 @@ public class RecipeDAOImpl implements RecipeDAO {
             }
         }
         
-        // Calculate both scores
         double requestedMatchRatio = (double) requestedIngredientsFound / requestedIngredientsList.size();
         double storedMatchRatio = (double) storedIngredientsMatched / storedIngredientsList.size();
         
-        // Combined score: heavily weight that all recipe ingredients should be requested ones
-        // This ensures recipes with many extra ingredients don't match when only a few ingredients are requested
         return (requestedMatchRatio * 0.3) + (storedMatchRatio * 0.7);
     }
 
@@ -324,7 +283,6 @@ public class RecipeDAOImpl implements RecipeDAO {
         }
     }
 
-        // Add to SavedRecipeDAO class
     public UserProfile getUserProfile(String uid, String mail) {
         UserProfile profile = new UserProfile();
         
@@ -337,11 +295,10 @@ public class RecipeDAOImpl implements RecipeDAO {
                 try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
                         profile.setUid(rs.getString("uid"));
-                        profile.setEmail(rs.getString("mail")); // Changed from "email" to "mail"
-                        profile.setDietaryPreference(rs.getString("diet_pref")); // Changed from "dietary_preference"
+                        profile.setEmail(rs.getString("mail")); 
+                        profile.setDietaryPreference(rs.getString("diet_pref")); 
                         profile.setAllergies(rs.getString("allergies"));
                         
-                        // Set calorie goal based on body goal and BMI
                         profile.setCalorieGoal(calculateCalorieGoal(
                             rs.getDouble("weight"),
                             rs.getDouble("height"),
@@ -349,9 +306,8 @@ public class RecipeDAOImpl implements RecipeDAO {
                             rs.getString("body_goal")
                         ));
                         
-                        profile.setHealthGoals(rs.getString("body_goal")); // Changed from "health_goals"
+                        profile.setHealthGoals(rs.getString("body_goal")); 
                         
-                        // Set cuisine preferences (this field doesn't exist in your DB)
                         profile.setCuisinePreferences("Not specified");
                         profile.setCity(rs.getString("city"));
                         profile.setCountry(rs.getString("country"));

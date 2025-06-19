@@ -30,6 +30,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @RequestMapping("/recipe")
 public class ChatController {
 
+    @Autowired
+    private ApiUsageDAO apiUsageDAO;
+
     private static final String COHERE_API_URL = "https://api.cohere.com/v2/chat";
     @Value("${cohere.api.key}")
     private String COHERE_API_KEY;
@@ -38,26 +41,20 @@ public class ChatController {
     @PostMapping
     public ResponseEntity<Object> generateRecipe(@RequestBody RecipeRequest request) {
         try {
-            // Track API usage without enforcing limits
             apiUsageDAO.trackApiUsage(request.getUid(), request.getMail(), "generate-recipe");
             
-            // First try to find a matching recipe in the logs
             List<String> possibleRecipes = savedRecipeDAO.findRecipesByIngredients(request.getIngredients());
             
-            // If we found matching recipes in our logs
             if (possibleRecipes != null && !possibleRecipes.isEmpty()) {
-                // Get the first (best) match
                 String recipeJson = possibleRecipes.get(0);
                 Map<String, Object> recipeMap = objectMapper.readValue(recipeJson, Map.class);
                 
-                // Ensure all required fields exist (with defaults if missing)
                 if (!recipeMap.containsKey("calories")) recipeMap.put("calories", "Not available");
                 if (!recipeMap.containsKey("diet")) recipeMap.put("diet", "Not specified");
                 if (!recipeMap.containsKey("origin")) recipeMap.put("origin", "Not specified");
                 if (!recipeMap.containsKey("course")) recipeMap.put("course", "Not specified");
                 if (!recipeMap.containsKey("cuisine")) recipeMap.put("cuisine", "Not specified");
                 
-                // Log that we served a cached recipe
                 savedRecipeDAO.saveRecipelogs(
                     request.getUid(), 
                     request.getMail(), 
@@ -69,8 +66,6 @@ public class ChatController {
                 return ResponseEntity.ok(recipeMap);
             }
             
-            // If no recipe found in logs, fallback to Cohere API
-            // Create enhanced prompt format with additional recipe information
             String prompt = String.format(
                 "Suggest a creative recipe using only these ingredients: %s. " +
                 "Respond in this JSON format: " +
@@ -87,12 +82,10 @@ public class ChatController {
                 request.getIngredients()
             );
 
-            // Create HTTP headers
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("Authorization", "Bearer " + COHERE_API_KEY);
 
-            // Create request body
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("stream", false);
             requestBody.put("model", "command-a-03-2025");
@@ -103,10 +96,8 @@ public class ChatController {
             
             requestBody.put("messages", List.of(message));
 
-            // Create HTTP entity with headers and body
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
             
-            // Make the API call
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response = restTemplate.exchange(
                 COHERE_API_URL, 
@@ -115,11 +106,9 @@ public class ChatController {
                 String.class
             );
             
-            // Extract the recipe JSON from the response
             String responseBody = response.getBody();
             Map<String, Object> responseMap = objectMapper.readValue(responseBody, Map.class);
             
-            // Extract the message content from the Cohere response
             String content = "";
             if (responseMap.containsKey("message")) {
                 Map<String, Object> messageObj = (Map<String, Object>) responseMap.get("message");
@@ -131,7 +120,6 @@ public class ChatController {
                 }
             }
             
-            // Extract JSON from the response using regex
             Pattern pattern = Pattern.compile("\\{.*\\}", Pattern.DOTALL);
             Matcher matcher = pattern.matcher(content);
 
@@ -139,19 +127,16 @@ public class ChatController {
                 String recipeJson = matcher.group();
                 Map<String, Object> recipeMap = objectMapper.readValue(recipeJson, Map.class);
                 
-                // Ensure all required fields exist (with defaults if missing)
                 if (!recipeMap.containsKey("calories")) recipeMap.put("calories", "Not available");
                 if (!recipeMap.containsKey("diet")) recipeMap.put("diet", "Not specified");
                 if (!recipeMap.containsKey("origin")) recipeMap.put("origin", "Not specified");
                 if (!recipeMap.containsKey("course")) recipeMap.put("course", "Not specified");
                 if (!recipeMap.containsKey("cuisine")) recipeMap.put("cuisine", "Not specified");
                 
-                // Save recipe logs using the DAO instance
                 savedRecipeDAO.saveRecipelogs(request.getUid(), request.getMail(), prompt, request.getIngredients(), objectMapper.writeValueAsString(recipeMap));
         
                 return ResponseEntity.ok(recipeMap);
             } else {
-                // Fallback if no JSON found
                 Map<String, Object> errorRecipe = new HashMap<>();
                 errorRecipe.put("title", "Recipe Not Found");
                 errorRecipe.put("ingredients", List.of());
@@ -181,42 +166,32 @@ public class ChatController {
     @PostMapping("/search")
     public ResponseEntity<Object> searchRecipes(@RequestBody RecipeSearchRequest request) {
         try {
-            // Check if user has exceeded daily search limit (3 per day)
             if (!apiUsageDAO.checkAndUpdateApiUsage(request.getUid(), request.getMail(), "search", 3)) {
                 return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("Rate Limit Exceeded, You have reached the daily limit (3) for recipe searches. Please try again tomorrow.");
             }
             
-            // Create search prompt for multiple recipes
             StringBuilder promptBuilder = new StringBuilder();
-            
-            // Add current timestamp to make each request unique
             long timestamp = System.currentTimeMillis();
             
-            // Request variety in recipes
             promptBuilder.append("Find me 8-10 unique and different recipes (IMPORTANT: ensure variety and avoid repeating recipes from previous requests). ");
             promptBuilder.append("This is request timestamp: ").append(timestamp).append(". ");
             
-            // Add search criteria to the prompt
             if (request.getQuery() != null && !request.getQuery().trim().isEmpty()) {
                 promptBuilder.append("Matching the search query: ").append(request.getQuery()).append(". ");
             }
             
-            // Add dietary preferences if specified
             if (request.getDiet() != null && !request.getDiet().equals("any")) {
                 promptBuilder.append("Recipes should be ").append(request.getDiet()).append(". ");
             }
             
-            // Add cuisine type if specified
             if (request.getCuisine() != null && !request.getCuisine().equals("any")) {
                 promptBuilder.append("From ").append(request.getCuisine()).append(" cuisine. ");
             }
             
-            // Add course type if specified
             if (request.getCourse() != null && !request.getCourse().equals("any")) {
                 promptBuilder.append("For ").append(request.getCourse()).append(". ");
             }
             
-            // Add calorie range if specified
             if (request.getCalorieRange() != null && !request.getCalorieRange().equals("any")) {
                 switch (request.getCalorieRange()) {
                     case "under300":
@@ -234,15 +209,11 @@ public class ChatController {
                 }
             }
             
-            // Add origin if specified
             if (request.getOrigin() != null && !request.getOrigin().equals("any")) {
                 promptBuilder.append("From ").append(request.getOrigin()).append(" origin. ");
             }
             
-            // Explicit instruction for variety
             promptBuilder.append("IMPORTANT: Each recipe should be creative and different from one another. ");
-            
-            // Add JSON format specification
             promptBuilder.append("Respond with an array of recipe objects in this JSON format: ");
             promptBuilder.append("[{");
             promptBuilder.append("\"title\": \"Recipe Name\", ");
@@ -257,19 +228,16 @@ public class ChatController {
             promptBuilder.append("\"cookTime\": \"cooking time in minutes\"");
             promptBuilder.append("}]");
             
-            // Create HTTP headers
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("Authorization", "Bearer " + COHERE_API_KEY);
 
-            // Create request body with additional parameters to increase variety
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("stream", false);
             requestBody.put("model", "command-a-03-2025");
-            requestBody.put("temperature", 0.9); // Higher temperature = more randomness
-            requestBody.put("p", 0.75); // Nucleus sampling for more variety
+            requestBody.put("temperature", 0.9); 
+            requestBody.put("p", 0.75); 
             
-            // Add a seed based on timestamp to prevent repetitive outputs
             requestBody.put("seed", timestamp % 1000000);
             
             Map<String, Object> message = new HashMap<>();
@@ -278,10 +246,8 @@ public class ChatController {
             
             requestBody.put("messages", List.of(message));
 
-            // Create HTTP entity with headers and body
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
             
-            // Make the API call
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response = restTemplate.exchange(
                 COHERE_API_URL, 
@@ -290,11 +256,9 @@ public class ChatController {
                 String.class
             );
             
-            // Extract the recipe JSON from the response
             String responseBody = response.getBody();
             Map<String, Object> responseMap = objectMapper.readValue(responseBody, Map.class);
             
-            // Extract the message content from the Cohere response
             String content = "";
             if (responseMap.containsKey("message")) {
                 Map<String, Object> messageObj = (Map<String, Object>) responseMap.get("message");
@@ -306,7 +270,6 @@ public class ChatController {
                 }
             }
             
-            // Extract JSON array from the response using regex
             Pattern pattern = Pattern.compile("\\[\\s*\\{.*\\}\\s*\\]", Pattern.DOTALL);
             Matcher matcher = pattern.matcher(content);
             
@@ -314,7 +277,6 @@ public class ChatController {
                 String recipesJson = matcher.group();
                 List<Map<String, Object>> recipes = objectMapper.readValue(recipesJson, List.class);
                 
-                // Ensure all required fields exist for each recipe
                 for (Map<String, Object> recipe : recipes) {
                     if (!recipe.containsKey("calories")) recipe.put("calories", "Not available");
                     if (!recipe.containsKey("diet")) recipe.put("diet", "Not specified");
@@ -324,15 +286,12 @@ public class ChatController {
                     if (!recipe.containsKey("prepTime")) recipe.put("prepTime", 30);
                     if (!recipe.containsKey("cookTime")) recipe.put("cookTime", 45);
                     
-                    // Generate a unique ID for each recipe (simple solution for demo)
                     recipe.put("id", System.nanoTime() + recipes.indexOf(recipe));
                     
                     savedRecipeDAO.saveRecipelogs(request.getUid(), request.getMail(), promptBuilder.toString(), objectMapper.writeValueAsString(recipe.get("ingredients")), objectMapper.writeValueAsString(recipe));
                 }
-                
                 return ResponseEntity.ok(recipes);
             } else {
-                // Fallback if no JSON array found
                 List<Map<String, Object>> fallbackRecipes = new ArrayList<>();
                 Map<String, Object> errorRecipe = new HashMap<>();
                 errorRecipe.put("id", 1);
@@ -416,7 +375,6 @@ public class ChatController {
         }
     }
 
-    // 4. Modify the getRecipeById endpoint
     @GetMapping("/{id}")
     public ResponseEntity<?> getRecipeById(@PathVariable long id) {
         try {
@@ -433,7 +391,6 @@ public class ChatController {
         }
     }
 
-    // 5. Modify the deleteRecipe endpoint
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteRecipe(@PathVariable long id) {
         try {
@@ -454,15 +411,12 @@ public class ChatController {
     @PostMapping("/meal-plan")
     public ResponseEntity<?> generateWeeklyMealPlan(@RequestBody MealPlanRequest request) {
         try {
-            // Check if user has exceeded daily meal plan limit (2 per day)
             if (!apiUsageDAO.checkAndUpdateApiUsage(request.getUid(), request.getMail(), "meal-plan", 2)) {
                 Map<String, Object> errorResponse = new HashMap<>();
                 errorResponse.put("error", "Rate Limit Exceeded, You have reached the daily limit (2) for generating meal plans. Please try again tomorrow.");
-                //errorResponse.put("message", "You have reached the daily limit (2) for generating meal plans. Please try again tomorrow.");
                 return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(errorResponse);
             }
             
-            // 1. Retrieve user profile data
             UserProfile userProfile = savedRecipeDAO.getUserProfile(request.getUid(), request.getMail());
             
             if (userProfile == null) {
@@ -470,11 +424,9 @@ public class ChatController {
                         .body("User profile not found. Please complete your profile first.");
             }
             
-            // 2. Generate a prompt based on the user's profile
             StringBuilder promptBuilder = new StringBuilder();
             promptBuilder.append("Create a personalized 7-day meal plan (breakfast, morning snack, lunch, afternoon snack, dinner) for a user with these preferences: ");
             
-            // Add user preferences to the prompt
             if (userProfile.getDietaryPreference() != null) {
                 promptBuilder.append("Diet: ").append(userProfile.getDietaryPreference()).append(". ");
             }
@@ -495,20 +447,15 @@ public class ChatController {
                 promptBuilder.append("Preferred cuisines: ").append(userProfile.getCuisinePreferences()).append(". ");
             }
             
-            // Add location information for regional recommendations
             String userCity = userProfile.getCity() != null ? userProfile.getCity() : "Kolkata";
             String userCountry = userProfile.getCountry() != null ? userProfile.getCountry() : "India";
             
             promptBuilder.append("User lives in ").append(userCity).append(", ").append(userCountry).append(". ");
             promptBuilder.append("Include local and regional dishes popular in ").append(userCity);
-        
-            // Add specific instructions for snacks, variety, and detailed preparation steps
             promptBuilder.append("Include two healthy snacks each day between main meals. ");
             promptBuilder.append("IMPORTANT: Ensure there is significant variety in meals across the week - don't repeat the same meals on different days. ");
             promptBuilder.append("For example, if oatmeal is suggested for Monday breakfast, don't suggest it for any other breakfast that week. ");
             promptBuilder.append("For each meal and snack, include a title, brief description, detailed cooking instructions, approximate calories, country of origin, and key ingredients. ");
-            
-            // Request JSON response format
             promptBuilder.append("Respond with a JSON object in this exact format: ");
             promptBuilder.append("{");
             promptBuilder.append("\"weeklyPlan\": [");
@@ -526,7 +473,6 @@ public class ChatController {
             promptBuilder.append("]");
             promptBuilder.append("}");
             
-            // 3. Call Cohere API to generate the meal plan
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("Authorization", "Bearer " + COHERE_API_KEY);
@@ -534,7 +480,6 @@ public class ChatController {
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("stream", false);
             requestBody.put("model", "command-a-03-2025");
-            // Add some randomness for variety
             requestBody.put("temperature", 0.7);
             
             Map<String, Object> message = new HashMap<>();
@@ -553,11 +498,9 @@ public class ChatController {
                 String.class
             );
             
-            // 4. Extract the meal plan JSON from the response
             String responseBody = response.getBody();
             Map<String, Object> responseMap = objectMapper.readValue(responseBody, Map.class);
             
-            // Extract the message content from the Cohere response
             String content = "";
             if (responseMap.containsKey("message")) {
                 Map<String, Object> messageObj = (Map<String, Object>) responseMap.get("message");
@@ -569,7 +512,6 @@ public class ChatController {
                 }
             }
             
-            // Extract JSON from the response using regex
             Pattern pattern = Pattern.compile("\\{.*\\}", Pattern.DOTALL);
             Matcher matcher = pattern.matcher(content);
 
@@ -577,12 +519,10 @@ public class ChatController {
                 String mealPlanJson = matcher.group();
                 Map<String, Object> mealPlanMap = objectMapper.readValue(mealPlanJson, Map.class);
                 
-                // 5. Analyze the meal plan to check for variety and completeness
                 if (mealPlanMap.containsKey("weeklyPlan")) {
                     validateMealPlanVariety(mealPlanMap);
                     ensureCompleteInstructions(mealPlanMap);
                     
-                    // Add this new code to save each recipe individually to recipe_logs
                     List<Map<String, Object>> weeklyPlan = (List<Map<String, Object>>) mealPlanMap.get("weeklyPlan");
                     for (Map<String, Object> dayPlan : weeklyPlan) {
                         String day = (String) dayPlan.get("day");
@@ -592,14 +532,11 @@ public class ChatController {
                             String mealType = (String) meal.get("type");
                             String mealTitle = (String) meal.get("title");
                             
-                            // Create a prompt description for this specific meal
                             String mealPrompt = "Meal plan: " + mealType + " for " + day + " - " + mealTitle;
                             
-                            // Get ingredients as a list and convert to string
                             List<String> ingredientsList = (List<String>) meal.get("ingredients");
                             String ingredientsString = String.join(", ", ingredientsList);
                             
-                            // Save each meal as a separate entry in recipe_logs
                             savedRecipeDAO.saveRecipelogs(
                                 request.getUid(),
                                 request.getMail(),
@@ -611,7 +548,6 @@ public class ChatController {
                     }
                 }
                 
-                // 6. Save the full meal plan to the database (keep this for the complete plan)
                 savedRecipeDAO.saveMealPlan(
                     request.getUid(), 
                     request.getMail(), 
@@ -620,7 +556,6 @@ public class ChatController {
                 
                 return ResponseEntity.ok(mealPlanMap);
             } else {
-                // Fallback if no JSON found
                 Map<String, Object> errorResponse = new HashMap<>();
                 errorResponse.put("error", "Failed to generate meal plan");
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
@@ -634,7 +569,6 @@ public class ChatController {
         }
     }
 
-    // Helper method to validate meal plan variety
     private void validateMealPlanVariety(Map<String, Object> mealPlanMap) {
         try {
             List<Map<String, Object>> weeklyPlan = (List<Map<String, Object>>) mealPlanMap.get("weeklyPlan");
@@ -642,7 +576,6 @@ public class ChatController {
             Map<String, Integer> lunchCounts = new HashMap<>();
             Map<String, Integer> dinnerCounts = new HashMap<>();
             
-            // Count meal occurrences
             for (Map<String, Object> dayPlan : weeklyPlan) {
                 List<Map<String, Object>> meals = (List<Map<String, Object>>) dayPlan.get("meals");
                 for (Map<String, Object> meal : meals) {
@@ -659,7 +592,6 @@ public class ChatController {
                 }
             }
             
-            // Add variety score to the meal plan (could be used for feedback)
             double breakfastVariety = calculateVarietyScore(breakfastCounts);
             double lunchVariety = calculateVarietyScore(lunchCounts);
             double dinnerVariety = calculateVarietyScore(dinnerCounts);
@@ -667,32 +599,26 @@ public class ChatController {
             
             mealPlanMap.put("varietyScore", Math.round(overallVariety * 100) / 100.0);
         } catch (Exception e) {
-            // Just log the error but don't fail the request
             e.printStackTrace();
         }
     }
 
-    // Calculate variety score (1.0 = perfect variety, 0.0 = all identical)
     private double calculateVarietyScore(Map<String, Integer> mealCounts) {
         if (mealCounts.isEmpty()) return 1.0;
         
         int totalMeals = mealCounts.values().stream().mapToInt(Integer::intValue).sum();
         int uniqueMeals = mealCounts.size();
         
-        // Perfect variety would have 7 unique meals (one for each day)
         return Math.min(1.0, uniqueMeals / 7.0);
     }
 
-    // Add this new helper method to ensure complete instructions
     private void ensureCompleteInstructions(Map<String, Object> mealPlanMap) {
         try {
             List<Map<String, Object>> weeklyPlan = (List<Map<String, Object>>) mealPlanMap.get("weeklyPlan");
             for (Map<String, Object> dayPlan : weeklyPlan) {
                 List<Map<String, Object>> meals = (List<Map<String, Object>>) dayPlan.get("meals");
                 for (Map<String, Object> meal : meals) {
-                    // Check if instructions are missing or empty
                     if (!meal.containsKey("instructions") || ((List<?>)meal.get("instructions")).isEmpty()) {
-                        // Generate basic instructions if missing
                         List<String> basicInstructions = new ArrayList<>();
                         basicInstructions.add("Gather all ingredients");
                         basicInstructions.add("Prepare ingredients as needed (wash, chop, measure)");
@@ -701,7 +627,6 @@ public class ChatController {
                         meal.put("instructions", basicInstructions);
                     }
                     
-                    // Check if origin information is missing
                     if (!meal.containsKey("origin")) {
                         Map<String, String> origin = new HashMap<>();
                         origin.put("country", "International");
@@ -711,7 +636,6 @@ public class ChatController {
                 }
             }
         } catch (Exception e) {
-            // Just log the error but don't fail the request
             e.printStackTrace();
         }
     }
@@ -719,7 +643,6 @@ public class ChatController {
     @GetMapping("/meal-plans/{uid}/{mail}")
     public ResponseEntity<?> getUserMealPlans(@PathVariable String uid, @PathVariable String mail) {
         try {
-            
             List<Map<String, Object>> mealPlans = savedRecipeDAO.getUserMealPlans(uid, mail);
             
             if (mealPlans.isEmpty()) {
@@ -737,11 +660,9 @@ public class ChatController {
         }
     }
 
-    // 7. Modify the deleteMealPlan endpoint
     @DeleteMapping("/del_meal-plan/{id}")
     public ResponseEntity<?> deleteMealPlan(@PathVariable long id) {
         try {
-            
             boolean deleted = savedRecipeDAO.deleteMealPlan(id);
             if (deleted) {
                 return ResponseEntity.ok(
@@ -759,7 +680,4 @@ public class ChatController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
-
-    @Autowired
-    private ApiUsageDAO apiUsageDAO;
 }

@@ -42,20 +42,16 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<String> saveUser(@RequestBody User user) {
-        // Check if email already exists
         if (userDAO.emailExists(user.getEmail())) {
             return ResponseEntity.status(409).body("Email already exists.");
         }
 
-        // Generate unique userid
         String userid;
         do {
             userid = UUID.randomUUID().toString();
         } while (userDAO.isUserIdExists(userid));
 
         user.setUserid(userid);
-
-        // Encrypt password before saving
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         String encryptedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(encryptedPassword);
@@ -78,12 +74,10 @@ public class UserController {
             String email = jdbcTemplate.queryForObject(sql, String.class, userId);
             
             if (email != null) {
-                
                 String token = jwtUtil.generateToken(userId, email);
                 Map<String, String> response = new HashMap<>();
                 response.put("token", token);
                 response.put("message", "User verified successfully");
-        
                 return ResponseEntity.ok(response);
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -110,13 +104,9 @@ public class UserController {
         
         userDAO.updateLastLogin(user.getEmail());
 
-        // Generate JWT access token
         String accessToken = jwtUtil.generateToken(user.getUserid(), user.getEmail());
-        
-        // Generate refresh token with longer expiration
         String refreshToken = jwtUtil.generateRefreshToken(user.getUserid(), user.getEmail());
         
-        // Create response with both tokens
         Map<String, String> response = new HashMap<>();
         response.put("token", accessToken);
         response.put("refreshToken", refreshToken);
@@ -151,9 +141,8 @@ public class UserController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
             }
             
-            // Compare the provided answer with the stored answer (case-insensitive)
             if (user.getSecurityAnswer().equalsIgnoreCase(request.getAnswer())) {
-                return ResponseEntity.ok().build(); // 200 OK with empty body for success
+                return ResponseEntity.ok().build(); 
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect answer");
             }
@@ -172,11 +161,9 @@ public class UserController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
             }
             
-            // Encrypt the new password
             PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
             String encryptedPassword = passwordEncoder.encode(request.getNewPassword());
             
-            // Update the password in the database
             boolean updated = userDAO.updatePassword(request.getEmail(), encryptedPassword);
             if (updated) {
                 return ResponseEntity.ok("Password reset successful");
@@ -192,7 +179,6 @@ public class UserController {
 
     @PostMapping("/profile")
     public ResponseEntity<String> saveProfile(@RequestBody Profile profile) {
-        // Validate the profile data if necessary
         if (profile.getMail() == null || profile.getMail().isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email is required");
         }
@@ -202,7 +188,6 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
-        // Save the profile using UserDAO
         int rows = userDAO.saveProfile(profile);
         if (rows > 0) {
             return ResponseEntity.ok("Profile saved successfully for email: " + profile.getMail());
@@ -214,7 +199,6 @@ public class UserController {
     @GetMapping("/profile/{email}")
     public ResponseEntity<Profile> getProfile(@PathVariable String email) {
         try {
-            // First check if user exists
             User user = userDAO.getUserByEmail(email);
             if (user == null) {
                 return ResponseEntity.ok(null);
@@ -230,22 +214,18 @@ public class UserController {
     @PutMapping("/profile/{email}")
     public ResponseEntity<String> updateProfile(@PathVariable String email, @RequestBody Profile profile) {
         try {
-            // First check if user exists
             User user = userDAO.getUserByEmail(email);
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
             }
             
-            // Ensure email in profile matches the path variable
             profile.setMail(email);
             
-            // Check if profile exists
             Profile existingProfile = userDAO.getProfileByEmail(email);
             if (existingProfile == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Profile not found for user");
             }
             
-            // Update the profile
             int rowsUpdated = userDAO.updateProfile(profile);
             if (rowsUpdated > 0) {
                 return ResponseEntity.ok("Profile updated successfully");
@@ -263,19 +243,15 @@ public class UserController {
     public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest refreshTokenRequest) {
         String refreshToken = refreshTokenRequest.getRefreshToken();
         
-        // Validate refresh token
         if (!jwtUtil.validateRefreshToken(refreshToken)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired refresh token");
         }
         
-        // Extract claims from refresh token
         String userId = jwtUtil.extractUserIdFromRefreshToken(refreshToken);
         String email = jwtUtil.extractEmailFromRefreshToken(refreshToken);
         
-        // Generate new access token
         String newAccessToken = jwtUtil.generateToken(userId, email);
         
-        // Create response with new access token
         Map<String, String> response = new HashMap<>();
         response.put("token", newAccessToken);
         response.put("message", "Token refreshed successfully");
@@ -284,7 +260,6 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    // Webmail configuration - Replace with your actual webmail settings
     @Value("${email.host}")
     private String emailHost;
 
@@ -312,33 +287,25 @@ public class UserController {
         }
         
         if(type != null && type.equals("signup")){
-             
             try {                
-                // Generate OTP - 8 digit random number
                 String otp = generateOtp();
                 
-                // Encode the OTP using BCrypt
                 PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
                 String encodedOtp = passwordEncoder.encode(otp);
                 
-                // Create a JWT token containing the encoded OTP with 10-minute expiration
                 Map<String, Object> claims = new HashMap<>();
                 claims.put("email", email);
                 claims.put("encodedOtp", encodedOtp);
                 claims.put("type", type);
                 
-                // Generate token with 10-minute expiration
-                String otpToken = jwtUtil.generateTokenWithExpiration(claims, 10 * 60 * 1000); // 10 minutes in milliseconds
+                String otpToken = jwtUtil.generateTokenWithExpiration(claims, 10 * 60 * 1000); 
                 
-                // Send plaintext OTP via email (user needs to read it)
                 sendOtpEmail(email, otp);
                 
-                // Return JWT token instead of plaintext OTP
                 response.put("status", "success");
                 response.put("otpToken", otpToken);
                 
                 return ResponseEntity.ok(response);
-                
             } catch (Exception e) {
                 response.put("status", "error");
                 response.put("message", "Error: " + e.getMessage());
@@ -346,7 +313,6 @@ public class UserController {
             }
         } else if(type != null && type.equals("reset")){
             try {
-                // Check if user exists
                 boolean userExists = userDAO.emailExists(email);
                 if (!userExists) {
                     response.put("status", "error");
@@ -354,26 +320,20 @@ public class UserController {
                     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
                 }
                 
-                // Generate OTP - 8 digit random number
                 String otp = generateOtp();
                 
-                // Encode the OTP using BCrypt
                 PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
                 String encodedOtp = passwordEncoder.encode(otp);
                 
-                // Create a JWT token containing the encoded OTP with 10-minute expiration
                 Map<String, Object> claims = new HashMap<>();
                 claims.put("email", email);
                 claims.put("encodedOtp", encodedOtp);
                 claims.put("type", type);
                 
-                // Generate token with 10-minute expiration
                 String otpToken = jwtUtil.generateTokenWithExpiration(claims, 10 * 60 * 1000); // 10 minutes in milliseconds
                 
-                // Send plaintext OTP via email (user needs to read it)
                 sendOtpEmail(email, otp);
                 
-                // Return JWT token instead of plaintext OTP
                 response.put("status", "success");
                 response.put("otpToken", otpToken);
                 
@@ -385,15 +345,12 @@ public class UserController {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
             }
         }
-        
-        // If type is not "register" or "reset", return a bad request response
         response.put("status", "error");
         response.put("message", "Invalid request type");
         return ResponseEntity.badRequest().body(response);
     }
 
     private String generateOtp() {
-        // Generate a random 8-digit number
         Random random = new Random();
         int otp = 10000000 + random.nextInt(90000000);
         return String.valueOf(otp);
@@ -402,15 +359,12 @@ public class UserController {
     private void sendOtpEmail(String to, String otp) throws MessagingException {
         Properties props = new Properties();
         
-        // Configure email properties for webmail
         if (useSSL) {
-            // SSL configuration
             props.put("mail.smtp.auth", "true");
             props.put("mail.smtp.ssl.enable", "true");
             props.put("mail.smtp.host", emailHost);
             props.put("mail.smtp.port", emailPort);
         } else {
-            // TLS configuration
             props.put("mail.smtp.auth", "true");
             props.put("mail.smtp.starttls.enable", "true");
             props.put("mail.smtp.host", emailHost);

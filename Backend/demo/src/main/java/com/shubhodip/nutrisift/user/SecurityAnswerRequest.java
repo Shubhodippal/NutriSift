@@ -4,7 +4,6 @@ public class SecurityAnswerRequest {
     private String email;
     private String answer;
     
-    // Default constructor for Jackson
     public SecurityAnswerRequest() {
     }
     

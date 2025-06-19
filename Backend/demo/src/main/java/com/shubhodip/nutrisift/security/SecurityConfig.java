@@ -26,7 +26,6 @@ public class SecurityConfig {
           .cors(cors -> cors.configurationSource(corsConfigurationSource()))
           .csrf(csrf -> csrf.disable())
           .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-          // Add the API key filter before the UsernamePasswordAuthenticationFilter
           .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class);
         
         return http.build();
@@ -38,7 +37,6 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         
-        // Add more allowed headers - include common ones that might be used
         configuration.setAllowedHeaders(Arrays.asList(
             "authorization", 
             "content-type", 
@@ -51,7 +49,7 @@ public class SecurityConfig {
         ));
         
         configuration.setExposedHeaders(Arrays.asList("x-auth-token"));
-        configuration.setAllowCredentials(false); // Must be false when allowedOrigins contains "*"
+        configuration.setAllowCredentials(false); 
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
