@@ -1,5 +1,3 @@
-// This could be in a utility file like src/utils/authUtils.js
-
 export const checkTokenExpiration = async () => {
   const token = localStorage.getItem('token');
   
@@ -9,7 +7,6 @@ export const checkTokenExpiration = async () => {
   }
   
   try {
-    // Check if token is expired
     const payload = JSON.parse(atob(token.split('.')[1]));
     const isExpired = payload.exp * 1000 < Date.now();
     
@@ -35,7 +32,7 @@ const refreshToken = async () => {
   }
   
   try {
-    const response = await fetch('http://localhost:8080/users/refresh-token', {
+    const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users/refresh-token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -50,7 +47,6 @@ const refreshToken = async () => {
       localStorage.setItem('token', data.token);
       return true;
     } else {
-      // Refresh token is invalid or expired
       console.log('Failed to refresh token - clearing auth data');
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');

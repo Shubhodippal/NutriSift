@@ -242,7 +242,6 @@ function GroceryListPage() {
   };
 
   const handleDeleteItem = async (index) => {
-    
     const token = localStorage.getItem('token');
     const decoded = decodeJWT(token);
 
@@ -560,7 +559,7 @@ function GroceryListPage() {
         method: 'GET',
         headers: { 
           'Content-Type': 'application/json',
-          'X-API-Key': process.env.REACT_APP_API_KEY // Add the API key
+          [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY 
         },
       });
       
@@ -580,7 +579,7 @@ function GroceryListPage() {
         quantity: item.quantity || '',
         category: item.category || 'Other',
         checked: item.checked || false,
-        count: 1, // Default
+        count: 1, 
         meals: item.meals || ['Unspecified']
       }));
       

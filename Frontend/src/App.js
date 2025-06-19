@@ -23,7 +23,6 @@ import { checkTokenExpiration } from './utils/authUtils';
 import ProfileDetails from './pages/ProfileDetails';
 import PersonalizedMealPlannerPage from './pages/PersonalizedMealPlannerPage';
 
-// Protected route component
 const ProtectedRoute = ({ element }) => {
   const isAuthenticated = !!localStorage.getItem('token');
   return isAuthenticated ? element : <Navigate to="/login" replace />;
@@ -31,7 +30,6 @@ const ProtectedRoute = ({ element }) => {
 
 function HomePage({ isLoggedIn, setIsLoggedIn }) {
   const navigate = useNavigate();
-  
   const handleLogout = () => {
     if (window.confirm('Are you sure you want to log out?')) {
       localStorage.clear();
@@ -41,11 +39,8 @@ function HomePage({ isLoggedIn, setIsLoggedIn }) {
         const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
         document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
       });
-      
       setIsLoggedIn(false);
-      
       navigate('/');
-      
       showToastNotification('Logout successful!');
     }
   };
@@ -65,19 +60,13 @@ function HomePage({ isLoggedIn, setIsLoggedIn }) {
   
   useEffect(() => {
     const handleScroll = () => {
-      // Check if we're on a mobile device
       const isMobile = window.innerWidth <= 768;
-      
       const sections = document.querySelectorAll('.pro-section');
-      
       sections.forEach(section => {
-        // For mobile devices, immediately make all sections appear without animation
         if (isMobile) {
           section.classList.add('appear');
-          // Also add a special class for mobile-specific styling
           section.classList.add('mobile-fixed');
         } else {
-          // Regular animation behavior for desktop
           section.classList.remove('mobile-fixed');
           const sectionTop = section.getBoundingClientRect().top;
           const triggerPoint = window.innerHeight * 0.8;
@@ -90,10 +79,7 @@ function HomePage({ isLoggedIn, setIsLoggedIn }) {
     };
     
     window.addEventListener('scroll', handleScroll);
-    // Run once on mount to set initial state
     handleScroll();
-    
-    // Also add resize listener to handle orientation changes
     window.addEventListener('resize', handleScroll);
     
     return () => {
@@ -102,9 +88,7 @@ function HomePage({ isLoggedIn, setIsLoggedIn }) {
     };
   }, []);
   
-  // Add this effect right after your existing effects
   useEffect(() => {
-    // Apply fixed styling on component mount for mobile
     if (window.innerWidth <= 768) {
       document.querySelectorAll('.pro-section').forEach(section => {
         section.classList.add('appear', 'mobile-fixed');
@@ -190,7 +174,6 @@ function HomePage({ isLoggedIn, setIsLoggedIn }) {
         </div>
         
         <div className="navbar-pro__mobile-controls">
-          {/* Only show Try Now button for non-logged in users on mobile */}
           {!isLoggedIn && (
             <button
               className="navbar-pro__cta navbar-pro__cta--mobile"
@@ -200,7 +183,6 @@ function HomePage({ isLoggedIn, setIsLoggedIn }) {
             </button>
           )}
           
-          {/* Hamburger menu (now the only place for logout on mobile) */}
           <HamburgerMenu 
             isLoggedIn={isLoggedIn}
             onLogout={handleLogout}
@@ -309,10 +291,8 @@ function HomePage({ isLoggedIn, setIsLoggedIn }) {
 }
 
 function App() {
-  // Add state for login status at App level
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Add the decodeJWT function at App level
   const decodeJWT = (token) => {
     try {
       const [headerEncoded, payloadEncoded] = token.split('.');
@@ -324,28 +304,20 @@ function App() {
     }
   };
 
-  // Check token expiration throughout the entire app
   useEffect(() => {
     const checkExpiration = async () => {
       const isExpired = await checkTokenExpiration();
       
       if (isExpired) {
-        // Token was expired and has been refreshed
         const token = localStorage.getItem('token');
         const decoded = decodeJWT(token);
         setIsLoggedIn(!!(decoded && decoded.userId));
       }
     };
-    
-    // Run immediately on mount
     checkExpiration();
-    
-    // Set up interval to run every minute (60000 ms)
     const intervalId = setInterval(() => {
       checkExpiration();
     }, 900000);
-    
-    // Clean up interval when component unmounts
     return () => clearInterval(intervalId);
   }, []);
 
@@ -354,12 +326,8 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />} />
         <Route path="/login" element={<LoginSignup setIsLoggedIn={setIsLoggedIn} />} />
-        
-        {/* Legal pages */}
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
-        
-        {/* Protected routes */}
         <Route path="/chat" element={<ProtectedRoute element={<RecipeChatPage />} />} />
         <Route path="/saved-recipes" element={<ProtectedRoute element={<SavedRecipesPage />} />} />
         <Route path="/recipe/:id" element={<ProtectedRoute element={<RecipeDetailPage />} />} />
@@ -369,7 +337,6 @@ function App() {
         <Route path="/discover-recipes" element={<ProtectedRoute element={<DiscoverRecipePage />} />} /> 
         <Route path="/profile" element={<ProtectedRoute element={<ProfileDetails />} />} />
         <Route path="/meal-planner" element={<ProtectedRoute element={<PersonalizedMealPlannerPage />} />} />
-        
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>

@@ -11,7 +11,6 @@ function DiscoverRecipePage() {
   const [successMessage, setSuccessMessage] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
   
-  // Filter states
   const [calorieRange, setCalorieRange] = useState('any');
   const [diet, setDiet] = useState('any');
   const [origin, setOrigin] = useState('any');
@@ -23,7 +22,6 @@ function DiscoverRecipePage() {
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [selectedRecipe] = useState(null);
   
-  // Options for filter dropdowns
   const calorieRanges = [
     { value: 'any', label: 'Any Calories' },
     { value: 'under300', label: 'Under 300 calories' },
@@ -115,7 +113,7 @@ function DiscoverRecipePage() {
         mail: decoded.email || null
       };
       
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}${process.env.REACT_APP_RECIPE_SEARCH_ENDPOINT}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/recipe`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -160,7 +158,6 @@ function DiscoverRecipePage() {
       
       setRecipes(formattedRecipes);
       
-      // Save recipes to local storage with search parameters
       localStorage.setItem('cachedRecipes', JSON.stringify({
         recipes: formattedRecipes,
         searchParams: {
@@ -437,8 +434,6 @@ function DiscoverRecipePage() {
       
       const userId = decoded.userId;
       const userEmail = decoded.email;
-
-      //const userEmail = localStorage.getItem('userEmail');
       
       if (!userId || !userEmail) {
         setError('You must be logged in to add items to your grocery list');
@@ -447,12 +442,13 @@ function DiscoverRecipePage() {
       }
       
       let currentList = [];
-      
       try {
         const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
           method: 'GET',
-          headers: { 'Content-Type': 'application/json',
-          [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY }
+          headers: { 
+            'Content-Type': 'application/json',
+            [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY 
+          }
         });
         
         if (response.ok) {
@@ -603,93 +599,91 @@ function DiscoverRecipePage() {
       });
   };
    
-const getRecipeImage = async (recipe) => {
-  if (recipe.image) return recipe.image;
-  
-  try {
-    const query = encodeURIComponent(recipe.title);
-    const response = await fetch(
-      `${process.env.REACT_APP_PIXABAY_API_URL}/?key=${process.env.REACT_APP_PIXABAY_API_KEY}&q=${query}&image_type=photo&category=food&per_page=3`
-    );
+  const getRecipeImage = async (recipe) => {
+    if (recipe.image) return recipe.image;
     
-    if (!response.ok) {
-      throw new Error('Failed to fetch image');
+    try {
+      const query = encodeURIComponent(recipe.title);
+      const response = await fetch(
+        `${process.env.REACT_APP_PIXABAY_API_URL}/?key=${process.env.REACT_APP_PIXABAY_API_KEY}&q=${query}&image_type=photo&category=food&per_page=3`
+      );
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch image');
+      }
+      
+      const data = await response.json();
+      
+      if (data.hits && data.hits.length > 0) {
+        return data.hits[0].webformatURL;
+      }
+      
+    } catch (error) {
+      console.error('Error fetching recipe image:', error);
+      return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/400x300?text=No+Image+Available`;
     }
-    
-    const data = await response.json();
-    
-    if (data.hits && data.hits.length > 0) {
-      return data.hits[0].webformatURL;
-    }
-    
-    return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/400x300?text=No+Image+Available`;
-  } catch (error) {
-    console.error('Error fetching recipe image:', error);
-    return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/400x300?text=No+Image+Available`;
-  }
-};
+  };
 
-const extractIngredients = (recipe) => {
-  if (!recipe) return [];
-  
-  if (Array.isArray(recipe.ingredients)) {
-    return recipe.ingredients;
-  }
-  
-  if (typeof recipe.ingredients === 'string') {
-    return recipe.ingredients.split(',').map(item => item.trim());
-  }
-  
-  if (recipe.text) {
-    const ingredientsMatch = recipe.text.match(/## Ingredients\n([\s\S]*?)(?=\n## |$)/);
-    if (ingredientsMatch && ingredientsMatch[1]) {
-      return ingredientsMatch[1]
-        .split('\n')
-        .map(line => line.replace(/^- /, '').trim())
-        .filter(Boolean);
+  const extractIngredients = (recipe) => {
+    if (!recipe) return [];
+    
+    if (Array.isArray(recipe.ingredients)) {
+      return recipe.ingredients;
     }
-  }
-  
-  if (recipe.recipeData && recipe.recipeData.ingredients) {
-    return Array.isArray(recipe.recipeData.ingredients) 
-      ? recipe.recipeData.ingredients 
-      : recipe.recipeData.ingredients.split(',').map(item => item.trim());
-  }
-  
-  return [];
-};
+    
+    if (typeof recipe.ingredients === 'string') {
+      return recipe.ingredients.split(',').map(item => item.trim());
+    }
+    
+    if (recipe.text) {
+      const ingredientsMatch = recipe.text.match(/## Ingredients\n([\s\S]*?)(?=\n## |$)/);
+      if (ingredientsMatch && ingredientsMatch[1]) {
+        return ingredientsMatch[1]
+          .split('\n')
+          .map(line => line.replace(/^- /, '').trim())
+          .filter(Boolean);
+      }
+    }
+    
+    if (recipe.recipeData && recipe.recipeData.ingredients) {
+      return Array.isArray(recipe.recipeData.ingredients) 
+        ? recipe.recipeData.ingredients 
+        : recipe.recipeData.ingredients.split(',').map(item => item.trim());
+    }
+    
+    return [];
+  };
 
-const extractSteps = (recipe) => {
-  if (!recipe) return [];
-  
-  if (Array.isArray(recipe.steps)) {
-    return recipe.steps;
-  }
-  
-  if (typeof recipe.steps === 'string') {
-    return recipe.steps.split('\n').map(item => item.trim()).filter(Boolean);
-  }
-  
-  if (recipe.text) {
-    const stepsMatch = recipe.text.match(/## Instructions\n([\s\S]*?)(?=\n## |$)/);
-    if (stepsMatch && stepsMatch[1]) {
-      return stepsMatch[1]
-        .split('\n')
-        .map(line => line.replace(/^\d+\.\s*/, '').trim())
-        .filter(Boolean);
+  const extractSteps = (recipe) => {
+    if (!recipe) return [];
+    
+    if (Array.isArray(recipe.steps)) {
+      return recipe.steps;
     }
-  }
+    
+    if (typeof recipe.steps === 'string') {
+      return recipe.steps.split('\n').map(item => item.trim()).filter(Boolean);
+    }
+    
+    if (recipe.text) {
+      const stepsMatch = recipe.text.match(/## Instructions\n([\s\S]*?)(?=\n## |$)/);
+      if (stepsMatch && stepsMatch[1]) {
+        return stepsMatch[1]
+          .split('\n')
+          .map(line => line.replace(/^\d+\.\s*/, '').trim())
+          .filter(Boolean);
+      }
+    }
+    
+    if (recipe.recipeData && recipe.recipeData.steps) {
+      return Array.isArray(recipe.recipeData.steps) 
+        ? recipe.recipeData.steps 
+        : recipe.recipeData.steps.split('\n').map(item => item.trim()).filter(Boolean);
+    }
+    
+    return [];
+  };
   
-  if (recipe.recipeData && recipe.recipeData.steps) {
-    return Array.isArray(recipe.recipeData.steps) 
-      ? recipe.recipeData.steps 
-      : recipe.recipeData.steps.split('\n').map(item => item.trim()).filter(Boolean);
-  }
-  
-  return [];
-};
-  
-  // Load cached recipes on component mount
   useEffect(() => {
     const cachedData = localStorage.getItem('cachedRecipes');
     if (cachedData) {
@@ -697,7 +691,6 @@ const extractSteps = (recipe) => {
         const parsed = JSON.parse(cachedData);
         setRecipes(parsed.recipes);
         
-        // Optionally restore search parameters
         if (parsed.searchParams) {
           setSearchQuery(parsed.searchParams.query || '');
           setCalorieRange(parsed.searchParams.calorieRange || 'any');

@@ -358,5 +358,4 @@ function RecipeDetailPage() {
     </div>
   );
 }
-
 export default RecipeDetailPage;

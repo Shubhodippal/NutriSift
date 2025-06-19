@@ -55,8 +55,6 @@ function RecipeGallery() {
   const featuresRef = useRef(null);
   const autoScrollInterval = useRef(null);
   const lastSection = useRef(''); 
-  
-  // Add these new state variables for touch handling
   const [isMobile, setIsMobile] = useState(false);
   const [touchStartX, setTouchStartX] = useState(null);
   const [touchEndX, setTouchEndX] = useState(null);
@@ -134,8 +132,7 @@ function RecipeGallery() {
       clearInterval(autoScrollInterval.current);
       autoScrollInterval.current = null;
     }
-    
-    // Skip auto-scrolling on mobile devices
+  
     if (isMobile) return;
     
     const isComingFromBelow = ['how', 'pricing', 'testimonials', 'about'].includes(lastSection.current);
@@ -199,16 +196,11 @@ function RecipeGallery() {
   
   useEffect(() => {
     const handleWheel = (e) => {
-      // Skip this functionality entirely on mobile devices
       if (!isInView || isReverseScrolling || isMobile) return;
-      
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
-      
       scrollAccumulator.current += Math.abs(e.deltaY);
-      
       if (scrollAccumulator.current >= scrollThreshold) {
         const direction = e.deltaY > 0 ? 1 : -1;
-        
         if (direction > 0) {
           if (currentIndex < recipeExamples.length - 1) {
             setCurrentIndex(currentIndex + 1);
@@ -220,7 +212,6 @@ function RecipeGallery() {
             setCurrentIndex(currentIndex - 1);
           }
         }
-        
         scrollAccumulator.current = 0;
       }
     };
@@ -257,18 +248,16 @@ function RecipeGallery() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isInView, currentIndex]);
   
-  // Detect mobile devices
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
     };
     
-    handleResize(); // Initial check
+    handleResize(); 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   
-  // Touch event handlers
   const handleTouchStart = (e) => {
     if (!isMobile) return;
     setTouchStartX(e.touches[0].clientX);
@@ -281,10 +270,9 @@ function RecipeGallery() {
     const currentX = e.touches[0].clientX;
     const diff = currentX - touchStartX;
     
-    // Add resistance at edges
     if ((currentIndex === 0 && diff > 0) || 
         (currentIndex === recipeExamples.length - 1 && diff < 0)) {
-      setSwipeTranslate(diff / 3); // Reduced movement at edges
+      setSwipeTranslate(diff / 3); 
     } else {
       setSwipeTranslate(diff);
     }
@@ -292,46 +280,35 @@ function RecipeGallery() {
   
   const handleTouchEnd = (e) => {
     if (!isMobile || !isSwiping) return;
-    
     setIsSwiping(false);
     const endX = e.changedTouches[0].clientX;
     setTouchEndX(endX);
-    
     const slideWidth = galleryRef.current?.clientWidth || 0;
     const swipeDistance = endX - touchStartX;
-    
-    // Determine if the swipe was significant enough to change slides
     if (Math.abs(swipeDistance) > slideWidth * 0.25) {
       if (swipeDistance > 0 && currentIndex > 0) {
-        // Swipe right -> previous image
         setCurrentIndex(currentIndex - 1);
       } else if (swipeDistance < 0 && currentIndex < recipeExamples.length - 1) {
-        // Swipe left -> next image
         setCurrentIndex(currentIndex + 1);
       }
     }
-    
-    // Reset translate position
     setSwipeTranslate(0);
     setTouchStartX(null);
     setTouchEndX(null);
   };
   
-  // Handle recipe card click - only for non-mobile
   const handleCardClick = (recipeId) => {
     if (!isMobile) {
       setActiveRecipe(activeRecipe === recipeId ? null : recipeId);
     }
   };
   
-  // Update the gallery position with swipe translate for smoother movement
   useEffect(() => {
     if (galleryRef.current) {
       const slideWidth = galleryRef.current.clientWidth;
       galleryRef.current.style.transition = isSwiping 
-        ? "none" // No transition during active swipe for responsiveness
+        ? "none" 
         : (isReverseScrolling ? "transform 0.8s ease-out" : "transform 0.5s ease-out");
-        
       galleryRef.current.style.transform = `translateX(${-currentIndex * slideWidth + swipeTranslate}px)`;
     }
   }, [currentIndex, isReverseScrolling, isSwiping, swipeTranslate]);
@@ -350,7 +327,6 @@ function RecipeGallery() {
         }, 50);
       }
     };
-    
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [currentIndex]);
@@ -396,7 +372,6 @@ function RecipeGallery() {
         ))}
       </div>
       
-      {/* Only show control buttons on non-mobile devices */}
       {!isMobile && (
         <div className="gallery-controls">
           <button 
@@ -424,5 +399,4 @@ function RecipeGallery() {
     </div>
   );
 }
-
 export default RecipeGallery;

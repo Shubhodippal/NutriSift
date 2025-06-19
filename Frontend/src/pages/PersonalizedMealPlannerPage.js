@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import './PersonalizedMealPlannerPage.css';
 import HamburgerMenu from '../components/HamburgerMenu';
 
-// Helper function to fetch recipe images from Pixabay
 const getRecipeImage = async (recipe) => {
   try {
     const searchQueries = [
@@ -25,9 +24,6 @@ const getRecipeImage = async (recipe) => {
         return data.hits[0].webformatURL;
       }
     }
-    
-    // Return a placeholder image URL
-    return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/300x200/1a2235/ffffff?text=${encodeURIComponent(recipe.title)}`;
   } catch (error) {
     console.error('Error fetching recipe image:', error);
     return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/300x200/1a2235/ffffff?text=${encodeURIComponent(recipe.title)}`;
@@ -61,7 +57,6 @@ function PersonalizedMealPlannerPage() {
     }
   };
 
-  // Add profile checking functionality
   const checkUserProfile = async () => {
     setProfileCheckLoading(true);
     try {
@@ -91,7 +86,6 @@ function PersonalizedMealPlannerPage() {
       const data = await response.json();
       
       if (data == null || data === undefined || Object.keys(data).length === 0) {
-        // Profile doesn't exist - redirect to profile page
         setError('Please complete your profile to generate meal plans');
         setTimeout(() => {
           navigate('/profile');
@@ -99,7 +93,6 @@ function PersonalizedMealPlannerPage() {
         return;
       }
       
-      // Profile exists, continue loading the page
       setProfileChecked(true);
       
     } catch (error) {
@@ -110,12 +103,10 @@ function PersonalizedMealPlannerPage() {
     }
   };
 
-  // Check profile when component mounts
   useEffect(() => {
     checkUserProfile();
   }, []);
 
-  // Only fetch meal plans after profile check is complete and successful
   useEffect(() => {
     if (profileChecked) {
       fetchMealPlans();
@@ -158,7 +149,6 @@ function PersonalizedMealPlannerPage() {
       
       const data = await response.json();
       
-      // Check if the response contains an error message or empty plans
       if (data.message && data.message.includes("No meal plans found")) {
         setMealPlans([]);
       } else {
@@ -178,7 +168,6 @@ function PersonalizedMealPlannerPage() {
     }
   };
 
-  // Load recipe images when meal plans change or selected plan changes
   useEffect(() => {
     const loadRecipeImages = async () => {
       if (mealPlans.length === 0 || !mealPlans[selectedPlanIndex]) return;
@@ -190,11 +179,9 @@ function PersonalizedMealPlannerPage() {
       const newImages = { ...recipeImages };
       let imagesUpdated = false;
       
-      // Fetch images for all meals in the selected plan
       for (const day of weeklyPlan) {
         if (day.meals && Array.isArray(day.meals)) {
           for (const meal of day.meals) {
-            // Only fetch if we don't already have the image
             const recipeKey = `${meal.title}-${meal.type}`;
             if (!newImages[recipeKey] && !meal.image) {
               newImages[recipeKey] = await getRecipeImage(meal);
@@ -212,7 +199,6 @@ function PersonalizedMealPlannerPage() {
     loadRecipeImages();
   }, [mealPlans, selectedPlanIndex]);
 
-  // Optimize the generate meal plan function to properly handle the backend response
   const generateMealPlan = async () => {
     setGenerateLoading(true);
     setError(null);
@@ -235,7 +221,6 @@ function PersonalizedMealPlannerPage() {
         return;
       }
       
-      // Match the exact parameter names expected by the backend
       const params = {
         uid: userId,
         mail: userEmail
@@ -253,14 +238,12 @@ function PersonalizedMealPlannerPage() {
       const responseData = await response.json();
       
       if (!response.ok) {
-        // Handle specific error messages from backend
         const errorMessage = typeof responseData === 'string' 
           ? responseData 
           : responseData.error || `Failed with status: ${response.status}`;
         throw new Error(errorMessage);
       }
       
-      // Fetch updated meal plans immediately after generating
       await fetchMealPlans();
       setSuccessMessage('New meal plan generated successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
@@ -275,13 +258,11 @@ function PersonalizedMealPlannerPage() {
 
   const handleViewRecipe = (recipe) => {
     try {
-      // Get the image from our cached images or use the one from the recipe
       const recipeKey = `${recipe.title}-${recipe.type}`;
       const recipeImage = recipe.image || recipeImages[recipeKey] ;
       
-      // Format recipe data for the detail page
       const recipeDetail = {
-        id: recipe.id || Date.now(), // Use timestamp as fallback ID
+        id: recipe.id || Date.now(), 
         title: recipe.title,
         content: {
           calories: recipe.calories,
@@ -338,7 +319,6 @@ function PersonalizedMealPlannerPage() {
         prompt: 'Meal Plan Recipe'
       };
       
-      console.log('Saving recipe data:', recipeDetail);
       
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/recipe/save`, {
         method: 'POST',
@@ -390,7 +370,6 @@ function PersonalizedMealPlannerPage() {
     const recipeTitle = meal.title || "Recipe";
     const imageUrl = getMealImageUrl(meal);
     
-    // Generate text content from meal properties
     const ingredientsList = Array.isArray(meal.ingredients) 
       ? meal.ingredients.map(ing => `<li>${ing}</li>`).join('') 
       : '<li>No ingredients available</li>';
@@ -499,21 +478,18 @@ function PersonalizedMealPlannerPage() {
   };
 
   const handleShareRecipe = async (meal, event) => {
-    if (event) event.stopPropagation(); // Prevent click event from bubbling
+    if (event) event.stopPropagation(); 
     
     const recipeTitle = meal.title || "Untitled Recipe";
     
-    // Format ingredients as a string
     const ingredientsText = Array.isArray(meal.ingredients) 
       ? meal.ingredients.map(ing => `• ${ing}`).join('\n')
       : 'No ingredients available';
     
-    // Format instructions as a string
     const instructionsText = Array.isArray(meal.instructions) 
       ? meal.instructions.map((step, i) => `${i+1}. ${step}`).join('\n')
       : 'No instructions available';
     
-    // Create a formatted text to share
     const shareText = `📝 ${recipeTitle}\n\n` +
       `📋 INGREDIENTS:\n${ingredientsText}\n\n` +
       `👨‍🍳 INSTRUCTIONS:\n${instructionsText}\n\n` +
@@ -552,11 +528,10 @@ function PersonalizedMealPlannerPage() {
   };
 
   const handleAddToGroceryList = async (meal, event) => {
-    if (event) event.stopPropagation(); // Prevent click event from bubbling
+    if (event) event.stopPropagation(); 
     
     const recipeTitle = meal.title || "Untitled Recipe";
     
-    // Parse ingredients regardless of format
     let ingredients = [];
     if (Array.isArray(meal.ingredients)) {
       ingredients = meal.ingredients;
@@ -586,10 +561,8 @@ function PersonalizedMealPlannerPage() {
         return;
       }
       
-      // Get current grocery list - use GET method or fall back to localStorage
       let currentList = [];
       try {
-        // Use GET method to retrieve the list
         const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
           method: 'GET',
           headers: { 
@@ -602,7 +575,6 @@ function PersonalizedMealPlannerPage() {
           const data = await response.json();
           currentList = data.items || [];
         } else {
-          // Fallback to localStorage if API fails
           currentList = JSON.parse(localStorage.getItem('groceryItems') || '[]');
         }
       } catch (fetchError) {
@@ -610,7 +582,6 @@ function PersonalizedMealPlannerPage() {
         currentList = JSON.parse(localStorage.getItem('groceryItems') || '[]');
       }
       
-      // Process ingredients into structured data
       const ingredientData = ingredients.map(ingredient => {
         const parts = ingredient.match(/^([\d./]+ \w+)?\s*(.+)/);
         const quantity = parts && parts[1] ? parts[1] : '';
@@ -626,7 +597,6 @@ function PersonalizedMealPlannerPage() {
         };
       });
       
-      // Merge new items with existing items
       const mergedItems = [...currentList];
       
       ingredientData.forEach(newItem => {
@@ -635,23 +605,18 @@ function PersonalizedMealPlannerPage() {
         );
         
         if (existingIndex >= 0) {
-          // Update existing item
           mergedItems[existingIndex].count++;
-          // Ensure meals array exists
           if (!mergedItems[existingIndex].meals) {
             mergedItems[existingIndex].meals = [];
           }
-          // Add recipe to meals if not already included
           if (!mergedItems[existingIndex].meals.includes(recipeTitle)) {
             mergedItems[existingIndex].meals.push(recipeTitle);
           }
         } else {
-          // Add new item
           mergedItems.push(newItem);
         }
       });
       
-      // Sort items by category and name
       const sortedItems = mergedItems.sort((a, b) => {
         const categoryA = a.category || 'Other';
         const categoryB = b.category || 'Other';
@@ -661,19 +626,15 @@ function PersonalizedMealPlannerPage() {
         return categoryA.localeCompare(categoryB) || nameA.localeCompare(nameB);
       });
       
-      // Save to local storage for immediate feedback
       localStorage.setItem('groceryItems', JSON.stringify(sortedItems));
       
-      // Save to backend with the correct endpoint structure
       try {
-        // Use the endpoint exactly as defined in your backend: /grocerylist/{userId}/{email}
         const saveResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}/${userEmail}`, {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
             [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY 
           },
-          // Match the expected GroceryListRequest format
           body: JSON.stringify({ items: sortedItems })
         });
         
@@ -681,17 +642,14 @@ function PersonalizedMealPlannerPage() {
           throw new Error(`Server error: ${saveResponse.status}`);
         }
         
-        // Process successful response
         const responseData = await saveResponse.json();
         if (responseData.success) {
-          // Update local storage with the server's version
           if (responseData.items) {
             localStorage.setItem('groceryItems', JSON.stringify(responseData.items));
           }
         }
       } catch (saveError) {
         console.error('Error saving grocery list to API:', saveError);
-        // Continue since we've already saved to localStorage as a fallback
       }
       
       setSuccessMessage(`${ingredients.length} ingredients added to grocery list!`);
@@ -706,28 +664,23 @@ function PersonalizedMealPlannerPage() {
     }
   };
 
-  // Fetch meal plans on component mount
   useEffect(() => {
     fetchMealPlans();
   }, []);
 
-  // Add this useEffect to handle orientation changes
   useEffect(() => {
     const handleOrientationChange = () => {
       const newOrientation = window.innerHeight > window.innerWidth ? 'portrait' : 'landscape';
       setOrientation(newOrientation);
     };
     
-    // Listen for resize events which happen during orientation changes
     window.addEventListener('resize', handleOrientationChange);
     
-    // Clean up
     return () => {
       window.removeEventListener('resize', handleOrientationChange);
     };
   }, []);
 
-  // Helper functions for displaying data
   const formatDate = (dateString) => {
     if (!dateString) return 'Unknown date';
     
@@ -737,14 +690,12 @@ function PersonalizedMealPlannerPage() {
         year: 'numeric', 
         month: 'short', 
         day: 'numeric'
-        // Removed hour and minute to hide time
       });
     } catch (error) {
       return dateString;
     }
   };
 
-  // Function to get a meal description or placeholder
   const getMealDescription = (meal) => {
     if (meal.description) return meal.description;
     
@@ -756,27 +707,22 @@ function PersonalizedMealPlannerPage() {
     return `A delicious ${meal.type.toLowerCase()} option.`;
   };
 
-  // Function to get the image URL for a meal
   const getMealImageUrl = (meal) => {
     const recipeKey = `${meal.title}-${meal.type}`;
     if (meal.image) return meal.image;
     if (recipeImages[recipeKey]) return recipeImages[recipeKey];
   };
 
-  // Get the current meal plan
   const currentPlan = mealPlans[selectedPlanIndex];
   const weeklyPlan = currentPlan?.meal_plan?.weeklyPlan || 
                      currentPlan?.mealPlan?.weeklyPlan || [];
 
-  // Add this new function to delete a meal plan
   const handleDeleteMealPlan = async () => {
     if (!currentPlan) {
       setError('Cannot delete: No meal plan selected');
       return;
     }
     
-    // Extract the numerical ID as expected by the backend
-    // The backend requires an integer ID
     const planId = currentPlan.id || 
                   (currentPlan._id && !isNaN(parseInt(currentPlan._id, 10)) ? 
                    parseInt(currentPlan._id, 10) : null);
@@ -790,7 +736,6 @@ function PersonalizedMealPlannerPage() {
     setError(null);
     
     try {
-      console.log(`Deleting meal plan with ID: ${planId}`);
       
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/recipe/del_meal-plan/${planId}`, {
         method: 'DELETE',
@@ -807,15 +752,13 @@ function PersonalizedMealPlannerPage() {
         throw new Error(errorMessage);
       }
       
-      // Remove the deleted plan from state
       const updatedPlans = mealPlans.filter(plan => {
         const currentId = plan.id || plan._id;
-        return currentId != planId; // Use loose equality to compare numeric and string IDs
+        return currentId !== planId; 
       });
       
       setMealPlans(updatedPlans);
       
-      // Reset selected index if needed
       if (updatedPlans.length <= selectedPlanIndex) {
         setSelectedPlanIndex(Math.max(0, updatedPlans.length - 1));
       }
@@ -832,7 +775,6 @@ function PersonalizedMealPlannerPage() {
     }
   };
 
-  // Add a confirmation dialog component
   const DeleteConfirmationDialog = () => (
     <div className="confirmation-dialog">
       <div className="confirmation-content">
@@ -857,7 +799,6 @@ function PersonalizedMealPlannerPage() {
     </div>
   );
 
-  // Add this new function to handle printing the entire meal plan
   const handlePrintMealPlan = () => {
     if (!currentPlan || weeklyPlan.length === 0) {
       setError("No meal plan available to print");
@@ -869,7 +810,6 @@ function PersonalizedMealPlannerPage() {
     const planDate = formatDate(currentPlan.created_at || currentPlan.createdAt);
     const planId = currentPlan.id || currentPlan._id || 'Unknown';
     
-    // Start building HTML content for the meal plan
     let htmlContent = `
       <!DOCTYPE html>
       <html>
@@ -1067,9 +1007,7 @@ function PersonalizedMealPlannerPage() {
             </div>
     `;
     
-    // Add each day and its meals
     weeklyPlan.forEach((day, dayIndex) => {
-      // For first day, ensure no page break before
       const isFirstDay = dayIndex === 0;
       
       htmlContent += `
@@ -1093,10 +1031,8 @@ function PersonalizedMealPlannerPage() {
               meal.origin) : 
             'Not specified';
           
-          // Get the meal image URL
           const recipeKey = `${meal.title}-${meal.type}`;
-          const imageUrl = meal.image || recipeImages[recipeKey] || 
-            `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/300x200/1a2235/ffffff?text=${encodeURIComponent(meal.title)}`;
+          const imageUrl = meal.image || recipeImages[recipeKey];
           
           htmlContent += `
             <div class="meal-container">
@@ -1132,11 +1068,9 @@ function PersonalizedMealPlannerPage() {
           `;
         });
       }
-      
       htmlContent += `</div>`;
     });
     
-    // Add health and nutrition disclaimer on the last page
     htmlContent += `
       <div class="health-disclaimer">
         <h2>Health and Nutrition Disclaimer</h2>
@@ -1186,7 +1120,6 @@ function PersonalizedMealPlannerPage() {
             <p>Verifying your profile...</p>
           </div>
         ) : profileChecked ? (
-          // Show meal planner content only if profile exists
           <>
             <div className="control-bar">
               <button 
@@ -1209,7 +1142,6 @@ function PersonalizedMealPlannerPage() {
                   <><span className="icon">🔄</span> Refresh Plans</>}
               </button>
               
-              {/* Print Meal Plan button */}
               {mealPlans.length > 0 && (
                 <button 
                   className="action-button print-plan"
@@ -1331,7 +1263,6 @@ function PersonalizedMealPlannerPage() {
                               )}
                             </div>
                             
-                            {/* New action buttons */}
                             <div className={`meal-actions ${orientation === 'portrait' ? 'compact' : ''}`}>
                               <button 
                                 className="action-icon view" 
@@ -1346,7 +1277,7 @@ function PersonalizedMealPlannerPage() {
                                 className="action-icon save" 
                                 title="Save Recipe"
                                 onClick={(e) => {
-                                  e.stopPropagation(); // Prevent the event from bubbling up to parent
+                                  e.stopPropagation(); 
                                   handleSaveRecipe(meal);
                                 }}
                               >
@@ -1409,7 +1340,6 @@ function PersonalizedMealPlannerPage() {
           </div>
         )}
         
-        {/* Display error messages */}
         {error && (
           <div className="toast error">
             <span className="toast-icon">❌</span>
@@ -1426,7 +1356,6 @@ function PersonalizedMealPlannerPage() {
         )}
       </div>
       
-      {/* Add confirmation dialog */}
       {showDeleteConfirm && <DeleteConfirmationDialog />}
     </div>
   );

@@ -29,8 +29,6 @@ const getRecipeImage = async (recipe) => {
         return data.hits[0].webformatURL;
       }
     }
-    
-    return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/600x400/1a2235/ffffff?text=${encodeURIComponent(recipe.title)}`;
   } catch (error) {
     console.error('Error fetching recipe image:', error);
     return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/600x400/1a2235/ffffff?text=${encodeURIComponent(recipe.title)}`;
@@ -57,7 +55,6 @@ const [messages, setMessages] = useState(() => {
 });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  //const [showSuggestions, setShowSuggestions] = useState(true);
   const [savedRecipes, setSavedRecipes] = useState(() => {
     const saved = localStorage.getItem('savedRecipes');
     return saved ? JSON.parse(saved) : [];
@@ -78,10 +75,8 @@ const [messages, setMessages] = useState(() => {
   useEffect(() => {
     const scrollToBottom = () => {
       if (chatEndRef.current) {
-        // Try direct scrollIntoView first
         chatEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
         
-        // Fallback for mobile browsers that might have issues with scrollIntoView
         setTimeout(() => {
           if (messagesContainerRef.current) {
             messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
@@ -92,7 +87,6 @@ const [messages, setMessages] = useState(() => {
     
     scrollToBottom();
     
-    // Additional timeout for when images or complex content is loading
     const timer = setTimeout(scrollToBottom, 300);
     
     return () => clearTimeout(timer);
@@ -100,7 +94,6 @@ const [messages, setMessages] = useState(() => {
 
   useEffect(() => {
     const handleResize = () => {
-      // Force scroll reset when orientation changes or keyboard appears/disappears
       if (messagesContainerRef.current) {
         messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
       }
@@ -110,7 +103,6 @@ const [messages, setMessages] = useState(() => {
     window.addEventListener('resize', handleResize);
     window.addEventListener('orientationchange', handleResize);
     
-    // Initial scroll
     handleResize();
     
     return () => {
@@ -126,9 +118,7 @@ const [messages, setMessages] = useState(() => {
     setMessages((msgs) => [...msgs, userMsg]);
     setInput("");
     setLoading(true);
-
     await generateRecipe(input);
-
     setLoading(false);
     inputRef.current?.focus();
   };
@@ -152,7 +142,6 @@ const generateRecipe = async (ingredients) => {
   const userId = decoded.userId;
   let userEmail = decoded.email;
 
-  // Define the disclaimer text for consistent usage
   const healthDisclaimer = `
 ## Health and Nutrition Disclaimer
 The nutritional information, recipes, and dietary recommendations provided through our Services are for informational purposes only and are not intended as medical advice, diagnosis, or treatment. Always consult with a qualified healthcare provider before making significant changes to your diet or if you have any health concerns or conditions.
@@ -298,12 +287,6 @@ const generateMockRecipe = (ingredients) => {
     };
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      handleSend(e);
-    }
-  };
-
   const handleSaveRecipe = async (recipe) => {
     try {
       const token = localStorage.getItem('token');
@@ -350,8 +333,6 @@ const generateMockRecipe = (ingredients) => {
         cuisine: cuisine,
         prompt: recipe.userInput || input || 'Chef Assistant Recipe'
       };
-      
-      console.log('Saving recipe data:', recipeData);
       
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/recipe/save`, {
         method: 'POST',
@@ -596,7 +577,6 @@ const generateMockRecipe = (ingredients) => {
       let currentList = [];
       
       try {
-        // Fetch current grocery list using GET to /{userId}
         const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}`, {
           method: 'GET',
           headers: { 
@@ -670,9 +650,8 @@ const generateMockRecipe = (ingredients) => {
       localStorage.setItem('groceryItems', JSON.stringify(sortedItems));
       
       try {
-        // Save grocery list using POST to /{userId}/{email}
         const saveResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}/${userEmail}`, {
-          method: 'POST', // Changed to POST to match backend controller
+          method: 'POST', 
           headers: { 
             'Content-Type': 'application/json',
             [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY 
@@ -704,32 +683,26 @@ const generateMockRecipe = (ingredients) => {
       sender: "bot", 
       text: "Hi! Tell me what ingredients you have, and I'll suggest a recipe tailored just for you." 
     }]);
-    localStorage.removeItem('chatHistory'); // Clear from localStorage
+    localStorage.removeItem('chatHistory'); 
     setInput("");
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
   useEffect(() => {
     try {
-      // Only save if we have messages
       if (messages && messages.length > 0) {
         localStorage.setItem('chatHistory', JSON.stringify(messages));
-        console.log('Chat history saved to localStorage');
       }
     } catch (error) {
-      console.error('Error saving chat history to localStorage:', error);
-      
-      // If we encounter a quota error, try to save without images
       if (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
         try {
-          // Create a copy with smaller recipeData (remove large image URLs)
           const messagesForStorage = messages.map(msg => {
             if (msg.recipeData && msg.recipeData.image) {
               return {
                 ...msg,
                 recipeData: {
                   ...msg.recipeData,
-                  image: null // Remove image URL to save space
+                  image: null 
                 }
               };
             }
@@ -881,7 +854,6 @@ const generateMockRecipe = (ingredients) => {
               value={input}
               onChange={(e) => {
                 setInput(e.target.value);
-                // Auto-adjust height
                 e.target.style.height = 'auto';
                 e.target.style.height = e.target.scrollHeight + 'px';
               }}
@@ -911,7 +883,7 @@ const generateMockRecipe = (ingredients) => {
       
       {!isMobile && (
         <div className="chat-footer">
-          <p>Made with ❤️ by NutriSift • <a href="#privacy">Privacy Policy</a> • <a href="#terms">Terms</a></p>
+          <p>Made with ❤️ by Shubhodip • <a href="#privacy">Privacy Policy</a> • <a href="#terms">Terms</a></p>
         </div>
       )}
       
@@ -931,5 +903,4 @@ const generateMockRecipe = (ingredients) => {
     </div>
   );
 }
-
 export default RecipeChatPage;

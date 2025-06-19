@@ -481,7 +481,6 @@
   accent-color: #ff4757;
 }
 
-/* Location Warning Banner Styling */
 .location-warning-banner {
   background-color: #fff3cd;
   border: 2px solid #ffeeba;
@@ -545,7 +544,6 @@
   background-color: #e0a800;
 }
 
-/* Location Warning Popup Styling */
 .warning-backdrop {
   position: fixed;
   top: 0;

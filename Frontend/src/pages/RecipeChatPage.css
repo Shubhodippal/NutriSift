@@ -611,45 +611,38 @@
   animation: none;
 }
 
-/* Mobile responsiveness adjustments */
 @media (max-width: 768px) {
-  /* Hide the footer on mobile */
   .chat-footer {
     display: none;
   }
   
-  /* Hide the header text on mobile */
   .chat-header h1,
   .chat-header p,
   .chat-header .chat-decoration {
     display: none;
   }
   
-  /* Add minimal padding to the header to maintain spacing */
   .chat-header {
     padding: 10px 0;
     min-height: 10px;
   }
   
-  /* Adjust the chat container to use more screen space */
   .chat-container {
     height: calc(100vh - 60px);
     padding-top: 0;
   }
   
-  /* Give more space to the messages container */
   .messages-container {
     height: calc(100% - 70px);
   }
   
-  /* Increase the size of the input field and send button for easier typing */
   .input-container {
     padding: 8px;
   }
   
   .message-input {
-    font-size: 16px; /* Prevents iOS zoom on input focus */
-    min-height: 44px; /* Better touch target */
+    font-size: 16px; 
+    min-height: 44px;
   }
   
   .send-button {
@@ -657,18 +650,15 @@
     min-height: 44px;
   }
   
-  /* Make messages more compact on mobile */
   .message {
     padding: 10px;
     margin: 8px 0;
   }
   
-  /* Improve recipe image display on small screens */
   .recipe-image {
     max-height: 200px;
   }
   
-  /* Make action buttons stack vertically for better mobile experience */
   .message-actions {
     flex-direction: column;
     align-items: stretch;
@@ -1182,7 +1172,6 @@
   font-size: 1rem;
 }
 
-/* Add styling for nutritional information */
 .nutritional-info {
   background-color: rgba(79, 140, 255, 0.1);
   border-left: 3px solid #4f8cff;
@@ -1217,7 +1206,6 @@
   margin-right: 8px;
 }
 
-/* Mobile scrolling fixes */
 @media (max-width: 768px) {
   .chat-page {
     display: flex;
@@ -1230,14 +1218,14 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 60px - 100px); /* Subtract header and input height */
+    height: calc(100vh - 60px - 100px); 
     overflow: hidden;
   }
 
   .messages-container {
     flex: 1;
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling for iOS */
+    -webkit-overflow-scrolling: touch; 
     position: relative;
     height: 100%;
     padding-bottom: 16px;
@@ -1249,7 +1237,6 @@
     padding-bottom: 8px;
   }
 
-  /* Prevent content from being hidden behind the input form */
   .input-form {
     position: relative;
     z-index: 10;

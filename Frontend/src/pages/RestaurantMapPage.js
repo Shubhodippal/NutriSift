@@ -48,11 +48,11 @@ function RestaurantMapPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [restaurants, setRestaurants] = useState([]);
-  const [userLocation, setUserLocation] = useState([40.7128, -74.0060]); // Default: New York
+  const [userLocation, setUserLocation] = useState([22.5726, 88.3639]); 
   const [isLoading, setIsLoading] = useState(true);
   const [mapReady, setMapReady] = useState(false);
   const [error, setError] = useState(null);
-  const [searchRadius, setSearchRadius] = useState(5000); // 5km default instead of 1km
+  const [searchRadius, setSearchRadius] = useState(5000); 
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [locationAccuracy, setLocationAccuracy] = useState(null);
   const [locationError, setLocationError] = useState(null);
@@ -69,14 +69,13 @@ function RestaurantMapPage() {
     try {
       setLocationError("Geolocation failed. Getting approximate location from IP address...");
       
-      // Using free IP geolocation API
       const response = await fetch("https://ipapi.co/json/");
       const data = await response.json();
       
       if (data.latitude && data.longitude) {
         console.log(`📍 IP-based location: ${data.latitude},${data.longitude}`);
         setUserLocation([data.latitude, data.longitude]);
-        setLocationAccuracy(10000); // IP geolocation is typically accurate to around 10km
+        setLocationAccuracy(10000); 
         setUsingFallbackLocation(true);
         setLocationError("Using approximate location based on your IP address. For better accuracy, enable location services.");
       } else {
@@ -115,15 +114,12 @@ function RestaurantMapPage() {
           } else {
             setLocationError(`Location accuracy: ${Math.round(accuracy)}m. For better results, ensure GPS is enabled.`);
           }
-          
           setMapReady(true);
           setIsLoading(false);
         },
         (error) => {
           console.error("High-accuracy geolocation error:", error);
           setLocationError("Couldn't get precise location. Trying IP-based location...");
-          
-          // Fall back to IP-based geolocation
           getLocationFromIP();
         },
         { 
@@ -165,10 +161,8 @@ function RestaurantMapPage() {
     };
 
     if (navigator.geolocation) {
-      // Try to get location directly with high accuracy
       getHighAccuracyLocation();
     } else {
-      // Browser doesn't support geolocation, fall back to IP
       setLocationError("Your browser doesn't support location services. Trying IP-based location...");
       getLocationFromIP();
     }
@@ -382,7 +376,6 @@ function RestaurantMapPage() {
           
           setLocationError(errorMessage);
           
-          // Fall back to IP-based geolocation
           getLocationFromIP();
         },
         { 
@@ -447,7 +440,6 @@ function RestaurantMapPage() {
         }
       }
       
-      return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/300x200/1a2235/ffffff?text=${encodeURIComponent(restaurant.name)}`;
     } catch (error) {
       console.error('Error fetching restaurant image:', error);
       return `${process.env.REACT_APP_PLACEHOLDER_IMAGE_URL}/300x200/1a2235/ffffff?text=${encodeURIComponent(restaurant.name)}`;
@@ -471,7 +463,7 @@ function RestaurantMapPage() {
     if (locationError) {
       timer = setTimeout(() => {
         setLocationError(null);
-      }, 15000); // Increase to 15 seconds or remove timeout entirely
+      }, 15000); 
     }
     return () => {
       if (timer) clearTimeout(timer);
@@ -479,11 +471,10 @@ function RestaurantMapPage() {
   }, [locationError]);
   
   useEffect(() => {
-    // Auto-show manual entry when accuracy is poor
     if (locationAccuracy && locationAccuracy > 10000) {
       setShowManualEntry(true);
       setLocationError("Your location appears to be very imprecise. For better results, please enter your location manually.");
-      setShowLocationWarning(true); // Reset warning visibility when accuracy changes significantly
+      setShowLocationWarning(true); 
     }
   }, [locationAccuracy]);
   
@@ -609,8 +600,6 @@ function RestaurantMapPage() {
         </div>
       </div>
       
-      
-      {/* Location warning - now above the map */}
       {locationAccuracy && locationAccuracy > 1000 && showLocationWarning && (
         <>
           <div className="warning-backdrop" onClick={() => setShowLocationWarning(false)}></div>
@@ -845,5 +834,4 @@ function RestaurantMapPage() {
     </div>
   );
 }
-
 export default RestaurantMapPage;

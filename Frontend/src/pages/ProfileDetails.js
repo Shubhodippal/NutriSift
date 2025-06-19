@@ -17,8 +17,8 @@ function ProfileDetails() {
     height: '',
     gender: '',
     dob: '',
-    dietPref: '',  // Changed from diet_pref
-    bodyGoal: '',  // Changed from body_goal
+    dietPref: '',  
+    bodyGoal: '',  
     allergies: '',
     city: '',
     country: '',
@@ -52,11 +52,10 @@ function ProfileDetails() {
   
     const getUserEmailFromToken = (token) => {
         try {
-            // Basic JWT parsing (payload is the second part)
             const base64Url = token.split('.')[1];
             const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
             const payload = JSON.parse(window.atob(base64));
-            return payload.sub || payload.email; // Adjust based on your token structure
+            return payload.sub || payload.email; 
         } catch (error) {
             console.error('Error parsing token:', error);
             return null;
@@ -73,7 +72,6 @@ function ProfileDetails() {
         return null;
       }
     };
-  // Fetch existing profile data if available
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -85,7 +83,6 @@ function ProfileDetails() {
         
         setIsLoading(true);
         
-        // Get the user's email from the token or user data
         const userEmail = getUserEmailFromToken(token);
         if (!userEmail) {
           setMessage({
@@ -106,18 +103,14 @@ function ProfileDetails() {
         
         if (response.ok) {
           const data = await response.json();
-          // Format date for input field (YYYY-MM-DD)
           if (data.dob) {
             data.dob = new Date(data.dob).toISOString().split('T')[0];
           }
           setProfile(data);
           setProfileExists(true);
-          // Start in view mode for existing profiles
           setIsEditMode(false);
         } else if (response.status === 404) {
-          // 404 means profile not found - new user
           setProfileExists(false);
-          // Start in edit mode for new profiles
           setIsEditMode(true);
         } else {
           console.error('Failed to fetch profile');
@@ -132,23 +125,19 @@ function ProfileDetails() {
     fetchProfile();
   }, [navigate]);
   
-  // Calculate BMI when height or weight changes
   useEffect(() => {
     if (profile.height && profile.weight) {
-      // BMI = weight(kg) / (height(m))²
-      const heightInMeters = profile.height / 100; // Convert cm to meters
+      const heightInMeters = profile.height / 100; 
       const bmi = (profile.weight / (heightInMeters * heightInMeters)).toFixed(1);
       setProfile(prev => ({ ...prev, bmi }));
     }
   }, [profile.height, profile.weight]);
   
-  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProfile(prev => ({ ...prev, [name]: value }));
     setFormTouched(true);
     
-    // Clear error for this field if it exists
     if (formErrors[name]) {
       setFormErrors(prev => {
         const newErrors = { ...prev };
@@ -158,7 +147,6 @@ function ProfileDetails() {
     }
   };
   
-  // Validate form before submission
   const validateForm = () => {
     const errors = {};
     
@@ -186,7 +174,6 @@ function ProfileDetails() {
     if (!profile.bodyGoal) errors.bodyGoal = 'Body goal is required';
     if (!profile.allergies) errors.allergies = 'Please list any allergies or dietary restrictions';
 
-    // Add validation for location fields
     if (!profile.city) errors.city = 'City is required';
     if (!profile.country) errors.country = 'Country is required'; 
     if (!profile.address) errors.address = 'Address is required';
@@ -195,7 +182,6 @@ function ProfileDetails() {
       errors.pincode = 'Please enter a valid pincode (5-10 digits)';
     }
     
-    // Check if DOB is not in the future and user is at least 5 years old
     if (profile.dob) {
       const dobDate = new Date(profile.dob);
       const today = new Date();
@@ -213,7 +199,6 @@ function ProfileDetails() {
     return Object.keys(errors).length === 0;
   };
   
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -237,7 +222,6 @@ function ProfileDetails() {
         return;
       }
       
-      // Get user email from token
       if (!userEmail) {
         setMessage({
           text: 'Unable to identify user. Please log in again.',
@@ -249,14 +233,12 @@ function ProfileDetails() {
       
       setIsLoading(true);
       
-      // Add email to profile data
       const profileData = {
         ...profile,
         mail: userEmail,
         uid: userId 
       };
       
-      // Check if we're creating a new profile or updating existing one
       const method = profileExists ? 'PUT' : 'POST';
       const endpoint = profileExists 
         ? `${process.env.REACT_APP_API_BASE_URL}/users/profile/${userEmail}`
@@ -271,16 +253,13 @@ function ProfileDetails() {
         body: JSON.stringify(profileData)
       });
       
-      // If the response is ok, show success message and redirect
       if (response.ok) {
-        // If we just created a profile, update our state
         if (!profileExists) {
           setProfileExists(true);
         }
         
-        let countdown = 5; // Increase to 5 seconds for better visibility
+        let countdown = 5; 
         
-        // Set success message
         setMessage({
           text: `${profileExists ? 'Profile updated' : 'Profile created'} successfully! Redirecting in ${countdown}...`,
           type: 'success'
@@ -288,12 +267,10 @@ function ProfileDetails() {
         
         setFormTouched(false);
         
-        // Exit edit mode if we were updating
         if (profileExists) {
           setIsEditMode(false);
         }
         
-        // Scroll to the message
         setTimeout(() => {
           const messageElement = document.querySelector('.profile-message');
           if (messageElement) {
@@ -301,7 +278,6 @@ function ProfileDetails() {
           }
         }, 100);
         
-        // Create countdown effect
         const countdownInterval = setInterval(() => {
           countdown--;
           
@@ -333,7 +309,6 @@ function ProfileDetails() {
     }
   };
   
-  // Get BMI category
   const getBmiCategory = (bmi) => {
     if (!bmi) return '';
     
@@ -344,7 +319,6 @@ function ProfileDetails() {
     return 'Obesity';
   };
   
-  // Clear message after 5 seconds
   useEffect(() => {
     if (message.text) {
       const timer = setTimeout(() => {
@@ -355,41 +329,6 @@ function ProfileDetails() {
     }
   }, [message]);
   
-  // Function for our custom button in the hamburger menu
-  const handleExportProfile = () => {
-    try {
-      // Create a formatted string of profile data
-      const profileData = JSON.stringify(profile, null, 2);
-      
-      // Create a blob and download link
-      const blob = new Blob([profileData], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      
-      // Create download link and trigger click
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `profile-${profile.name || 'data'}.json`;
-      document.body.appendChild(a);
-      a.click();
-      
-      // Clean up
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      setMessage({
-        text: 'Profile exported successfully!',
-        type: 'success'
-      });
-    } catch (error) {
-      console.error('Error exporting profile:', error);
-      setMessage({
-        text: 'Failed to export profile data.',
-        type: 'error'
-      });
-    }
-  };
-  
-  // Check if all required fields are filled
   const areAllRequiredFieldsFilled = () => {
     return (
       !!profile.name &&
@@ -406,13 +345,6 @@ function ProfileDetails() {
       !!profile.address &&
       !!profile.pincode
     );
-  };
-  
-  // Add a function to toggle edit mode
-  const toggleEditMode = () => {
-    setIsEditMode(prev => !prev);
-    // Clear any previous error messages when toggling modes
-    setMessage({ text: '', type: '' });
   };
   
   return (

@@ -65,8 +65,10 @@ function SavedRecipesPage() {
       
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}${process.env.REACT_APP_RECIPES_ENDPOINT}/user/${userId}`, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json',
-        [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY }
+        headers: { 
+          'Content-Type': 'application/json',
+          [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY 
+        }
       });
       
       if (!response.ok) {
@@ -361,7 +363,6 @@ function SavedRecipesPage() {
           );
           
           if (existingIndex >= 0) {
-            // Check if meals exists and is an array before spreading
             const existingMeals = Array.isArray(currentList[existingIndex].meals) 
               ? currentList[existingIndex].meals 
               : [];
@@ -376,7 +377,7 @@ function SavedRecipesPage() {
           return {
             name,
             quantity,
-            category: categorizeIngredient(name),
+            category: 'Other',
             checked: false,
             count: 1,
             meals: [recipe.title || recipe.recipeName]
@@ -409,7 +410,7 @@ function SavedRecipesPage() {
       localStorage.setItem('groceryItems', JSON.stringify(sortedList));
       
       try {
-        const userEmail = decoded.email; // Make sure to get email from the token
+        const userEmail = decoded.email; 
         
         const saveResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/grocerylist/${userId}/${userEmail}`, {
           method: 'POST',
@@ -439,32 +440,6 @@ function SavedRecipesPage() {
     }
   };
 
-  const categorizeIngredient = (ingredient) => {
-    const lowerIngredient = ingredient.toLowerCase();
-    
-    if (lowerIngredient.includes('milk') || lowerIngredient.includes('cheese') || 
-        lowerIngredient.includes('yogurt') || lowerIngredient.includes('butter')) {
-      return 'Dairy';
-    } else if (lowerIngredient.includes('chicken') || lowerIngredient.includes('beef') || 
-               lowerIngredient.includes('pork') || lowerIngredient.includes('fish') ||
-               lowerIngredient.includes('meat')) {
-      return 'Meat';
-    } else if (lowerIngredient.includes('flour') || lowerIngredient.includes('sugar') || 
-               lowerIngredient.includes('oil') || lowerIngredient.includes('pasta') ||
-               lowerIngredient.includes('rice') || lowerIngredient.includes('sauce')) {
-      return 'Pantry';
-    } else if (lowerIngredient.includes('apple') || lowerIngredient.includes('banana') || 
-               lowerIngredient.includes('berry') || lowerIngredient.includes('fruit')) {
-      return 'Fruits';
-    } else if (lowerIngredient.includes('lettuce') || lowerIngredient.includes('tomato') || 
-               lowerIngredient.includes('onion') || lowerIngredient.includes('potato') ||
-               lowerIngredient.includes('vegetable')) {
-      return 'Vegetables';
-    } else {
-      return 'Other';
-    }
-  };
-
   const extractIngredients = (recipe) => {
     if (Array.isArray(recipe.ingredients)) {
       return recipe.ingredients;
@@ -483,7 +458,6 @@ function SavedRecipesPage() {
           .filter(Boolean);
       }
     }
-    
     return [];
   };
 
@@ -505,7 +479,6 @@ function SavedRecipesPage() {
           .filter(Boolean);
       }
     }
-    
     return [];
   };
 
@@ -627,5 +600,4 @@ function SavedRecipesPage() {
     </div>
   );
 }
-
 export default SavedRecipesPage;

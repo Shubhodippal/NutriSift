@@ -17,8 +17,8 @@
   z-index: 100;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   width: 100%;
-  box-sizing: border-box; /* Add this to include padding in width calculation */
-  overflow-x:visible; /* Prevent horizontal overflow */
+  box-sizing: border-box; 
+  overflow-x:visible; 
 }
 
 .header-content {
@@ -27,8 +27,8 @@
   align-items: center;
   max-width: 1400px;
   margin: 0 auto;
-  width: 100%; /* Ensure it takes full width of parent */
-  padding: 0 10px; /* Add some padding */
+  width: 100%; 
+  padding: 0 10px;
 }
 
 .header-content h1 {
@@ -49,7 +49,6 @@
   padding: 1.5rem;
 }
 
-/* Control Bar */
 .control-bar {
   display: flex;
   flex-wrap: wrap;
@@ -59,7 +58,6 @@
   position: relative;
 }
 
-/* Button styling */
 .action-button {
   display: flex;
   align-items: center;
@@ -125,7 +123,6 @@
   font-size: 1.1rem;
 }
 
-/* Toast Notifications */
 .toast {
   display: flex;
   align-items: center;
@@ -176,7 +173,6 @@
   to { opacity: 0; transform: translate(-50%, 20px); }
 }
 
-/* Loading and Empty States */
 .loading-state,
 .empty-state {
   display: flex;
@@ -204,7 +200,6 @@
   margin-bottom: 0.5rem;
 }
 
-/* Days Container */
 .days-container {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -215,7 +210,6 @@
   grid-template-columns: 1fr;
 }
 
-/* Day Card Styling */
 .day {
   background: rgba(26, 34, 53, 0.7);
   border-radius: 12px;
@@ -235,7 +229,6 @@
   color: #4f8cff;
 }
 
-/* Meals Container */
 .meals {
   padding: 1rem;
   display: flex;
@@ -243,7 +236,6 @@
   gap: 1rem;
 }
 
-/* Meal Card Styling */
 .meal {
   background: linear-gradient(145deg, rgba(40, 48, 70, 0.7) 0%, rgba(22, 27, 39, 0.7) 100%);
   border-radius: 12px;
@@ -307,7 +299,6 @@
   z-index: 1;
 }
 
-/* Meal Info Section */
 .meal-info {
   padding: 1.2rem;
   flex: 1;
@@ -328,7 +319,6 @@
   flex-grow: 1;
 }
 
-/* Meal Stats (Calories, Ingredients) */
 .meal-stats {
   display: flex;
   gap: 1rem;
@@ -348,7 +338,6 @@
   font-size: 1.1rem;
 }
 
-/* Meal Action Buttons */
 .meal-actions {
   display: flex;
   gap: 0.8rem;
@@ -396,7 +385,6 @@
   font-size: 0.8rem;
 }
 
-/* Confirmation dialog */
 .confirmation-dialog {
   position: fixed;
   top: 0;
@@ -449,7 +437,6 @@
   }
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .meal-planner-header {
     padding: 1rem;
@@ -602,7 +589,6 @@
   }
 }
 
-/* Optimize for small mobile devices */
 @media (max-width: 360px) {
   .meal-planner-header {
     padding: 0.6rem;
@@ -646,32 +632,28 @@
   }
 }
 
-/* Improve touch targets for mobile */
 @media (max-width: 768px) {
   .action-button, 
   .action-icon,
   .close-toast,
   .meal {
-    cursor: default; /* Remove hover cursor on touch devices */
+    cursor: default; 
   }
   
   .action-button {
-    padding: 0.9rem 1rem; /* Larger touch target */
+    padding: 0.9rem 1rem; 
   }
   
   .action-icon {
-    /* Better touch target */
     min-height: 44px;
     display: flex;
     justify-content: center;
   }
   
-  /* Prevent zoom on iOS */
   select, input {
     font-size: 16px;
   }
   
-  /* Fix for mobile horizontal scroll issues */
   .meal-planner-page,
   .meal-planner-content,
   .days-container,
@@ -683,13 +665,11 @@
     box-sizing: border-box;
   }
   
-  /* Improve scrolling performance */
   .meal-planner-page {
     -webkit-overflow-scrolling: touch;
   }
 }
 
-/* Fix for iOS safe areas */
 @supports (-webkit-touch-callout: none) {
   .meal-planner-header {
     padding-top: max(0.8rem, env(safe-area-inset-top));

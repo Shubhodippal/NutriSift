@@ -179,6 +179,31 @@
   align-items: center;
 }
 
+.input-icon {
+  position: absolute;
+  left: 12px;
+  pointer-events: none;
+  font-size: 1rem;
+  z-index: 1;
+}
+
+.login-form input {
+  width: 100%;
+  padding: 12px 12px 12px 40px; 
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.05);
+  color: white;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.login-form input[type="text"],
+.login-form input[type="password"] {
+  padding-left: 40px !important; 
+  text-indent: 0; 
+}
+
 .password-toggle {
   position: absolute;
   right: 10px;
@@ -203,13 +228,6 @@
 
 .input-wrapper input[name="password"] {
   padding-right: 40px;
-}
-
-.input-icon {
-  position: absolute;
-  left: 12px;
-  pointer-events: none;
-  font-size: 1rem;
 }
 
 .login-form input {
@@ -629,7 +647,6 @@
   cursor: not-allowed;
 }
 
-/* Add these spinner styles to your existing CSS file */
 .spinner-container {
   display: inline-flex;
   justify-content: center;

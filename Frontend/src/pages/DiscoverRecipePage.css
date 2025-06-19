@@ -173,7 +173,6 @@
   margin: 0 auto 2rem;
 }
 
-/* Responsive grid layout for different screen sizes */
 @media (min-width: 600px) {
   .recipe-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -279,7 +278,6 @@
   padding-top: 16px;
 }
 
-/* Improved container spacing */
 .recipes-container {
   padding: 20px;
 }
@@ -309,14 +307,13 @@
   padding: 0.9rem 1rem;
   border: 1px solid #2d3748;
   border-radius: 8px;
-  background-color: #1a2235; /* Darker background color to match theme */
+  background-color: #1a2235; 
   color: #e2e8f0;
   font-size: 1rem;
   box-sizing: border-box;
   transition: all 0.2s ease;
 }
 
-/* Fix for white background in search input */
 .search-input-wrapper input,
 input[placeholder*="Enter keywords"],
 .filters-section input[type="text"],
@@ -327,7 +324,6 @@ input[placeholder*="Enter keywords"],
   border-radius: 8px;
 }
 
-/* Also ensure any other inputs in the filters follow the dark theme */
 .filters-section input,
 .filters-section select,
 .filters-section textarea {
@@ -397,7 +393,7 @@ input[placeholder*="Enter keywords"],
     gap: 3px;
     justify-content: space-between;
     width: 100%;
-    align-items: stretch; /* Ensure all items stretch to same height */
+    align-items: stretch; 
   }
   
   .recipe-actions button {
@@ -405,30 +401,28 @@ input[placeholder*="Enter keywords"],
     min-width: 0;
     padding: 6px !important;
     font-size: 0.8rem;
-    height: 36px !important; /* Force same height for all buttons */
-    box-sizing: border-box; /* Ensure padding doesn't affect height */
+    height: 36px !important; 
+    box-sizing: border-box; 
   }
   
   .view-recipe-button {
     flex: 1.5;
-    height: 36px !important; /* Explicitly set same height as other buttons */
+    height: 36px !important; 
   }
   
-  /* Make all buttons have identical padding */
   .save-recipe-button,
   .print-recipe-button,
   .share-recipe-button,
   .grocery-recipe-button {
     padding: 6px 4px !important;
-    height: 36px !important; /* Match the View button height */
+    height: 36px !important; 
   }
 }
 
-/* Very small screens - maintain consistent heights */
 @media (max-width: 400px) {
   .recipe-actions button {
     padding: 4px !important;
-    height: 36px !important; /* Keep consistent height */
+    height: 36px !important; 
   }
 }
 
@@ -532,7 +526,6 @@ input[placeholder*="Enter keywords"],
   to { opacity: 0; transform: translate(-50%, 20px); }
 }
 
-/* Standardize action button styles */
 .recipe-actions button,
 .view-recipe-button,
 .save-recipe-button,
@@ -548,14 +541,13 @@ input[placeholder*="Enter keywords"],
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-width: 36px; /* Ensure minimum width */
-  height: 36px; /* Fixed height for consistency */
+  min-width: 36px; 
+  height: 36px; 
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-/* Fix for mobile view */
 @media (max-width: 768px) {
   .recipe-actions {
     display: flex;
@@ -563,7 +555,7 @@ input[placeholder*="Enter keywords"],
     gap: 3px;
     justify-content: space-between;
     width: 100%;
-    align-items: stretch; /* Ensure all items stretch to same height */
+    align-items: stretch; 
   }
   
   .recipe-actions button {
@@ -571,29 +563,27 @@ input[placeholder*="Enter keywords"],
     min-width: 0;
     padding: 6px !important;
     font-size: 0.8rem;
-    height: 36px !important; /* Force same height for all buttons */
-    box-sizing: border-box; /* Ensure padding doesn't affect height */
+    height: 36px !important; 
+    box-sizing: border-box; 
   }
   
   .view-recipe-button {
     flex: 1.5;
-    height: 36px !important; /* Explicitly set same height as other buttons */
+    height: 36px !important; 
   }
   
-  /* Make all buttons have identical padding */
   .save-recipe-button,
   .print-recipe-button,
   .share-recipe-button,
   .grocery-recipe-button {
     padding: 6px 4px !important;
-    height: 36px !important; /* Match the View button height */
+    height: 36px !important; 
   }
 }
 
-/* Very small screens - maintain consistent heights */
 @media (max-width: 400px) {
   .recipe-actions button {
     padding: 4px !important;
-    height: 36px !important; /* Keep consistent height */
+    height: 36px !important; 
   }
 }

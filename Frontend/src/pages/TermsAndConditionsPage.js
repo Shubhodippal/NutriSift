@@ -1,11 +1,10 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../styles/LegalPages.css';
+import './LegalPages.css';
 
 const TermsAndConditionsPage = () => {
   const navigate = useNavigate();
   
-  // Add this useEffect to scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -163,5 +162,4 @@ const TermsAndConditionsPage = () => {
     </div>
   );
 };
-
 export default TermsAndConditionsPage;
