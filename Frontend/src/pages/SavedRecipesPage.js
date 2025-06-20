@@ -482,6 +482,13 @@ function SavedRecipesPage() {
     return [];
   };
 
+  useEffect(() => {
+    // Track conversion when the component mounts
+    window.gtag('event', 'conversion', {
+      'send_to': 'AW-17233780436/xuZlCJrN8d4aENS92plA'
+    });
+  }, []);
+
   return (
     <div className="saved-recipes-page">
       <header className="saved-recipes-header">

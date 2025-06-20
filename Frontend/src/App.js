@@ -96,6 +96,13 @@ function HomePage({ isLoggedIn, setIsLoggedIn }) {
     }
   }, []);
   
+  useEffect(() => {
+    // Track conversion when the component mounts
+    window.gtag('event', 'conversion', {
+      'send_to': 'AW-17233780436/xuZlCJrN8d4aENS92plA'
+    });
+  }, []);
+  
   return (
     <div className="app-bg-pro">
       <AnimatedBackground />

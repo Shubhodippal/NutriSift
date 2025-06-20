@@ -720,6 +720,11 @@ function DiscoverRecipePage() {
         console.error('Error parsing cached recipes:', err);
       }
     }
+    
+    // Track conversion when the component mounts
+    window.gtag('event', 'conversion', {
+      'send_to': 'AW-17233780436/xuZlCJrN8d4aENS92plA'
+    });
   }, []);
   
   const clearRecipeCache = () => {
