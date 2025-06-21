@@ -2155,3 +2155,91 @@ body {
   top: 70px; 
   z-index: 999;
 }
+
+.signup-banner {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  max-width: 350px;
+  animation: slidein 0.5s ease-out;
+}
+
+.signup-banner__content {
+  padding: 20px;
+  color: white;
+  text-align: center;
+}
+
+.signup-banner__content h3 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+}
+
+.signup-banner__content p {
+  margin: 0 0 15px 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.signup-banner__content .highlight {
+  font-weight: bold;
+  color: #ffeb3b;
+}
+
+.signup-banner__actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.signup-banner__cta {
+  background-color: #ffeb3b;
+  color: #333;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.signup-banner__cta:hover {
+  background-color: #fff;
+  transform: scale(1.05);
+}
+
+.signup-banner__close {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 5px 10px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+@keyframes slidein {
+  from {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .signup-banner {
+    left: 20px;
+    right: 20px;
+    max-width: none;
+  }
+}

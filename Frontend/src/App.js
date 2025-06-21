@@ -30,6 +30,9 @@ const ProtectedRoute = ({ element }) => {
 
 function HomePage({ isLoggedIn, setIsLoggedIn }) {
   const navigate = useNavigate();
+  // Add state for the signup banner
+  const [showSignupBanner, setShowSignupBanner] = useState(false);
+  
   const handleLogout = () => {
     if (window.confirm('Are you sure you want to log out?')) {
       localStorage.clear();
@@ -103,9 +106,42 @@ function HomePage({ isLoggedIn, setIsLoggedIn }) {
     });
   }, []);
   
+  useEffect(() => {
+    if (!isLoggedIn) {
+      const bannerTimer = setTimeout(() => {
+        setShowSignupBanner(true);
+      }, 2000); 
+      
+      return () => clearTimeout(bannerTimer);
+    }
+  }, [isLoggedIn]);
+  
   return (
     <div className="app-bg-pro">
       <AnimatedBackground />
+      
+      {showSignupBanner && !isLoggedIn && (
+        <div className="signup-banner">
+          <div className="signup-banner__content">
+            <h3>🎉 Limited Time Offer!</h3>
+            <p>Sign up now to get <span className="highlight">FREE</span> access to all recipe features</p>
+            <div className="signup-banner__actions">
+              <button 
+                className="signup-banner__cta"
+                onClick={() => navigate('/login?formMode=signup')}
+              >
+                Sign Up Now
+              </button>
+              <button 
+                className="signup-banner__close"
+                onClick={() => setShowSignupBanner(false)}
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       <nav className="navbar-pro">
         <div className="navbar-pro__logo">

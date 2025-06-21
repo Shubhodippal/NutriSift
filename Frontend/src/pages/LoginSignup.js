@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import './LoginSignup.css';
 import successSound from '../assets/success.mp3'; 
 import AnimatedBackground from '../components/AnimatedBackground'; 
 import bcrypt from 'bcryptjs';
 
 function LoginSignup({ onLogin }) {
+  const location = useLocation();
   const audioRef = useRef(null);
   const [formData, setFormData] = useState({
     email: '',
@@ -659,6 +660,16 @@ function LoginSignup({ onLogin }) {
       <div className="spinner"></div>
     </div>
   );
+
+  useEffect(() => {
+    // Check for formMode parameter in URL
+    const params = new URLSearchParams(location.search);
+    const mode = params.get('formMode');
+    
+    if (mode === 'signup') {
+      setFormMode('signup');
+    }
+  }, [location]);
 
   return (
     <>
