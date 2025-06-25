@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, useNavigate, Navigate, Link as RouterLink } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate, Link as RouterLink } from 'react-router-dom';
 import { Link as ScrollLink } from 'react-scroll'; 
 import './App.css';
 import FeaturesSection from './FeaturesSection';
@@ -22,6 +22,8 @@ import TermsAndConditionsPage from './pages/TermsAndConditionsPage';
 import { checkTokenExpiration } from './utils/authUtils';
 import ProfileDetails from './pages/ProfileDetails';
 import PersonalizedMealPlannerPage from './pages/PersonalizedMealPlannerPage';
+import { HelmetProvider } from 'react-helmet-async';
+import SEO from './components/SEO';
 
 const ProtectedRoute = ({ element }) => {
   const isAuthenticated = !!localStorage.getItem('token');
@@ -118,6 +120,12 @@ function HomePage({ isLoggedIn, setIsLoggedIn }) {
   
   return (
     <div className="app-bg-pro">
+      <SEO 
+        title="AI-Powered Recipe Generator" 
+        description="Transform your ingredients into chef-level meals, save money, and help the planet with our AI-powered recipe generator."
+        keywords="AI recipes, recipe generator, meal planner, food waste reduction, smart cooking"
+        url="/"
+      />
       <AnimatedBackground />
       
       {showSignupBanner && !isLoggedIn && (
@@ -365,24 +373,26 @@ function App() {
   }, []);
 
   return (
-    <Router> 
-      <Routes>
-        <Route path="/" element={<HomePage isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />} />
-        <Route path="/login" element={<LoginSignup setIsLoggedIn={setIsLoggedIn} />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-        <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
-        <Route path="/chat" element={<ProtectedRoute element={<RecipeChatPage />} />} />
-        <Route path="/saved-recipes" element={<ProtectedRoute element={<SavedRecipesPage />} />} />
-        <Route path="/recipe/:id" element={<ProtectedRoute element={<RecipeDetailPage />} />} />
-        <Route path="/recipe/view/:id" element={<ProtectedRoute element={<RecipeDetailPage />} />} /> 
-        <Route path="/grocery-list" element={<ProtectedRoute element={<GroceryListPage />} />} />
-        <Route path="/nearby-restaurants" element={<ProtectedRoute element={<RestaurantMapPage />} />} />
-        <Route path="/discover-recipes" element={<ProtectedRoute element={<DiscoverRecipePage />} />} /> 
-        <Route path="/profile" element={<ProtectedRoute element={<ProfileDetails />} />} />
-        <Route path="/meal-planner" element={<ProtectedRoute element={<PersonalizedMealPlannerPage />} />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>
+    <HelmetProvider>
+      <Router> 
+        <Routes>
+          <Route path="/" element={<HomePage isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />} />
+          <Route path="/login" element={<LoginSignup setIsLoggedIn={setIsLoggedIn} />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
+          <Route path="/chat" element={<ProtectedRoute element={<RecipeChatPage />} />} />
+          <Route path="/saved-recipes" element={<ProtectedRoute element={<SavedRecipesPage />} />} />
+          <Route path="/recipe/:id" element={<ProtectedRoute element={<RecipeDetailPage />} />} />
+          <Route path="/recipe/view/:id" element={<ProtectedRoute element={<RecipeDetailPage />} />} /> 
+          <Route path="/grocery-list" element={<ProtectedRoute element={<GroceryListPage />} />} />
+          <Route path="/nearby-restaurants" element={<ProtectedRoute element={<RestaurantMapPage />} />} />
+          <Route path="/discover-recipes" element={<ProtectedRoute element={<DiscoverRecipePage />} />} /> 
+          <Route path="/profile" element={<ProtectedRoute element={<ProfileDetails />} />} />
+          <Route path="/meal-planner" element={<ProtectedRoute element={<PersonalizedMealPlannerPage />} />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </HelmetProvider>
   );
 }
 

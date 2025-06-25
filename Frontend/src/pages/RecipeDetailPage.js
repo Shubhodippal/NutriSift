@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './RecipeDetailPage.css';
 import HamburgerMenu from '../components/HamburgerMenu';
+import SEO from '../components/SEO';
 
 function RecipeDetailPage() {
   const { id } = useParams();
@@ -209,160 +210,170 @@ function RecipeDetailPage() {
   });
 
   return (
-    <div className="recipe-detail-page">
-      <header className="recipe-detail-header">
-        <h1>{recipe.title || "Recipe"}</h1>
-        
-        <HamburgerMenu 
-          isLoggedIn={true}
-        />
-      </header>
+    <>
+      <SEO 
+        title={recipe.title || recipe.recipeName} 
+        description={`Try this delicious ${recipe.title} recipe with ${recipe.totalTime} preparation time`}
+        keywords={`${recipe.title}, recipe, cooking, ${recipe.cuisine || ''}, ${recipe.dietLabels?.join(', ') || ''}`}
+        image={recipe.image}
+        url={`/recipe/${recipe.id}`}
+        schemaType="Recipe"
+      />
+      <div className="recipe-detail-page">
+        <header className="recipe-detail-header">
+          <h1>{recipe.title || "Recipe"}</h1>
+          
+          <HamburgerMenu 
+            isLoggedIn={true}
+          />
+        </header>
 
-      <div className="recipe-metadata">
-        {recipe.calories && (
-          <div className="metadata-item">
-            <span className="metadata-icon">🔥</span>
-            <span className="metadata-label">Calories:</span>
-            <span className="metadata-value">{recipe.calories}</span>
-          </div>
-        )}
-        
-        {recipe.diet && (
-          <div className="metadata-item">
-            <span className="metadata-icon">🥗</span>
-            <span className="metadata-label">Diet:</span>
-            <span className="metadata-value">{recipe.diet}</span>
-          </div>
-        )}
-        
-        {recipe.origin && (
-          <div className="metadata-item">
-            <span className="metadata-icon">🌍</span>
-            <span className="metadata-label">Origin:</span>
-            <span className="metadata-value">{recipe.origin}</span>
-          </div>
-        )}
-        
-        {recipe.course && (
-          <div className="metadata-item">
-            <span className="metadata-icon">🍽️</span>
-            <span className="metadata-label">Course:</span>
-            <span className="metadata-value">{recipe.course}</span>
-          </div>
-        )}
-        
-        {recipe.cuisine && (
-          <div className="metadata-item">
-            <span className="metadata-icon">👨‍🍳</span>
-            <span className="metadata-label">Cuisine:</span>
-            <span className="metadata-value">{recipe.cuisine}</span>
-          </div>
-        )}
-        
-        {recipe.savedAt && (
-          <div className="metadata-item">
-            <span className="metadata-icon">🕒</span>
-            <span className="metadata-label">Saved:</span>
-            <span className="metadata-value">
-              {new Date(recipe.savedAt).toLocaleString()}
-            </span>
-          </div>
-        )}
-      </div>
-
-      <div className="recipe-detail-image">
-        <img src={recipe.image} alt={recipe.title} />
-      </div>
-
-      <div className="recipe-content">
-        <div className="recipe-servings">
-          <label>Servings:</label>
-          <div className="servings-control">
-            <button onClick={() => servings > 1 && setServings(servings - 1)}>-</button>
-            <span>{servings}</span>
-            <button onClick={() => setServings(servings + 1)}>+</button>
-          </div>
+        <div className="recipe-metadata">
+          {recipe.calories && (
+            <div className="metadata-item">
+              <span className="metadata-icon">🔥</span>
+              <span className="metadata-label">Calories:</span>
+              <span className="metadata-value">{recipe.calories}</span>
+            </div>
+          )}
+          
+          {recipe.diet && (
+            <div className="metadata-item">
+              <span className="metadata-icon">🥗</span>
+              <span className="metadata-label">Diet:</span>
+              <span className="metadata-value">{recipe.diet}</span>
+            </div>
+          )}
+          
+          {recipe.origin && (
+            <div className="metadata-item">
+              <span className="metadata-icon">🌍</span>
+              <span className="metadata-label">Origin:</span>
+              <span className="metadata-value">{recipe.origin}</span>
+            </div>
+          )}
+          
+          {recipe.course && (
+            <div className="metadata-item">
+              <span className="metadata-icon">🍽️</span>
+              <span className="metadata-label">Course:</span>
+              <span className="metadata-value">{recipe.course}</span>
+            </div>
+          )}
+          
+          {recipe.cuisine && (
+            <div className="metadata-item">
+              <span className="metadata-icon">👨‍🍳</span>
+              <span className="metadata-label">Cuisine:</span>
+              <span className="metadata-value">{recipe.cuisine}</span>
+            </div>
+          )}
+          
+          {recipe.savedAt && (
+            <div className="metadata-item">
+              <span className="metadata-icon">🕒</span>
+              <span className="metadata-label">Saved:</span>
+              <span className="metadata-value">
+                {new Date(recipe.savedAt).toLocaleString()}
+              </span>
+            </div>
+          )}
         </div>
 
-        <div className="recipe-tabs">
-          <button className={activeStep === 0 ? 'active' : ''} onClick={() => setActiveStep(0)}>
-            Overview
-          </button>
-          <button className={activeStep === 1 ? 'active' : ''} onClick={() => setActiveStep(1)}>
-            Step-by-Step
-          </button>
+        <div className="recipe-detail-image">
+          <img src={recipe.image} alt={recipe.title} />
         </div>
 
-        {activeStep === 0 ? (
-          <>
-            <div className="ingredients-section">
-              <h2>Ingredients</h2>
-              <ul>
-                {adjustedIngredients.map((ingredient, idx) => (
-                  <li key={idx}>{ingredient}</li>
-                ))}
-              </ul>
+        <div className="recipe-content">
+          <div className="recipe-servings">
+            <label>Servings:</label>
+            <div className="servings-control">
+              <button onClick={() => servings > 1 && setServings(servings - 1)}>-</button>
+              <span>{servings}</span>
+              <button onClick={() => setServings(servings + 1)}>+</button>
             </div>
+          </div>
 
-            <div className="instructions-section">
-              <h2>Instructions</h2>
-              <ol>
-                {stepsList.map((step, idx) => (
-                  <li key={idx}>
-                    {step.replace(/^\d+\.\s*/, '')}
-                  </li>
-                ))}
-              </ol>
-            </div>
-          </>
-        ) : (
-          <div className="step-by-step">
-            <div className="step-progress">
-              Step {activeStep} of {stepsList.length}
-              <div className="progress-bar">
-                <div className="progress" style={{width: `${(activeStep / stepsList.length) * 100}%`}}></div>
+          <div className="recipe-tabs">
+            <button className={activeStep === 0 ? 'active' : ''} onClick={() => setActiveStep(0)}>
+              Overview
+            </button>
+            <button className={activeStep === 1 ? 'active' : ''} onClick={() => setActiveStep(1)}>
+              Step-by-Step
+            </button>
+          </div>
+
+          {activeStep === 0 ? (
+            <>
+              <div className="ingredients-section">
+                <h2>Ingredients</h2>
+                <ul>
+                  {adjustedIngredients.map((ingredient, idx) => (
+                    <li key={idx}>{ingredient}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="instructions-section">
+                <h2>Instructions</h2>
+                <ol>
+                  {stepsList.map((step, idx) => (
+                    <li key={idx}>
+                      {step.replace(/^\d+\.\s*/, '')}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </>
+          ) : (
+            <div className="step-by-step">
+              <div className="step-progress">
+                Step {activeStep} of {stepsList.length}
+                <div className="progress-bar">
+                  <div className="progress" style={{width: `${(activeStep / stepsList.length) * 100}%`}}></div>
+                </div>
+              </div>
+              
+              <div className="current-step">
+                <p>{stepsList[activeStep - 1]}</p>
+              </div>
+              
+              <div className="step-controls">
+                <button 
+                  disabled={activeStep === 1}
+                  onClick={() => setActiveStep(prev => Math.max(prev - 1, 1))}
+                >
+                  Previous Step
+                </button>
+                <button 
+                  disabled={activeStep === stepsList.length}
+                  onClick={() => setActiveStep(prev => Math.min(prev + 1, stepsList.length))}
+                >
+                  Next Step
+                </button>
               </div>
             </div>
-            
-            <div className="current-step">
-              <p>{stepsList[activeStep - 1]}</p>
-            </div>
-            
-            <div className="step-controls">
-              <button 
-                disabled={activeStep === 1}
-                onClick={() => setActiveStep(prev => Math.max(prev - 1, 1))}
-              >
-                Previous Step
-              </button>
-              <button 
-                disabled={activeStep === stepsList.length}
-                onClick={() => setActiveStep(prev => Math.min(prev + 1, stepsList.length))}
-              >
-                Next Step
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      <div className="image-disclaimer">
-        <p>
-          <span className="disclaimer-icon">ℹ️</span> 
-          Recipe images are provided for reference only and may not exactly match the actual dish.
-        </p>
-      </div>
+        <div className="image-disclaimer">
+          <p>
+            <span className="disclaimer-icon">ℹ️</span> 
+            Recipe images are provided for reference only and may not exactly match the actual dish.
+          </p>
+        </div>
 
-      <div className="health-nutrition-disclaimer">
-        <h3>Health and Nutrition Disclaimer</h3>
-        <p>
-          The nutritional information, recipes, and dietary recommendations provided through our Services are for informational purposes only and are not intended as medical advice, diagnosis, or treatment. Always consult with a qualified healthcare provider before making significant changes to your diet or if you have any health concerns or conditions.
-        </p>
-        <p>
-          We cannot guarantee that recipes generated by our AI will be suitable for specific dietary needs or restrictions. Users with severe allergies or medical dietary requirements should verify all ingredients and nutritional information independently.
-        </p>
+        <div className="health-nutrition-disclaimer">
+          <h3>Health and Nutrition Disclaimer</h3>
+          <p>
+            The nutritional information, recipes, and dietary recommendations provided through our Services are for informational purposes only and are not intended as medical advice, diagnosis, or treatment. Always consult with a qualified healthcare provider before making significant changes to your diet or if you have any health concerns or conditions.
+          </p>
+          <p>
+            We cannot guarantee that recipes generated by our AI will be suitable for specific dietary needs or restrictions. Users with severe allergies or medical dietary requirements should verify all ingredients and nutritional information independently.
+          </p>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 export default RecipeDetailPage;
