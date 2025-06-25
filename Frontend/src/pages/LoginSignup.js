@@ -225,7 +225,7 @@ function LoginSignup({ onLogin }) {
             setFormData(prev => ({ ...prev, signupOtpSent: true }));
           }
           
-          setFormSuccess('OTP has been sent to your email address');
+          setFormSuccess('OTP has been sent to your email');
           
           setCooldownTime(60);
           setCooldownActive(true);
