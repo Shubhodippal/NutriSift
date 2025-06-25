@@ -1,16 +1,16 @@
 {
   "files": {
     "main.css": "/NutriSift/static/css/main.bd693103.css",
-    "main.js": "/NutriSift/static/js/main.d7b12325.js",
+    "main.js": "/NutriSift/static/js/main.1edd6683.js",
     "static/js/453.ee8a9c8f.chunk.js": "/NutriSift/static/js/453.ee8a9c8f.chunk.js",
     "static/media/success.mp3": "/NutriSift/static/media/success.e40fda2b34a9b64420b3.mp3",
     "index.html": "/NutriSift/index.html",
     "main.bd693103.css.map": "/NutriSift/static/css/main.bd693103.css.map",
-    "main.d7b12325.js.map": "/NutriSift/static/js/main.d7b12325.js.map",
+    "main.1edd6683.js.map": "/NutriSift/static/js/main.1edd6683.js.map",
     "453.ee8a9c8f.chunk.js.map": "/NutriSift/static/js/453.ee8a9c8f.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.bd693103.css",
-    "static/js/main.d7b12325.js"
+    "static/js/main.1edd6683.js"
   ]
 }
