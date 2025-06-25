@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate, Link as RouterLink } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useNavigate, Navigate, Link as RouterLink } from 'react-router-dom';
 import { Link as ScrollLink } from 'react-scroll'; 
 import './App.css';
 import FeaturesSection from './FeaturesSection';
