@@ -102,13 +102,6 @@ function HomePage({ isLoggedIn, setIsLoggedIn }) {
   }, []);
   
   useEffect(() => {
-    // Track conversion when the component mounts
-    window.gtag('event', 'conversion', {
-      'send_to': 'AW-17233780436/xuZlCJrN8d4aENS92plA'
-    });
-  }, []);
-  
-  useEffect(() => {
     if (!isLoggedIn) {
       const bannerTimer = setTimeout(() => {
         setShowSignupBanner(true);
@@ -130,21 +123,26 @@ function HomePage({ isLoggedIn, setIsLoggedIn }) {
       
       {showSignupBanner && !isLoggedIn && (
         <div className="signup-banner">
+          <button 
+            className="signup-banner__close"
+            onClick={() => setShowSignupBanner(false)}
+          >
+            ✕
+          </button>
           <div className="signup-banner__content">
-            <h3>🎉 Limited Time Offer!</h3>
-            <p>Sign up now to get <span className="highlight">FREE</span> access to all recipe features</p>
+            <h3>🎁 Unlock All Premium Features!</h3>
+            <p>Join <span className="highlight">10,000+</span> users who save time and reduce food waste</p>
+            <ul className="signup-banner__benefits">
+              <li>✅ Unlimited AI recipe generation</li>
+              <li>✅ Personalized meal planning</li>
+              <li>✅ Save favorite recipes</li>
+            </ul>
             <div className="signup-banner__actions">
               <button 
                 className="signup-banner__cta"
                 onClick={() => navigate('/login?formMode=signup')}
               >
-                Sign Up Now
-              </button>
-              <button 
-                className="signup-banner__close"
-                onClick={() => setShowSignupBanner(false)}
-              >
-                ✕
+                Create Free Account
               </button>
             </div>
           </div>
@@ -250,13 +248,31 @@ function HomePage({ isLoggedIn, setIsLoggedIn }) {
             AI-powered recipes for homes, restaurants, and businesses.<br />
             Transform your ingredients into chef-level meals, save money, and help the planet.
           </p>
-          <button
-            className="hero-pro__cta"
-            onClick={() => navigate('/chat')}
-          >
-            <span className="hero-pro__cta-icon">🚀</span>
-            Start Generating Recipes
-          </button>
+          <div className="hero-pro__benefits">
+            <div className="hero-pro__benefit-item">🔍 Find recipes for any ingredients</div>
+            <div className="hero-pro__benefit-item">⏱️ Save time planning meals</div>
+            <div className="hero-pro__benefit-item">💰 Reduce food waste & grocery costs</div>
+          </div>
+          {isLoggedIn ? (
+            <button
+              className="hero-pro__cta"
+              onClick={() => navigate('/chat')}
+            >
+              <span className="hero-pro__cta-icon">🚀</span>
+              Start Generating Recipes
+            </button>
+          ) : (
+            <div className="hero-pro__cta-container">
+              <button
+                className="hero-pro__cta"
+                onClick={() => navigate('/login?formMode=signup')}
+              >
+                <span className="hero-pro__cta-icon">✨</span>
+                Join Free for 14 Days
+              </button>
+              <p className="hero-pro__cta-subtext">No credit card required</p>
+            </div>
+          )}
           <div className="hero-pro__trusted">
             <span>Trusted by</span>
             <span className="hero-pro__trusted-logos">
