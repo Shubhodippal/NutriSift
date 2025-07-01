@@ -65,32 +65,6 @@ public class UserController {
     }
 
     @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @GetMapping("/verify/{userId}")
-    public ResponseEntity<?> verifyUser(@PathVariable String userId) {
-        try {
-            String sql = "SELECT email FROM users WHERE userid = ?";
-            String email = jdbcTemplate.queryForObject(sql, String.class, userId);
-            
-            if (email != null) {
-                String token = jwtUtil.generateToken(userId, email);
-                Map<String, String> response = new HashMap<>();
-                response.put("token", token);
-                response.put("message", "User verified successfully");
-                return ResponseEntity.ok(response);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Collections.singletonMap("error", "User not found"));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Collections.singletonMap("error", "Error verifying user: " + e.getMessage()));
-        }
-    }
-
-    @Autowired
     private JwtUtil jwtUtil;
 
     @PostMapping("/login")

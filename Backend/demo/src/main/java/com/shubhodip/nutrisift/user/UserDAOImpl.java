@@ -177,7 +177,7 @@ public class UserDAOImpl implements UserDAO {
 
     private static class UserRowMapper implements RowMapper<User> {
         @Override
-        public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+        public User mapRow(@org.springframework.lang.NonNull ResultSet rs, int rowNum) throws SQLException {
             User user = new User();
             user.setId(rs.getLong("id"));
             user.setUserid(rs.getString("userid"));
