@@ -1,4 +1,4 @@
-# NutriSift - AI-Powered Recipe Management Platform
+# NutriSift - AI-Powered Recipe Creation and Management Platform
 <!-- GitAds-Verify: KGUU4F9BHPZVOJ9BCRE1RY3Q64Q6AA3V -->
 
 ![NutriSift Logo](./logo.png)
