@@ -371,7 +371,21 @@ function App() {
     }
   };
 
+  // Add this function to handle login state updates
+  const handleLogin = (userId) => {
+    setIsLoggedIn(true);
+  };
+
   useEffect(() => {
+    // Check if user is already logged in on app load
+    const token = localStorage.getItem('token');
+    if (token) {
+      const decoded = decodeJWT(token);
+      if (decoded && decoded.userId) {
+        setIsLoggedIn(true);
+      }
+    }
+
     const checkExpiration = async () => {
       const isExpired = await checkTokenExpiration();
       
@@ -393,7 +407,7 @@ function App() {
       <Router> 
         <Routes>
           <Route path="/" element={<HomePage isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />} />
-          <Route path="/login" element={<LoginSignup setIsLoggedIn={setIsLoggedIn} />} />
+          <Route path="/login" element={<LoginSignup onLogin={handleLogin} />} />
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
           <Route path="/chat" element={<ProtectedRoute element={<RecipeChatPage />} />} />
