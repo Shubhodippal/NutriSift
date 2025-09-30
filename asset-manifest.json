@@ -1,16 +1,16 @@
 {
   "files": {
-    "main.css": "/NutriSift/static/css/main.af39920a.css",
-    "main.js": "/NutriSift/static/js/main.5f620cbc.js",
+    "main.css": "/NutriSift/static/css/main.329cc716.css",
+    "main.js": "/NutriSift/static/js/main.bb63c9cd.js",
     "static/js/453.ee8a9c8f.chunk.js": "/NutriSift/static/js/453.ee8a9c8f.chunk.js",
     "static/media/success.mp3": "/NutriSift/static/media/success.e40fda2b34a9b64420b3.mp3",
     "index.html": "/NutriSift/index.html",
-    "main.af39920a.css.map": "/NutriSift/static/css/main.af39920a.css.map",
-    "main.5f620cbc.js.map": "/NutriSift/static/js/main.5f620cbc.js.map",
+    "main.329cc716.css.map": "/NutriSift/static/css/main.329cc716.css.map",
+    "main.bb63c9cd.js.map": "/NutriSift/static/js/main.bb63c9cd.js.map",
     "453.ee8a9c8f.chunk.js.map": "/NutriSift/static/js/453.ee8a9c8f.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.af39920a.css",
-    "static/js/main.5f620cbc.js"
+    "static/css/main.329cc716.css",
+    "static/js/main.bb63c9cd.js"
   ]
 }
