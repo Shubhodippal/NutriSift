@@ -225,6 +225,7 @@ function RecipeDetailPage() {
           
           <HamburgerMenu 
             isLoggedIn={true}
+            isSidebar={true}
           />
         </header>
 

@@ -1116,7 +1116,7 @@ function PersonalizedMealPlannerPage() {
       <header className="meal-planner-header">
         <div className="header-content">
           <h1><span className="calendar-icon">📅</span> Personalized Meal Planner</h1>
-          <HamburgerMenu isLoggedIn={true} />
+          <HamburgerMenu isLoggedIn={true} isSidebar={true} />
         </div>
       </header>
       

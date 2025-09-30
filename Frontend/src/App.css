@@ -9,8 +9,8 @@
   --text: #f0f4f8;
   --text-secondary: #b0c0d0;
   --text-accent: #a5b4fc;
-  --glow: rgba(79,140,255,0.3); 
-  --shadow: 0 4px 24px rgba(0,0,0,0.5);
+  --glow: rgba(79,140,255,0.5); 
+  --shadow: 0 4px 24px rgba(0,0,0,0.7);
   --radius: 18px;
 }
 
@@ -22,11 +22,17 @@ body {
   min-height: 100vh;
   transition: background 0.3s, color 0.3s;
   cursor: default; 
+  overflow-x: hidden;
+}
+
+html {
+  overflow-x: hidden;
 }
 
 .main-content-container {
   margin-top: 60px; 
   min-height: calc(100vh - 60px);
+  overflow-x: hidden;
 }
 
 .app-bg-pro {
@@ -34,13 +40,14 @@ body {
   position: relative;
   z-index: 1;
   background: 
-    radial-gradient(circle at 15% 15%, rgba(79,140,255,0.25) 0%, transparent 50%),
-    radial-gradient(circle at 85% 85%, rgba(255,179,71,0.2) 0%, transparent 55%),
-    radial-gradient(circle at 75% 25%, rgba(106,90,249,0.2) 0%, transparent 40%),
-    radial-gradient(circle at 25% 75%, rgba(79,140,255,0.15) 0%, transparent 45%),
-    linear-gradient(135deg, rgba(24,28,40,0.85) 0%, rgba(18,21,30,0.9) 100%),
+    radial-gradient(circle at 15% 15%, rgba(79,140,255,0.4) 0%, transparent 50%),
+    radial-gradient(circle at 85% 85%, rgba(255,179,71,0.35) 0%, transparent 55%),
+    radial-gradient(circle at 75% 25%, rgba(106,90,249,0.35) 0%, transparent 40%),
+    radial-gradient(circle at 25% 75%, rgba(79,140,255,0.3) 0%, transparent 45%),
+    linear-gradient(135deg, rgba(24,28,40,0.95) 0%, rgba(18,21,30,0.95) 100%),
     var(--bg);
   background-attachment: fixed;
+  overflow-x: hidden;
 }
 
 .app-bg-pro::before {
@@ -291,6 +298,13 @@ body {
 .hamburger-menu-container {
   position: relative;
   margin-left: auto;
+}
+
+/* Hide hamburger menu on desktop screens */
+@media (min-width: 769px) {
+  .hamburger-menu-container {
+    display: none !important;
+  }
 }
 
 .hamburger-button {
@@ -561,6 +575,14 @@ body {
     height: 220px;
     margin: 0 auto;
   }
+  
+  .hero-pro__highlight {
+    font-size: 2.2rem;
+  }
+  
+  .hero-pro__subtitle {
+    font-size: 1rem;
+  }
 }
 
 .main-pro {
@@ -569,6 +591,12 @@ body {
   padding: 3rem 2rem;
   background-color: transparent;
   box-shadow: none;
+}
+
+@media (max-width: 768px) {
+  .main-pro {
+    padding: 2rem 1rem;
+  }
 }
 
 .footer-pro {
@@ -1542,6 +1570,20 @@ body {
   .navbar-pro__logo-icon {
     font-size: 20px;
   }
+  
+  .hero-pro__highlight {
+    font-size: 1.8rem;
+  }
+  
+  .hero-pro__subtitle {
+    font-size: 0.95rem;
+  }
+  
+  .hero-pro__cta {
+    padding: 14px 28px;
+    font-size: 1rem;
+    min-width: 200px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -1804,80 +1846,7 @@ body {
   z-index: 999;
 }
 
-.signup-banner {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
-  max-width: 350px;
-  background: linear-gradient(135deg, #2c3e50, #4ca1af);
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  animation: slideIn 0.5s ease-out;
-}
 
-.signup-banner__content {
-  padding: 20px;
-  color: white;
-}
-
-.signup-banner__benefits {
-  margin: 12px 0;
-  padding-left: 10px;
-  list-style-type: none;
-}
-
-.signup-banner__benefits li {
-  margin-bottom: 6px;
-  font-size: 14px;
-}
-
-.signup-banner__cta {
-  background-color: #ff7f50;
-  color: white;
-  font-weight: bold;
-  padding: 10px 18px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.signup-banner__cta:hover {
-  background-color: #ff6b3d;
-  transform: translateY(-2px);
-}
-
-.signup-banner__close {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
-  transition: all 0.2s ease;
-}
-
-.signup-banner__close:hover {
-  background: rgba(255, 255, 255, 0.4);
-  transform: rotate(90deg);
-}
-
-.signup-banner__actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 15px;
-}
 
 /* Hero Benefits */
 .hero-pro__benefits {
@@ -1893,6 +1862,18 @@ body {
   border-radius: 50px;
   font-size: 14px;
   font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .hero-pro__benefits {
+    justify-content: center;
+    gap: 8px;
+  }
+  
+  .hero-pro__benefit-item {
+    font-size: 13px;
+    padding: 6px 12px;
+  }
 }
 
 .hero-pro__cta-container {
@@ -1954,4 +1935,19 @@ body {
 .feature-card:hover {
   transform: translateY(-5px) scale(1.02) !important;
   transition: all 0.3s ease !important;
+}
+
+/* Mobile Hamburger Menu Container */
+.mobile-hamburger-container {
+  position: fixed;
+  top: -4px;
+  right: 20px;
+  z-index: 1001;
+  display: none; /* Hidden by default */
+}
+
+@media (max-width: 768px) {
+  .mobile-hamburger-container {
+    display: block; /* Show only on mobile devices */
+  }
 }

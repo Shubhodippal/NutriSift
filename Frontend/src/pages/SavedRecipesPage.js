@@ -496,6 +496,7 @@ function SavedRecipesPage() {
         
         <HamburgerMenu 
           isLoggedIn={true}
+          isSidebar={true}
         />
       </header>
 

@@ -732,25 +732,24 @@ const generateMockRecipe = (ingredients) => {
         <div className="gradient-sphere gradient-sphere-3"></div>
       </div>
       
+      <HamburgerMenu 
+        additionalItems={{
+          showNewChat: true,
+          clearChat: handleClearChat
+        }}
+        isLoggedIn={true}
+        isSidebar={true}
+      />
+      
       <nav className="chat-navbar">
-        <div className="chat-logo" onClick={() => navigate("/")}>
-          <span role="img" aria-label="chef" className="logo-emoji">{BOT_AVATAR}</span>
-          <span className="brand-name">NutriSift</span>
+        <div className="chat-logo">
+          <span className="brand-name">AI Recipe Assistant</span>
         </div>
-        
-        <HamburgerMenu 
-          additionalItems={{
-            showNewChat: true,
-            clearChat: handleClearChat
-          }}
-          isLoggedIn={true}
-        />
       </nav>
       
       <div className="chat-container">
         {!isMobile && (
           <div className="chat-header">
-            <h1>Recipe Assistant</h1>
             <p>Transform your ingredients into chef-level recipes</p>
             <div className="chat-decoration">
               <span className="decoration-icon">🍴</span>
@@ -887,12 +886,6 @@ const generateMockRecipe = (ingredients) => {
           </div>
         </form>
       </div>
-      
-      {!isMobile && (
-        <div className="chat-footer">
-          <p>Made with ❤️ by Shubhodip • <a href="#privacy">Privacy Policy</a> • <a href="#terms">Terms</a></p>
-        </div>
-      )}
       
       {successMessage && (
         <div className="success-toast">

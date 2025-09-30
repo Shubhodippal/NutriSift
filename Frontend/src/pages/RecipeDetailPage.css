@@ -4,6 +4,7 @@
   padding: 2rem;
   color: #e2e8f0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  padding-left: 320px;
 }
 
 .recipe-detail-header {
@@ -381,4 +382,10 @@
 
 .health-nutrition-disclaimer p:last-child {
   margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .recipe-detail-page {
+    padding-left: 2rem;
+  }
 }

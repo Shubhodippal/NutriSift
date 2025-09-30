@@ -731,6 +731,7 @@ function GroceryListPage() {
         
         <HamburgerMenu 
           isLoggedIn={true}
+          isSidebar={true}
         />
       </header>
       

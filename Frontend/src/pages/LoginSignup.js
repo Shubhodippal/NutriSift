@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import './LoginSignup.css';
 import successSound from '../assets/success.mp3'; 
-import AnimatedBackground from '../components/AnimatedBackground'; 
 import bcrypt from 'bcryptjs';
 
 function LoginSignup({ onLogin }) {
@@ -536,24 +535,69 @@ function LoginSignup({ onLogin }) {
         const responseText = await response.text();
         console.log("Server response:", responseText);
         
-        if (audioRef.current) {
-          try {
-            audioRef.current.volume = 1.0;
-            await audioRef.current.play();
-          } catch (err) {
-            console.log("Audio couldn't play:", err);
+        // Automatically log in the user after successful signup
+        try {
+          const loginResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users/login`, {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY 
+            },
+            body: JSON.stringify({ 
+              email: formData.email, 
+              password: formData.password 
+            })
+          });
+
+          if (loginResponse.ok) {
+            const contentType = loginResponse.headers.get("content-type");
+            let data;
+
+            if (contentType && contentType.includes("application/json")) {
+              data = await loginResponse.json();
+            } else {
+              data = await loginResponse.text();
+              setFormError('Unexpected response from server during login. Please try logging in manually.');
+              return;
+            }
+
+            const token = data.token;
+            const decoded = decodeJWT(token);
+
+            const ref_token = data.refreshToken;
+
+            if (decoded?.userId) {
+              localStorage.setItem('token', token);
+              localStorage.setItem('refreshToken', ref_token);
+
+              if (onLogin) onLogin(decoded.userId);
+
+              if (audioRef.current) {
+                try {
+                  audioRef.current.volume = 1.0;
+                  await audioRef.current.play();
+                } catch (err) {
+                  console.log("Audio couldn't play:", err);
+                }
+              }
+              
+              setFormSuccess('Account created and logged in successfully!');
+              setAnimateSuccess(true);
+              
+              setTimeout(() => {
+                setIsVisible(false);
+                setTimeout(() => navigate('/chat'), 400);
+              }, 600);
+            } else {
+              setFormError("Invalid token received. Please try logging in manually.");
+            }
+          } else {
+            setFormError('Account created but failed to log in automatically. Please log in manually.');
           }
+        } catch (loginError) {
+          console.error('Error during automatic login:', loginError);
+          setFormError('Account created but failed to log in automatically. Please log in manually.');
         }
-        
-        setFormSuccess("Account created successfully! You can now log in.");
-        setAnimateSuccess(true);
-        
-        setTimeout(() => {
-          setIsVisible(false);
-          setTimeout(() => {
-            handleBackToLogin();
-          }, 400);
-        }, 2000);
       } else {
         if (response.status === 409) {
           setFormError('An account with this email already exists.');
@@ -580,6 +624,73 @@ function LoginSignup({ onLogin }) {
       handleSignup(e);
     } else if (formMode === 'forgotPassword' && formData.answerVerified) {
       handleResetPassword();
+    }
+  };
+
+  const handleGuestLogin = async () => {
+    setIsLoading(true);
+    setFormError('');
+    
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users/login`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          [process.env.REACT_APP_API_KEY_HEADER]: process.env.REACT_APP_API_KEY 
+        },
+        body: JSON.stringify({ 
+          email: 'Shubhodippal01@gmail.com', 
+          password: 'Meow@20meow' 
+        })
+      });
+
+      if (response.ok) {
+        const contentType = response.headers.get("content-type");
+        let data;
+
+        if (contentType && contentType.includes("application/json")) {
+          data = await response.json();
+        } else {
+          data = await response.text();
+          setFormError('Unexpected response from server. Please try again.');
+          return;
+        }
+
+        const token = data.token;
+        const decoded = decodeJWT(token);
+        const ref_token = data.refreshToken;
+
+        if (decoded?.userId) {
+          localStorage.setItem('token', token);
+          localStorage.setItem('refreshToken', ref_token);
+
+          if (onLogin) onLogin(decoded.userId);
+
+          if (audioRef.current) {
+            try {
+              audioRef.current.volume = 1.0;
+              await audioRef.current.play();
+            } catch (err) {
+              console.log("Audio couldn't play:", err);
+            }
+          }
+          
+          handleSuccess('/chat');
+        } else {
+          setFormError("Invalid token received. Please try again.");
+        }
+      } else {
+        if (response.status === 401 || response.status === 403) {
+          setFormError('Guest login failed. Please try regular login.');
+        } else {
+          setFormError('Guest login is currently unavailable. Please try again later.');
+        }
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setFormError('Error connecting to the server.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -673,7 +784,6 @@ function LoginSignup({ onLogin }) {
 
   return (
     <>
-      <AnimatedBackground />
       
       <div className={`login-overlay ${isVisible ? 'visible' : ''}`} onClick={handleBackdropClick}>
         <audio ref={audioRef} src={successSound} preload="auto" />
@@ -1076,27 +1186,40 @@ function LoginSignup({ onLogin }) {
                 </button>
               </div>
             ) : (
-              <button 
-                type="submit" 
-                className="submit-button"
-                disabled={(formMode === 'signup' && (
-                  (!passwordValid || !termsAccepted) || 
-                  (formData.signupOtpSent && !formData.otp) ||
-                  isLoading
-                )) || (formMode === 'login' && isLoading)}
-              >
-                {isLoading ? (
-                  <>
-                    <LoadingSpinner /> {formMode === 'login' ? 'Logging in...' : 
-                      formData.signupOtpSent && !formData.signupOtpVerified ? 'Verifying...' : 
-                      formData.signupOtpVerified ? 'Creating Account...' : 'Sending OTP...'}
-                  </>
-                ) : (
-                  formMode === 'login' ? 'Login' : 
-                  formData.signupOtpSent && !formData.signupOtpVerified ? 'Verify OTP' : 
-                  formData.signupOtpVerified ? 'Complete Signup' : 'Send OTP'
+              <div className="button-container">
+                <button 
+                  type="submit" 
+                  className="submit-button"
+                  disabled={(formMode === 'signup' && (
+                    (!passwordValid || !termsAccepted) || 
+                    (formData.signupOtpSent && !formData.otp) ||
+                    isLoading
+                  )) || (formMode === 'login' && isLoading)}
+                >
+                  {isLoading ? (
+                    <>
+                      <LoadingSpinner /> {formMode === 'login' ? 'Logging in...' : 
+                        formData.signupOtpSent && !formData.signupOtpVerified ? 'Verifying...' : 
+                        formData.signupOtpVerified ? 'Creating Account...' : 'Sending OTP...'}
+                    </>
+                  ) : (
+                    formMode === 'login' ? 'Login' : 
+                    formData.signupOtpSent && !formData.signupOtpVerified ? 'Verify OTP' : 
+                    formData.signupOtpVerified ? 'Complete Signup' : 'Send OTP'
+                  )}
+                </button>
+                
+                {formMode === 'login' && (
+                  <button 
+                    type="button" 
+                    onClick={handleGuestLogin} 
+                    className="guest-login-btn"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Logging in...' : 'Guest Login'}
+                  </button>
                 )}
-              </button>
+              </div>
             )}
           </form>
           

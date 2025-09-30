@@ -258,10 +258,8 @@ function ProfileDetails() {
           setProfileExists(true);
         }
         
-        let countdown = 5; 
-        
         setMessage({
-          text: `${profileExists ? 'Profile updated' : 'Profile created'} successfully! Redirecting in ${countdown}...`,
+          text: `${profileExists ? 'Profile updated' : 'Profile created'} successfully!`,
           type: 'success'
         });
         
@@ -277,20 +275,6 @@ function ProfileDetails() {
             messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
         }, 100);
-        
-        const countdownInterval = setInterval(() => {
-          countdown--;
-          
-          if (countdown <= 0) {
-            clearInterval(countdownInterval);
-            navigate('/dashboard');
-          } else {
-            setMessage({
-              text: `${profileExists ? 'Profile updated' : 'Profile created'} successfully! Redirecting in ${countdown}...`,
-              type: 'success'
-            });
-          }
-        }, 1000);
       } else {
         const errorData = await response.json().catch(() => ({}));
         setMessage({
@@ -356,6 +340,7 @@ function ProfileDetails() {
         </div>
         <HamburgerMenu 
           isLoggedIn={true}
+          isSidebar={true}
         />
       </nav>
       

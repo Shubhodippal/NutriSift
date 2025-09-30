@@ -6,6 +6,7 @@
   align-items: center;
   position: relative;
   z-index: 1;
+  padding-left: 320px;
 }
 
 .profile-header {
@@ -20,7 +21,7 @@
 .profile-title {
   font-size: 2.2rem;
   color: #f0f4f8;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
   background: linear-gradient(90deg, #fff 60%, #ffe0b2 100%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -81,13 +82,13 @@
 }
 
 .profile-message.error {
-  background: rgba(245, 101, 101, 0.2);
+  background: rgba(245, 101, 101, 0.3);
   color: #f56565;
   border: 1px solid rgba(245, 101, 101, 0.3);
 }
 
 .incomplete-form-message {
-  background: rgba(245, 158, 11, 0.15);
+  background: rgba(245, 158, 11, 0.25);
   color: #f59e0b;
   padding: 12px;
   border-radius: 8px;
@@ -210,7 +211,7 @@ select.error {
 }
 
 .bmi-display {
-  background: rgba(79, 140, 255, 0.1);
+  background: rgba(79, 140, 255, 0.2);
   border: 1px solid rgba(79, 140, 255, 0.3);
   border-radius: 8px;
   padding: 0.8rem 1rem;
@@ -271,7 +272,7 @@ select.error {
 }
 
 .cancel-button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.1);
   color: #e2e8f0;
 }
 
@@ -310,7 +311,7 @@ select.error {
 .profile-content {
   width: 100%;
   max-width: 800px;
-  margin: 2rem auto;
+  margin: 0.5rem auto 2rem auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -374,6 +375,7 @@ select.error {
   .profile-details-container,
   .profile-container {
     padding: 0.75rem;
+    padding-left: 0.75rem;
   }
   
   .profile-title {

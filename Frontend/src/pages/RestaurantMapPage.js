@@ -491,6 +491,7 @@ function RestaurantMapPage() {
         <h1>🍽️ Nearby Restaurants</h1>
         <HamburgerMenu 
           isLoggedIn={true}
+          isSidebar={true}
         />
       </header>
       

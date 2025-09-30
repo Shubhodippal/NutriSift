@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, useNavigate, Navigate, Link as RouterLink } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useNavigate, Navigate, Link as RouterLink, useLocation } from 'react-router-dom';
 import { Link as ScrollLink } from 'react-scroll'; 
 import './App.css';
 import FeaturesSection from './FeaturesSection';
@@ -25,6 +25,50 @@ import PersonalizedMealPlannerPage from './pages/PersonalizedMealPlannerPage';
 import { HelmetProvider } from 'react-helmet-async';
 import SEO from './components/SEO';
 
+const Layout = ({ children, isLoggedIn, setIsLoggedIn }) => {
+  const location = useLocation();
+  const handleLogout = () => {
+    if (window.confirm('Are you sure you want to log out?')) {
+      localStorage.clear();
+      
+      document.cookie.split(";").forEach(cookie => {
+        const eqPos = cookie.indexOf("=");
+        const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+      });
+      
+      setIsLoggedIn(false);
+      window.location.href = '/';
+    }
+  };
+
+  // Define inside pages that should not have background animation
+  const insidePages = ['/chat', '/saved-recipes', '/recipe', '/grocery-list', '/nearby-restaurants', '/discover-recipes', '/profile', '/meal-planner'];
+  const isInsidePage = insidePages.some(page => location.pathname.startsWith(page));
+
+  return (
+    <div className="app-bg-pro">
+      <SEO 
+        title="AI-Powered Recipe Generator" 
+        description="Transform your ingredients into chef-level meals, save money, and help the planet with our AI-powered recipe generator."
+        keywords="AI recipes, recipe generator, meal planner, food waste reduction, smart cooking"
+        url="/"
+      />
+      {!isInsidePage && <AnimatedBackground />}
+      
+      {/* Mobile Hamburger Menu - Only visible on mobile devices */}
+      <div className="mobile-hamburger-container">
+        <HamburgerMenu 
+          isLoggedIn={isLoggedIn}
+          onLogout={handleLogout}
+        />
+      </div>
+      
+      {children}
+    </div>
+  );
+};
+
 const ProtectedRoute = ({ element }) => {
   const isAuthenticated = !!localStorage.getItem('token');
   return isAuthenticated ? element : <Navigate to="/login" replace />;
@@ -32,8 +76,6 @@ const ProtectedRoute = ({ element }) => {
 
 function HomePage({ isLoggedIn, setIsLoggedIn }) {
   const navigate = useNavigate();
-  // Add state for the signup banner
-  const [showSignupBanner, setShowSignupBanner] = useState(false);
   
   const handleLogout = () => {
     if (window.confirm('Are you sure you want to log out?')) {
@@ -101,16 +143,6 @@ function HomePage({ isLoggedIn, setIsLoggedIn }) {
     }
   }, []);
   
-  useEffect(() => {
-    if (!isLoggedIn) {
-      const bannerTimer = setTimeout(() => {
-        setShowSignupBanner(true);
-      }, 2000); 
-      
-      return () => clearTimeout(bannerTimer);
-    }
-  }, [isLoggedIn]);
-  
   return (
     <div className="app-bg-pro">
       <SEO 
@@ -120,34 +152,6 @@ function HomePage({ isLoggedIn, setIsLoggedIn }) {
         url="/"
       />
       <AnimatedBackground />
-      
-      {showSignupBanner && !isLoggedIn && (
-        <div className="signup-banner">
-          <button 
-            className="signup-banner__close"
-            onClick={() => setShowSignupBanner(false)}
-          >
-            ✕
-          </button>
-          <div className="signup-banner__content">
-            <h3>🎁 Unlock All Premium Features!</h3>
-            <p>Join <span className="highlight">10,000+</span> users who save time and reduce food waste</p>
-            <ul className="signup-banner__benefits">
-              <li>✅ Unlimited AI recipe generation</li>
-              <li>✅ Personalized meal planning</li>
-              <li>✅ Save favorite recipes</li>
-            </ul>
-            <div className="signup-banner__actions">
-              <button 
-                className="signup-banner__cta"
-                onClick={() => navigate('/login?formMode=signup')}
-              >
-                Create Free Account
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       
       <nav className="navbar-pro">
         <div className="navbar-pro__logo">
@@ -223,19 +227,7 @@ function HomePage({ isLoggedIn, setIsLoggedIn }) {
         </div>
         
         <div className="navbar-pro__mobile-controls">
-          {!isLoggedIn && (
-            <button
-              className="navbar-pro__cta navbar-pro__cta--mobile"
-              onClick={() => navigate('/login')}
-            >
-              Try Now
-            </button>
-          )}
-          
-          <HamburgerMenu 
-            isLoggedIn={isLoggedIn}
-            onLogout={handleLogout}
-          />
+          {/* Hamburger menu moved to Layout component for all pages */}
         </div>
       </nav>
 
@@ -268,19 +260,11 @@ function HomePage({ isLoggedIn, setIsLoggedIn }) {
                 onClick={() => navigate('/login?formMode=signup')}
               >
                 <span className="hero-pro__cta-icon">✨</span>
-                Join Free for 14 Days
+                Join Free Today
               </button>
               <p className="hero-pro__cta-subtext">No credit card required</p>
             </div>
           )}
-          <div className="hero-pro__trusted">
-            <span>Trusted by</span>
-            <span className="hero-pro__trusted-logos">
-              <span role="img" aria-label="restaurant">🍴</span>
-              <span role="img" aria-label="home">🏠</span>
-              <span role="img" aria-label="business">🏢</span>
-            </span>
-          </div>
         </div>
         <div className="hero-pro__image">
           <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80" alt="Chef" />
@@ -405,22 +389,24 @@ function App() {
   return (
     <HelmetProvider>
       <Router> 
-        <Routes>
-          <Route path="/" element={<HomePage isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />} />
-          <Route path="/login" element={<LoginSignup onLogin={handleLogin} />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-          <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
-          <Route path="/chat" element={<ProtectedRoute element={<RecipeChatPage />} />} />
-          <Route path="/saved-recipes" element={<ProtectedRoute element={<SavedRecipesPage />} />} />
-          <Route path="/recipe/:id" element={<ProtectedRoute element={<RecipeDetailPage />} />} />
-          <Route path="/recipe/view/:id" element={<ProtectedRoute element={<RecipeDetailPage />} />} /> 
-          <Route path="/grocery-list" element={<ProtectedRoute element={<GroceryListPage />} />} />
-          <Route path="/nearby-restaurants" element={<ProtectedRoute element={<RestaurantMapPage />} />} />
-          <Route path="/discover-recipes" element={<ProtectedRoute element={<DiscoverRecipePage />} />} /> 
-          <Route path="/profile" element={<ProtectedRoute element={<ProfileDetails />} />} />
-          <Route path="/meal-planner" element={<ProtectedRoute element={<PersonalizedMealPlannerPage />} />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <Layout isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn}>
+          <Routes>
+            <Route path="/" element={<HomePage isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />} />
+            <Route path="/login" element={<LoginSignup onLogin={handleLogin} />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+            <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
+            <Route path="/chat" element={<ProtectedRoute element={<RecipeChatPage />} />} />
+            <Route path="/saved-recipes" element={<ProtectedRoute element={<SavedRecipesPage />} />} />
+            <Route path="/recipe/:id" element={<ProtectedRoute element={<RecipeDetailPage />} />} />
+            <Route path="/recipe/view/:id" element={<ProtectedRoute element={<RecipeDetailPage />} />} /> 
+            <Route path="/grocery-list" element={<ProtectedRoute element={<GroceryListPage />} />} />
+            <Route path="/nearby-restaurants" element={<ProtectedRoute element={<RestaurantMapPage />} />} />
+            <Route path="/discover-recipes" element={<ProtectedRoute element={<DiscoverRecipePage />} />} /> 
+            <Route path="/profile" element={<ProtectedRoute element={<ProfileDetails />} />} />
+            <Route path="/meal-planner" element={<ProtectedRoute element={<PersonalizedMealPlannerPage />} />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Layout>
       </Router>
     </HelmetProvider>
   );

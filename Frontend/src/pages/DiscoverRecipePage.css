@@ -5,6 +5,7 @@
   background-color: #121927;
   color: #e2e8f0;
   padding-bottom: 3rem;
+  padding-left: 280px;
 }
 
 .discover-header {
@@ -266,7 +267,7 @@
   font-size: 12px;
   padding: 4px 8px;
   border-radius: 12px;
-  background: rgba(79, 140, 255, 0.15);
+  background: rgba(79, 140, 255, 0.3);
   color: #4f8cff;
 }
 
@@ -417,6 +418,33 @@ input[placeholder*="Enter keywords"],
     padding: 6px 4px !important;
     height: 36px !important; 
   }
+  
+  .discover-recipe-page {
+    padding-left: 0;
+  }
+  
+  .filter-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .recipe-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .filters-section {
+    margin: 1rem;
+    padding: 1rem;
+  }
+  
+  .discover-header {
+    padding: 1rem;
+  }
+  
+  .discover-header h1 {
+    font-size: 1.5rem;
+  }
 }
 
 @media (max-width: 400px) {
@@ -455,7 +483,7 @@ input[placeholder*="Enter keywords"],
   flex-direction: column;
   align-items: center;
   margin-bottom: 1rem;
-  background: rgba(26, 32, 44, 0.4);
+  background: rgba(26, 32, 44, 0.8);
   border-radius: 8px;
   padding: 1rem;
 }
@@ -578,6 +606,33 @@ input[placeholder*="Enter keywords"],
   .grocery-recipe-button {
     padding: 6px 4px !important;
     height: 36px !important; 
+  }
+  
+  .discover-recipe-page {
+    padding-left: 0;
+  }
+  
+  .filter-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .recipe-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .filters-section {
+    margin: 1rem;
+    padding: 1rem;
+  }
+  
+  .discover-header {
+    padding: 1rem;
+  }
+  
+  .discover-header h1 {
+    font-size: 1.5rem;
   }
 }
 

@@ -740,7 +740,7 @@ function DiscoverRecipePage() {
     <div className="discover-recipe-page">
       <header className="discover-header">
         <h1>🔍 Discover Recipes</h1>
-        <HamburgerMenu isLoggedIn={true} onClearCache={clearRecipeCache} />
+        <HamburgerMenu isLoggedIn={true} onClearCache={clearRecipeCache} isSidebar={true} />
       </header>
       
       <div className="filters-section">

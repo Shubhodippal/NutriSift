@@ -4,7 +4,8 @@
   padding: 2rem;
   color: #e2e8f0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  padding-top: 5rem; 
+  padding-top: 5rem;
+  padding-left: 320px;
 }
 
 .grocery-list-header {
@@ -13,13 +14,13 @@
   align-items: center;
   padding: 1rem 1.5rem;
   background: linear-gradient(90deg, #1a2235 0%, #121826 100%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   margin-bottom: 0;
   position: fixed; 
   top: 0;
-  left: 0;
+  left: 280px;
   right: 0;
-  width: 100%;
+  width: calc(100% - 280px);
   z-index: 1000; 
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   box-sizing: border-box;
@@ -256,7 +257,7 @@
 
 .label-icon {
   font-size: 1.2rem;
-  background: rgba(79, 140, 255, 0.15);
+  background: rgba(79, 140, 255, 0.3);
   padding: 0.3rem;
   border-radius: 6px;
   display: flex;
@@ -436,6 +437,8 @@
     justify-content: space-between; 
     align-items: center; 
     padding: 0.8rem 1rem;
+    left: 0;
+    width: 100%;
   }
   
   .grocery-list-header h1 {
@@ -452,7 +455,8 @@
   
   .grocery-list-page {
     padding: 1rem;
-    padding-top: 4.5rem; 
+    padding-top: 4.5rem;
+    padding-left: 1rem;
   }
 
   .form-group select,
@@ -596,7 +600,7 @@
 .delete-item-button:hover {
   opacity: 1;
   color: #e53e3e;
-  background: rgba(229, 62, 62, 0.1);
+  background: rgba(229, 62, 62, 0.2);
   transform: scale(1.1);
 }
 
@@ -634,7 +638,7 @@
 .edit-item-button:hover {
   opacity: 1;
   color: #4f8cff;
-  background: rgba(79, 140, 255, 0.1);
+  background: rgba(79, 140, 255, 0.2);
   transform: scale(1.1);
 }
 
